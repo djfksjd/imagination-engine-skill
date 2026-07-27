@@ -1,0 +1,83 @@
+{
+  "rubric": "imagination-engine",
+  "version": "0.1.0",
+  "default_thresholds": { "min_mean": 8.0, "min_axis": 6 },
+  "extremal_thresholds": { "min_mean": 9.0, "min_axis": 8 },
+  "note": "Self-scoring is weak evidence and this rubric does not pretend otherwise. Its value is that each axis names a specific failure, so a low score has to be argued away with a rewrite rather than with an adjective. Score honestly: a 6 that gets fixed beats a 9 that was assigned.",
+  "axes": [
+    {
+      "id": "unpredictability",
+      "label": "Unpredictability",
+      "question": "Given the topic alone, how unlikely was this particular result?",
+      "anchor_4": "A competent writer would reach it within a minute.",
+      "anchor_7": "It takes a deliberate detour to arrive here.",
+      "anchor_9": "Even after hearing the premise, the specific move is not guessable."
+    },
+    {
+      "id": "conceptual_distance",
+      "label": "Conceptual distance",
+      "question": "How far apart were the ingredients before this joined them?",
+      "anchor_4": "Two neighbours in the same field.",
+      "anchor_7": "Fields that occasionally meet in metaphor.",
+      "anchor_9": "Fields with no established traffic between them, joined by a real mechanism."
+    },
+    {
+      "id": "internal_consistency",
+      "label": "Internal consistency",
+      "question": "Do the new laws hold, and is something clearly impossible under them?",
+      "anchor_4": "Rules are asserted and then quietly violated.",
+      "anchor_7": "Rules hold, but nothing is forbidden by them.",
+      "anchor_9": "The new law generates consequences the author did not plan, and forbids things the old world allowed."
+    },
+    {
+      "id": "emotional_residue",
+      "label": "Emotional residue",
+      "question": "Does it leave conflicting feelings that outlast the reading?",
+      "anchor_4": "One clean feeling, or none.",
+      "anchor_7": "Two feelings, arriving from separate parts.",
+      "anchor_9": "Two opposed feelings produced by the same single feature."
+    },
+    {
+      "id": "imageability",
+      "label": "Imageability",
+      "question": "Can a specific scene be pictured, not just a concept summarized?",
+      "anchor_4": "Only abstractions.",
+      "anchor_7": "A scene, but a generic one.",
+      "anchor_9": "A scene with a sound, a gesture, and a detail that could only exist here."
+    },
+    {
+      "id": "retroactive_inevitability",
+      "label": "Retroactive inevitability",
+      "question": "After the principle is explained, does the result feel like the only way it could have gone?",
+      "anchor_4": "It still feels arbitrary; other choices would work equally well.",
+      "anchor_7": "Mostly follows, with decorative parts attached.",
+      "anchor_9": "Every element is entailed by the principle; removing one breaks the rest."
+    },
+    {
+      "id": "non_anthropocentrism",
+      "label": "Distance from human centring",
+      "question": "How far is this from existing for human benefit or resembling human wants?",
+      "anchor_4": "A product or a creature with human motives in a new skin.",
+      "anchor_7": "Indifferent to humans in places, useful to them in others.",
+      "anchor_9": "Humans are terrain, accident, or absent; nothing here is addressed to them."
+    },
+    {
+      "id": "integration",
+      "label": "Integration",
+      "question": "Have the source ingredients stopped being separable?",
+      "anchor_4": "The seams are visible; you can name which part came from where.",
+      "anchor_7": "Blended, with one ingredient still doing decorative work.",
+      "anchor_9": "No part can be removed and named as an import; it reads as one thing that always existed."
+    }
+  ],
+  "required_sections": [
+    { "id": "name", "min_chars": 3, "note": "Names the operating principle, not the genre." },
+    { "id": "one_line", "min_chars": 60, "note": "States what it is without comparing it to a known work." },
+    { "id": "principle", "min_chars": 200, "note": "The law by which it exists and operates, including what it forbids." },
+    { "id": "first_encounter", "min_chars": 300, "note": "A concrete scene: what is seen, heard, felt, and what behaviour changes." },
+    { "id": "strangest_property", "min_chars": 150, "note": "The novelty in its mode of existence, not its appearance." },
+    { "id": "affect", "min_chars": 120, "note": "The conflicting feelings and the single feature that produces both." },
+    { "id": "world_effect", "min_chars": 200, "note": "How language, culture, relations, industry, or daily habit reorganize." },
+    { "id": "avoided", "min_chars": 150, "note": "Which familiar versions were discarded and why this is not one of them." }
+  ]
+}

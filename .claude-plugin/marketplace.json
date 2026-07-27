@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "djfksjd",
+  "owner": {
+    "name": "djfksjd",
+    "url": "https://github.com/djfksjd"
+  },
+  "metadata": {
+    "description": "Handcrafted plugins for serious AI-assisted work."
+  },
+  "plugins": [
+    {
+      "name": "imagination-engine",
+      "source": "./",
+      "description": "Radical idea generation that blocks the obvious answer instead of asking for a better one — a ban list built from the model's own first instincts, a hash-seeded draw of distant domains and a reality rule to break, and a fail-closed rubric gate before anything is shown."
+    }
+  ]
+}

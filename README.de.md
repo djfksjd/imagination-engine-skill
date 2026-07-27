@@ -1,0 +1,171 @@
+<div align="center">
+
+# Imagination Engine
+
+**Fremdheit durch Subtraktion.**
+
+Ein Agenten-Skill, der eine KI wirklich fremdartige Ideen hervorbringen lässt — nicht indem er mehr Fantasie verlangt,<br>sondern indem er *die Wege zur naheliegenden Antwort entfernt*.
+
+[![tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757)](#installation)
+[![Codex](https://img.shields.io/badge/Codex-plugin-1f2328)](#installation)
+[![Python](https://img.shields.io/badge/python-3.11%2B_nur_stdlib-3776AB)](#unter-der-haube)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+[English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · **Deutsch** · [Português](README.pt-BR.md)
+
+</div>
+
+---
+
+> Einem Modell zu sagen, es solle „kreativ sein", lässt es die wahrscheinlichsten Fortsetzungen des Wortes *kreativ* ziehen. Deshalb konvergieren die Ergebnisse: schon wieder Pilzgeflechte, schon wieder die regennasse Neonstadt, schon wieder die Maschine, die am Ende Gefühle hat.
+>
+> **Nachdrücklicher anweisen verschiebt die Verteilung nicht. Optionen entfernen schon.**
+
+## Funktionsweise
+
+```mermaid
+flowchart LR
+    A["Deine Anfrage"] --> B["<b>1 · Verbrennen</b><br/>die 12 wahrscheinlichsten<br/>Antworten → Verbotsliste"]
+    B --> C["<b>2 · Austeilen</b><br/>hash-gesetzte Hand:<br/>3 ferne Domänen ·<br/>ein zu brechendes Gesetz ·<br/>eine nicht-menschliche Haltung ·<br/>ein Sinn · zwei Gefühle"]
+    C --> D["<b>3 · Bauen</b><br/>20 Kandidaten → Aussieben →<br/>die 3 fernsten über einen<br/>einzigen Mechanismus kreuzen"]
+    D --> E{"<b>4 · Gate</b><br/>8-Achsen-Raster<br/>+ Klischee-Linter"}
+    E -- fehlgeschlagen --> C
+    E -- bestanden --> F["Antwort in<br/>deiner Sprache"]
+```
+
+|  | Was passiert | Warum es wirkt |
+|---|---|---|
+| **1** | **Verbrennt die ersten Reflexe.** Vor jeder Generierung schreibt das Modell die zwölf Antworten auf, die es am wahrscheinlichsten geben würde; sie werden zur Verbotsliste, die maschinell gegen den Entwurf geprüft wird. | Es benennt außerdem das *Skelett*, das sie teilen (im Beispiel: ein Apparat, ein Bediener, eine gespeicherte Substanz). Das Skelett ist das eigentliche Ziel — jede umlackierte Variante fällt mit dem Original. |
+| **2** | **Teilt eine Hand aus, die das Modell nicht gewählt hat.** Ein hash-gesetzter Zug liefert drei Begriffsdomänen aus garantiert disjunkten Kategorien, ein zu brechendes Naturgesetz, eine nicht-menschliche Haltung, einen zu erfindenden Sinn und zwei Gefühle, die koexistieren müssen. | Sich selbst überlassen, assoziiert ein Modell zu seinen Lieblingen. Der Zug kommt von außen, ist reproduzierbar, und ein neuer Zug gibt *neue* Karten. |
+| **3** | **Verlangt Ersatz für das gebrochene Gesetz.** Jede Streichung installiert ein neues Gesetz, und dieses muss etwas verbieten, das die gewöhnliche Welt erlaubt. | Eine Welt, in der eine Regel bloß fehlt, ist nicht fremd, sondern leer. Erst die Einschränkung macht die Erfindung lesbar. |
+| **4** | **Schickt die Ausgabe durch Gates.** Ein Raster mit acht Achsen und ein Formulierungs-Linter laufen, bevor die Nutzerin irgendetwas sieht. | Ein nicht bestandenes Gate bedeutet neu generieren — nicht mit aufgerundeten Noten erneut einreichen. |
+
+## Installation
+
+Läuft in **Claude Code** und **Codex**. Nur Python-3-Standardbibliothek: nichts zu installieren, kein API-Schlüssel, kein Netzzugriff.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/djfksjd/imagination-engine-skill/main/install.sh | bash
+```
+
+<details>
+<summary><b>Manuelle Installation</b></summary>
+
+```bash
+# Claude Code
+claude plugin marketplace add djfksjd/imagination-engine-skill
+claude plugin install imagination-engine@djfksjd
+
+# Codex
+codex plugin marketplace add djfksjd/imagination-engine-skill
+codex plugin add imagination-engine@djfksjd
+```
+
+Ein Baum bedient beide Hosts: der Skill-Körper liegt unter `skills/imagination-engine/`, und `AGENTS.md` wird als gemeinsamer Kontext geladen.
+</details>
+
+## Verwendung
+
+Beschreibe einfach, was du willst. Der Skill greift bei Wünschen nach etwas Fremdartigem oder bei der Klage, die bisherigen Ideen seien generisch. Prompts funktionieren in jeder Sprache, die Antwort kommt in deiner.
+
+```text
+Nimm die Imagination Engine für: eine Maschine, die Gefühl von Stimme trennt.
+Baby-, Nicht-Mensch- und Affekt-Modus. Kein Neuroscan, keine Gefühle als Farben.
+```
+
+```text
+Entwirf für mein Spiel ein Wesen, das nichts im Genre ähnelt.
+Extremal-Modus, Anker 2 — ich muss es tatsächlich bauen können.
+```
+
+> [!TIP]
+> Das Wertvollste, was du beisteuern kannst, ist **deine eigene Verbotsliste**. „Nicht schon wieder ein X" wiegt mehr als jedes Adjektiv — und wenn du keine lieferst, fragt der Skill danach.
+
+### Modi · bis zu drei kombinierbar
+
+| Modus | Was er entfernt |
+|---|---|
+| `baby` | Gelernte Funktion, richtige Namen, die Reihenfolge von Ursache und Wirkung. Säuglingslogik, erwachsene Ausführung — ein niedliches Ergebnis ist ein gescheitertes. |
+| `nonhuman` | Den Nutzen für Menschen. Hier existiert nichts für irgendwen; ist das Ergebnis ein Produkt, ist es disqualifiziert. |
+| `alien-physics` | Das Aussehen als Ort des Neuen. Stattdessen ändern sich Physik, Zeit oder Selbst. |
+| `affect` | Die fünf Sinne und die benannten Gefühle. Verlangt einen erfundenen, vollständig spezifizierten Sinn — samt der neuen Ungerechtigkeit, die er schafft. |
+| `extremal` | Jeden sicheren Kandidaten. Die Schwellen steigen auf Mittelwert 9,0, keine Achse unter 8. |
+| `grounded` | Nichts. Fügt einen Weg zu etwas Realem hinzu, ohne das Prinzip zu ändern. |
+
+### Anker · wie erreichbar das Ergebnis bleiben muss
+
+| | Stufe | Anforderung |
+|---|---|---|
+| `0` | **Ungebunden** | Innere Stimmigkeit ist die einzige Pflicht |
+| `1` | **Erklärbar** | In drei Sätzen erklärbar, ohne Analogie zu einem bekannten Werk |
+| `2` | **Inszenierbar** | Eine konkrete Szene oder ein Objekt, das ein Team produzieren könnte |
+| `3` | **Betreibbar** | Ein realer Weg zum Prototyp, mit benannten Verlusten dieser Übersetzung |
+
+## Was herauskommt
+
+Acht feste Abschnitte, in deiner Sprache: der Name · eine einzeilige Definition ohne Vergleich · das Gesetz, nach dem es existiert · eine Szene der ersten Begegnung · seine fremdeste Eigenschaft · die widersprüchlichen Gefühle, die es erzeugt · was sich in der Welt durch seine Existenz ändert · und, verpflichtend, **welche vertrauten Fassungen verworfen wurden und welchem bekannten Werk das Ergebnis am nächsten kommt**.
+
+<details open>
+<summary>Aus dem durchgearbeiteten Beispiel — Thema: <i>„eine Maschine, die Gefühl von Stimme trennt"</i></summary>
+
+> ### Flatting
+>
+> Ein Gefälle, das überall dort entsteht, wo ein Satz mehr als einmal gesagt wird: Es zieht die Ladung aus jeder früheren Äußerung und lässt sie auf den Oberflächen des Raumes zurück.
+>
+> […] Weil das Entziehen rückwärts läuft, bearbeitet es Geschehenes: ein an einem Dienstag wiederholtes Versprechen greift zurück und leert jede frühere Gelegenheit, bei der es gegeben wurde — auch die, auf die es ankam. Beruhigung durch Häufigkeit ist hier unmöglich.
+>
+> […] Begräbnisse haben sich umgekehrt — vorgelesen wird, was die verstorbene Person genau einmal gesagt hat, meist Beiläufiges, oft übers Wetter, weil nur diese Sätze noch etwas tragen.
+
+</details>
+
+Beachte, was *fehlt*: kein Apparat, kein leuchtendes Gerät, nichts, das ungewöhnlich aussieht. **Die Fremdheit liegt darin, was unmöglich geworden ist.** Der vollständige Durchlauf inklusive der verborgenen Stufen steht in [`worked-example.md`](skills/imagination-engine/references/worked-example.md).
+
+## Was er nicht tut
+
+> [!IMPORTANT]
+> - **Behaupten, das habe noch nie jemand gedacht.** Das ist unüberprüfbar, deshalb ist es dem Skill untersagt. Stattdessen benennt er die nächstliegenden bekannten Werke und den Unterschied — jedes Mal, in der Ausgabe.
+> - **Schock als Ersatz nutzen.** Grausamkeit, Gore, sexualisierte Gewalt und die Herabwürdigung realer Gruppen sind der billigste Weg zum Unbehagen und als Abkürzung verboten. Das Unbehagen muss aus der Prämisse kommen.
+> - **So tun, als hieße ein bestandener Lint, die Idee sei gut.** Der Linter beweist nur die *Abwesenheit* bestimmter bekannter Züge. Das Raster ist Selbstbewertung, und der Skill sagt das. Was beide Gates wirklich erzwingen: dass die Arbeit nicht übersprungen wurde.
+> - **Deine Anfrage stillschweigend verkleinern.** Brauchst du etwas Baubares, wird der Anker erhöht statt die Prämisse aufgeweicht. Und wenn die konventionelle Antwort die richtige ist, soll der Skill genau das sagen und normal antworten.
+
+## Unter der Haube
+
+| Skript | Aufgabe | Exit ≠ 0 |
+|---|---|---|
+| `draw.py` | Teilt die Einschränkungshand aus sieben Decks aus | `1` Nutzungs- oder Deckfehler |
+| `banlist.py` | Führt Reflex-Liste und Klischee-Deck zu einer prüfbaren Verbotsliste zusammen | `2` Liste zu kurz |
+| `cliche_lint.py` | Markiert verbotene Wendungen, hohle Adjektive und Pitch-Sätze mit Zeilennummer | `3` verbotenes Material |
+| `score_gate.py` | Prüft den Kandidaten gegen das Raster, fail-closed | `2` Gate nicht bestanden |
+
+**Alles ist reproduzierbar.** Der Zug wird aus einem Hash des Themas gesetzt: dieselbe Anfrage teilt dieselbe Hand, und jedes Ergebnis lässt sich wiederholen und prüfen. `--run 2` teilt für eine Neugenerierung frisches, weiterhin disjunktes Material aus; `--salt` mischt denselben Durchgang neu.
+
+```text
+skills/imagination-engine/
+├── SKILL.md                    # der maßgebliche Ablauf
+├── references/
+│   ├── output-template.md      # der Vertrag der gelieferten Abschnitte
+│   ├── worked-example.md       # ein kompletter Durchlauf samt verborgener Stufen
+│   ├── rubric.json             # acht Achsen · Schwellen · Mindestlängen
+│   ├── candidate.schema.json   # was score_gate.py validiert
+│   ├── example-candidate.json  # ein Kandidat, der beide Gates besteht (zugleich Fixture)
+│   └── decks/                  # Domänen · Einschränkungen · Sinne · Perspektiven
+│                               # Affekte · Modi · Klischees
+└── scripts/                    # draw · banlist · cliche_lint · score_gate
+```
+
+## Tests
+
+```bash
+python3 -m pytest tests/ -q
+```
+
+Offline: Deck-Integrität, Determinismus und Disjunktheit des Zugs, beide Gates, und das mitgelieferte Beispiel, das seinen eigenen Lint besteht.
+
+## Mitwirken
+
+Am einfachsten hilft man bei den Decks — eine Domäne, die wirklich weit von den anderen entfernt ist, ein Naturgesetz, dessen Bruch sich lohnt, ein Sinn, den zu erfinden sich lohnt. Jeder Eintrag muss beantwortbar sein: eine Domäne braucht eine Prüffrage, die das Ergebnis beantworten muss, eine Einschränkung braucht ihre Ersatzgesetz-Anforderung. Vor dem PR bitte die Tests laufen lassen.
+
+<div align="center">
+<sub>MIT-Lizenz · gebaut für <a href="https://claude.com/claude-code">Claude Code</a> und Codex</sub>
+</div>

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/djfksjd/imagination-engine-skill/candidate.schema.json",
+  "title": "imagination-engine candidate",
+  "description": "The structure score_gate.py validates. Written before the prose is shown to anyone: the sections here are the source, and the delivered answer is a rendering of them.",
+  "type": "object",
+  "required": ["sections", "broken_rule", "domains_used", "resembles", "scores", "weakest_fix"],
+  "additionalProperties": true,
+  "properties": {
+    "topic": { "type": "string" },
+    "run": { "type": "integer", "minimum": 1 },
+    "modes": { "type": "array", "items": { "type": "string" } },
+    "anchor": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "sections": {
+      "type": "object",
+      "required": ["name", "one_line", "principle", "first_encounter", "strangest_property", "affect", "world_effect", "avoided"],
+      "properties": {
+        "name": { "type": "string", "minLength": 3 },
+        "one_line": { "type": "string", "minLength": 60 },
+        "principle": { "type": "string", "minLength": 200 },
+        "first_encounter": { "type": "string", "minLength": 300 },
+        "strangest_property": { "type": "string", "minLength": 150 },
+        "affect": { "type": "string", "minLength": 120 },
+        "world_effect": { "type": "string", "minLength": 200 },
+        "avoided": { "type": "string", "minLength": 150 }
+      }
+    },
+    "broken_rule": {
+      "type": "object",
+      "required": ["constraint_id", "new_law", "now_impossible"],
+      "properties": {
+        "constraint_id": { "type": "string", "description": "id from decks/constraints.json" },
+        "new_law": { "type": "string", "minLength": 30 },
+        "now_impossible": { "type": "string", "minLength": 30, "description": "what the new law forbids that the old world allowed" }
+      }
+    },
+    "domains_used": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "answer_to_probe"],
+        "properties": {
+          "id": { "type": "string", "description": "id from decks/domains.json" },
+          "answer_to_probe": { "type": "string", "minLength": 30 }
+        }
+      }
+    },
+    "invented_sense": {
+      "type": "object",
+      "description": "Required when affect mode is active.",
+      "required": ["detects", "mechanism", "consequence", "cost"],
+      "properties": {
+        "detects": { "type": "string" },
+        "mechanism": { "type": "string" },
+        "consequence": { "type": "string" },
+        "cost": { "type": "string" }
+      }
+    },
+    "resembles": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Nearest known works, named honestly. If nothing close was found, say what you checked.",
+      "items": {
+        "type": "object",
+        "required": ["work", "how_it_differs"],
+        "properties": {
+          "work": { "type": "string" },
+          "how_it_differs": { "type": "string", "minLength": 40 }
+        }
+      }
+    },
+    "scores": {
+      "type": "object",
+      "required": ["unpredictability", "conceptual_distance", "internal_consistency", "emotional_residue", "imageability", "retroactive_inevitability", "non_anthropocentrism", "integration"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["score", "justification"],
+        "properties": {
+          "score": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "justification": { "type": "string", "minLength": 40 }
+        }
+      }
+    },
+    "weakest_fix": { "type": "string", "minLength": 40, "description": "the weakest axis and what a rewrite would change" }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "deck": "affects",
+  "version": "0.1.0",
+  "note": "Conflicting affect pairs. The finished result must hold both at once so that a reader cannot decide within one second whether to move toward it or away from it. Both members of the pair must be produced by the same feature - if one comes from the appearance and the other from a separate paragraph of backstory, the conflict is fake.",
+  "pairs": [
+    { "id": "tenderness-dread", "a": "tenderness", "b": "dread", "test": "Name the single feature that produces both." },
+    { "id": "awe-disgust", "a": "awe", "b": "disgust", "test": "Would removing the disgust make it merely pretty?" },
+    { "id": "homesickness-fear", "a": "homesickness", "b": "fear", "test": "What is familiar about the thing that should not be familiar?" },
+    { "id": "grief-relief", "a": "grief", "b": "relief", "test": "Who is relieved, and why are they ashamed of it?" },
+    { "id": "intimacy-violation", "a": "intimacy", "b": "violation", "test": "What does it know that it should not have access to?" },
+    { "id": "beauty-obligation", "a": "beauty", "b": "obligation", "test": "What does looking at it commit the viewer to?" },
+    { "id": "comfort-humiliation", "a": "comfort", "b": "humiliation", "test": "What relief does it offer that no one wants to admit needing?" },
+    { "id": "wonder-boredom", "a": "wonder", "b": "boredom", "test": "How does something extraordinary become an administrative routine here?" },
+    { "id": "protectiveness-revulsion", "a": "protectiveness", "b": "revulsion", "test": "Why does the urge to shield it survive the urge to flee?" },
+    { "id": "gratitude-resentment", "a": "gratitude", "b": "resentment", "test": "What unrepayable gift has it given?" },
+    { "id": "hilarity-horror", "a": "hilarity", "b": "horror", "test": "What is funny about it exactly at the point where it is worst?" },
+    { "id": "recognition-denial", "a": "recognition", "b": "denial", "test": "What does the viewer recognize about themselves and refuse?" }
+  ]
+}

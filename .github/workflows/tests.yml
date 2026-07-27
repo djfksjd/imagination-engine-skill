@@ -1,0 +1,25 @@
+# imagination-engine unit tests
+#
+# Offline only. The scripts have no network calls, no API keys and no runtime
+# dependencies beyond the Python 3 standard library, so CI needs nothing but
+# pytest. Deck integrity, draw determinism, and both gates are covered.
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install pytest
+      - run: python3 -m pytest tests/ -q

@@ -1,0 +1,66 @@
+{
+  "topic": "a machine that separates emotion from voice",
+  "run": 1,
+  "modes": ["baby", "nonhuman", "affect"],
+  "anchor": 1,
+  "sections": {
+    "name": "Flatting",
+    "one_line": "A grade that forms wherever a sentence is said more than once, drawing the charge out of every earlier saying and leaving it on the surfaces of the room.",
+    "principle": "Speech carries a charge that is separate from its meaning. The charge is not conserved inside a person: it belongs to the utterance, and an utterance holds it only until the same sentence is said again nearby. The second saying takes the charge from the first, the third from the second and the first, and so on backwards without limit. Displaced charge does not travel to the new sentence. It settles on whatever surface the sound reached, in a layer roughly one saying thick, and stays there. Meaning is untouched throughout; a flattened sentence still informs, still instructs, still can be obeyed. What it can no longer do is arrive. Because the taking runs backwards, the process edits what has already happened rather than what will: a promise repeated on a Tuesday reaches back and empties every earlier occasion on which it was made, including the one that mattered. Nothing in this arrangement is aimed at anyone. Flatting has no interior at any scale, no preference between rooms, and no way to register that a speaker is present rather than a recording.",
+    "first_encounter": "She comes back to the kitchen eleven months after the funeral, to sort out the cupboards, and the room is warm in the way that a wall is warm after a whole afternoon of sun, except that it is February and the heating has been off since spring. When she says her mother's name out loud, once, into the empty room, the sound does something it has never done in her flat in the city: it stays. It does not echo, it lands, and the plaster takes it, and there is a half-second delay before her throat lets her swallow. Everything her mother said to her only once is still in that kitchen, in the layer. Everything her mother said every single day, the phrases she would have paid to hear again, is gone from the room and gone from her memory of it, ground off by the last repetition and then by the one before that. She can recite those sentences accurately. She feels nothing when she does, and the nothing has an outline, like a tooth that has been out for a week. She sits on the floor with her back against the cupboard and does not speak again for an hour, because everything she can think of to say she has said in that room before.",
+    "strangest_property": "It is not an object and not a creature. It is a grade, the way a river valley is a grade: a slope down which charge runs, produced by nothing but repetition and gradually flattening whatever produces it. It has no inside, so it cannot be entered, opened, hacked, negotiated with, or killed; it can only be re-cut, by refinishing the surfaces, which erases the layer and starts the grinding from a fresh height. And it acts backwards. Every other process in the world takes from the present. This one takes from what already happened, which means it is not the future that is dangerous here but the accumulated past, which thins every time anyone opens their mouth.",
+    "affect": "The layer is the same feature that makes a room beautiful and the same feature that indebts anyone who stands in it. Rooms with a deep layer are the best places in the world to speak: the charge underfoot and overhead gives even an ordinary greeting a fullness that no new room can produce, and people travel to sit in them. But an utterance that lost its charge before it was answered stays outstanding, and the outstanding ones are all in there, and being in the room and speaking is how one is inherited. You cannot enjoy the warmth without picking something up. Nobody has found a way to want one and not the other.",
+    "world_effect": "Saying a thing once becomes the expensive form, and saying it often becomes the cheap and slightly cruel form, so vows are constructed to be unrepeatable: they are built around a date, a weather, a person's exact age, so that the sentence cannot be uttered a second time without becoming false and therefore cannot strip its own original. Households keep an unspoken register of which sentences have been used up. Estate agents list the layer with the square footage, and there is a legal fight, unresolved, over whether the layer belongs to the building or to the people whose sayings are in it. Old districts where the grinding finished centuries ago are called flats: perfectly intelligible places, cheap, favoured by administrators and by people who cannot bear to be reached. Scraping is a trade and a crime depending on the jurisdiction, because raising an old charge off a wall also raises the obligation attached to it, and the scraper is the one standing there when it comes due. Funeral practice has inverted: the readings at a funeral are the things the dead person said exactly once, often trivial, often about the weather, because those are the only sentences of theirs that still carry anything at all.",
+    "avoided": "The first twelve answers to this prompt were devices: something worn on the head that strips feeling out of speech, something that files feeling into a container, something that shows feeling as a readout or a colour, and the accompanying story about a state that mandates its use. All of those keep the two premises this result deletes, that the separation is performed by an apparatus somebody built, and that the separated feeling has to be stored somewhere legible and retrievable. Here there is no apparatus and no operator, the separation is a property of terrain that repetition produces, what is removed is deposited where it fell rather than collected, and the harm lands on the past rather than on the future."
+  },
+  "broken_rule": {
+    "constraint_id": "information-copies-freely",
+    "new_law": "A copy of an utterance is subtractive and retroactive: each repetition of a sentence takes the charge from every earlier instance of that sentence within earshot, and the charge is deposited on the nearest surface rather than transferred to the new instance.",
+    "now_impossible": "Reassurance by frequency is impossible. A phrase said daily for forty years leaves exactly one instance that can still be felt, the most recent, and a corridor of flat ones behind it, so no one here can strengthen a bond by saying the same thing often, and rehearsing a confession destroys every earlier private version of it."
+  },
+  "domains_used": [
+    {
+      "id": "erosion-base-level",
+      "answer_to_probe": "The base level is total intelligibility with no arrival: districts and families grind toward speech that informs perfectly and reaches no one, and those places are called flats."
+    },
+    {
+      "id": "palimpsest",
+      "answer_to_probe": "The layer on the walls is the earlier version, still legible to anyone who scrapes for it, which is why scraping raises both the old charge and the unfinished obligation attached to it."
+    },
+    {
+      "id": "phantom-limb",
+      "answer_to_probe": "A flattened sentence is felt as an outline of the feeling it used to carry: people report the shape of the charge at the exact moment they notice it is gone, and the throat closes before the swallow."
+    }
+  ],
+  "invented_sense": {
+    "detects": "Utterances nearby whose charge was removed before the response they required had arrived; the sense reports the outstanding ones, not the flat ones.",
+    "mechanism": "A delay in the swallowing reflex, half a second to two seconds, hosted in the throat rather than in any dedicated organ. It misfires in cold air and reports as outstanding any sentence whose answerer has died, which cannot be distinguished from a live debt.",
+    "consequence": "Rooms are entered slowly and greetings are given from the doorway; house viewings include a period of standing in silence; the polite thing at a dinner is to let the host speak first so that any outstanding sentence lands on the person who owns it.",
+    "cost": "The unanswerable ones cannot be told apart from the answerable, so people spend years attempting to complete sentences addressed to the dead, and a whole vocabulary of accusation has grown up around leaving a room quickly."
+  },
+  "resembles": [
+    {
+      "work": "Speculative fiction about devices that extract or suppress feeling",
+      "how_it_differs": "Those turn on an apparatus, an operator, and a stored substance that can be recovered by defeating the operator. Here there is no builder and no store, and nothing can be recovered by winning an argument with anyone."
+    },
+    {
+      "work": "Ghost-in-the-house stories where a place holds the residue of its occupants",
+      "how_it_differs": "A haunted place is addressed to the living and wants something from them. This grade cannot register that a person is present, and the residue accrues by repetition count alone, including from a radio left on."
+    },
+    {
+      "work": "Kintsugi and patina as ideas about accumulated use",
+      "how_it_differs": "Patina records use and adds value without taking anything. This layer is made of what was subtracted from the past, so its beauty and the loss are the same quantity measured at two locations."
+    }
+  ],
+  "scores": {
+    "unpredictability": { "score": 8, "justification": "The topic pulls hard toward an apparatus; the result deletes the apparatus and puts the separation into terrain and into the direction of time." },
+    "conceptual_distance": { "score": 8, "justification": "River base level, scraped manuscripts, and phantom sensation have no established traffic between them and are joined here by one mechanism rather than by metaphor." },
+    "internal_consistency": { "score": 9, "justification": "The subtractive-copy law produces the flats, the vow construction, the funeral practice, and the scraping trade without further assumptions, and it forbids reassurance by frequency." },
+    "emotional_residue": { "score": 9, "justification": "The layer produces the warmth and the debt at once, so the reader cannot take the comfort without the obligation, and the kitchen scene lands on a specific ordinary loss." },
+    "imageability": { "score": 8, "justification": "The February kitchen, the delayed swallow, and the estate listing that includes the layer are all filmable without further invention." },
+    "retroactive_inevitability": { "score": 8, "justification": "Once copying is subtractive and retroactive, single-use vows and the inverted funeral reading follow closely enough that they feel found rather than added." },
+    "non_anthropocentrism": { "score": 7, "justification": "The grade has no interior and cannot register speakers, but the consequences are narrated from human households, which keeps the result partly addressed to people." },
+    "integration": { "score": 8, "justification": "No section can be removed and labelled as the geology part or the manuscript part; the layer does the work of all three sources at once." }
+  },
+  "weakest_fix": "Non-anthropocentrism at 7 is the weakest axis: the consequences are still told through households and funerals. A rewrite would show the grade acting where no one speaks at all, such as a pumping station whose recorded announcement flattens itself for eighty years with no listener present."
+}

@@ -1,0 +1,87 @@
+{
+  "deck": "modes",
+  "version": "0.1.0",
+  "note": "Modes are compatible and stack. Each mode adds mandatory directives and forces a specific deck to be drawn. Stacking more than three modes tends to produce noise rather than strangeness - the draw script warns above three.",
+  "default_modes": ["nonhuman", "alien-physics"],
+  "modes": [
+    {
+      "id": "baby",
+      "label": "Infant mode - unlearn function, name, and causality",
+      "forces": ["domains:cognition-error"],
+      "directives": [
+        "Ignore the official function of every object involved; treat what it does when misused as what it is for.",
+        "Let similar-sounding names imply real kinship between unrelated things, and follow that kinship seriously.",
+        "Invert the order of cause and effect at least once and keep the inversion consistent.",
+        "Do not maintain the boundaries alive/dead, inside/outside, self/other, real/imagined unless the world's own new law restores them.",
+        "Ask 'why must it be so?' of every premise that no one usually states."
+      ],
+      "guard": "Infant logic, adult execution. Childlike results (cute, silly, whimsical for its own sake) are a failure of this mode, not an expression of it."
+    },
+    {
+      "id": "nonhuman",
+      "label": "Non-anthropocentric mode - remove human usefulness",
+      "forces": ["perspectives"],
+      "directives": [
+        "Nothing here exists for human benefit, and nothing was designed with a human in mind.",
+        "Humans, if present, are weather, terrain, or an accident - never the audience.",
+        "If the result would be a product, a tool, or a service, it is disqualified in this mode.",
+        "Do not give it a humanoid body plan, a face, or motives that map onto human wants."
+      ],
+      "guard": "Check every sentence containing 'so that' or 'in order to'. If the beneficiary is a person, rewrite."
+    },
+    {
+      "id": "alien-physics",
+      "label": "Rule-break mode - change physics, time, or selfhood rather than appearance",
+      "forces": ["constraints"],
+      "directives": [
+        "Delete or invert at least one law of the drawn constraint deck and never restore it quietly.",
+        "Install a replacement law that makes something newly impossible; state that impossibility explicitly.",
+        "Derive at least three consequences from the new law that you did not intend when you wrote it.",
+        "The visual appearance may be perfectly mundane. The strangeness lives in what is possible, not in what is seen."
+      ],
+      "guard": "If deleting the visual description leaves the idea intact, the mode was applied. If it leaves nothing, it was not."
+    },
+    {
+      "id": "affect",
+      "label": "Sense and feeling mode - invent a perception or an unnamed emotion",
+      "forces": ["senses", "affects"],
+      "directives": [
+        "Invent at least one sense or one affect that has no existing name, and answer all four required fields for it.",
+        "Show one ordinary daily situation reorganized by it - a greeting, a queue, a meal, a goodbye.",
+        "Name the new injustice, misunderstanding, or grief it creates.",
+        "Do not translate the new sense into sight or sound as a shortcut, and do not render feelings as colors."
+      ],
+      "guard": "A sense that only adds convenience is a feature. A sense that adds a new way to be wronged is an invention."
+    },
+    {
+      "id": "extremal",
+      "label": "Extremal mode - discard everything safe",
+      "forces": [],
+      "directives": [
+        "Discard every candidate that any competent writer would reach within one minute of hearing the prompt.",
+        "Raise all rubric thresholds: mean 9.0, no axis below 8.",
+        "Draw twice as many domains and hybridize from the three most distant survivors.",
+        "If nothing survives, report that honestly and show the closest failure with the reason it failed."
+      ],
+      "guard": "Extremal is not louder. It is a stricter cull with the same coherence requirement."
+    },
+    {
+      "id": "grounded",
+      "label": "Grounded mode - keep the alien principle, add one operational path",
+      "forces": [],
+      "directives": [
+        "Keep the broken law and the new law intact. Do not soften the premise to make it buildable.",
+        "Add exactly one section describing how a person could actually encounter, use, or make a version of this within current constraints.",
+        "State plainly which part of the principle does not survive that translation.",
+        "Never let the operational path retro-edit the principle into something ordinary."
+      ],
+      "guard": "Use with anchor 2 or 3 when the user needs the result for a real product, story, or brief."
+    }
+  ],
+  "anchors": [
+    { "level": 0, "label": "Unbound", "rule": "No requirement of buildability, usefulness, or human relevance. Internal consistency is the only obligation." },
+    { "level": 1, "label": "Legible", "rule": "Must be describable to a non-expert in three sentences without analogy to a known work." },
+    { "level": 2, "label": "Stageable", "rule": "Must be renderable as a concrete scene, artifact, or scenario a team could produce or film." },
+    { "level": 3, "label": "Operable", "rule": "Must include one path to a real prototype, publication, or product, with the loss from that translation stated." }
+  ]
+}

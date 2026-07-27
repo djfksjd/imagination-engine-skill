@@ -1,0 +1,22 @@
+{
+  "deck": "perspectives",
+  "version": "0.1.0",
+  "note": "Non-anthropocentric stances. The drawn stance governs the whole result, not one paragraph of it. If the result would survive unchanged with the stance removed, the stance was never applied.",
+  "perspectives": [
+    { "id": "cannot-perceive-humans", "stance": "A being for which humans are below the detection threshold", "test": "Does anything in the result treat humans as its audience? Cut it." },
+    { "id": "no-concept-of-purpose", "stance": "A mechanism with no notion of purpose, only of continuation", "test": "Have you written the word 'in order to' about it? Rewrite without it." },
+    { "id": "no-individual-plural", "stance": "An existence with no boundary between one and many", "test": "Can you say how many of it there are? If yes, you have not applied it." },
+    { "id": "reverse-lifecycle", "stance": "Something whose beginning and ending run in the opposite order", "test": "What is its most fragile stage, and is it at the end?" },
+    { "id": "habitat-is-relation", "stance": "A being that lives inside relationships rather than in space", "test": "Where does it go when the relationship ends?" },
+    { "id": "feeds-on-immaterial", "stance": "A being fed by memory, temperature, shadow, delay, or probability", "test": "What is its famine, and what does it do to obtain food?" },
+    { "id": "inverted-observation", "stance": "Something that disappears when observed and comes into being when forgotten", "test": "How is it studied at all, and what does studying cost?" },
+    { "id": "exists-as-rule", "stance": "A living thing with no body, existing as a rule, a habit, or a routine", "test": "Where is it hosted, and can it be evicted?" },
+    { "id": "geological-tempo", "stance": "Something whose single action takes longer than any witness lives", "test": "What does one gesture of it look like from inside a human lifespan?" },
+    { "id": "byproduct-being", "stance": "Something that exists only as the waste product of another process", "test": "What happens to it when the parent process is optimized?" },
+    { "id": "site-bound", "stance": "A being that is a property of a place, not a thing in a place", "test": "What happens if the place is demolished, and what if it is copied?" },
+    { "id": "obligate-pair", "stance": "Something that cannot exist as one and is always two that never meet", "test": "How do the halves coordinate without contact?" },
+    { "id": "prey-of-abstraction", "stance": "A being hunted by something non-physical - a rule, a schedule, a category", "test": "What does its predator actually do to it?" },
+    { "id": "no-inside", "stance": "Something with a surface but no interior at any scale", "test": "What does injury mean for it?" },
+    { "id": "consumes-its-own-past", "stance": "A being that survives by metabolizing its own earlier states", "test": "What is left when it runs out of past?" }
+  ]
+}

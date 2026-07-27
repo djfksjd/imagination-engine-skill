@@ -1,0 +1,33 @@
+{
+  "deck": "senses",
+  "version": "0.1.0",
+  "note": "Seeds for inventing a sense. A named sense is worth nothing on its own. Every drawn seed must be answered on all four required fields (what it detects, the organ or mechanism, how daily life and culture bend around it, the new suffering or misunderstanding it creates). A sense that creates no new problem has not been invented, only decorated.",
+  "required_fields": [
+    "detects: the exact stimulus, stated so that a false positive is describable",
+    "mechanism: the organ, substrate, or procedure, including its failure mode",
+    "consequence: how ordinary life, architecture, manners, or law reorganize around it",
+    "cost: the new pain, misunderstanding, or injustice it makes possible"
+  ],
+  "senses": [
+    { "id": "decision-proximity", "seed": "Sensing decisions other beings are about to make, before they know" },
+    { "id": "impending-absence", "seed": "Sensing only those objects likely to disappear soon" },
+    { "id": "relational-temperature", "seed": "Feeling the temperature produced when a relationship cools" },
+    { "id": "unsaid-sentences", "seed": "Hearing sentences that were not said rather than lies that were" },
+    { "id": "residual-regret", "seed": "Tasting the regret left behind in a place" },
+    { "id": "future-forgetting", "seed": "Feeling the weight of memories that will be forgotten" },
+    { "id": "load-bearing-detection", "seed": "Sensing which parts of a structure or a group are actually carrying the load" },
+    { "id": "prior-owner", "seed": "Perceiving who previously owned or handled a thing, and how reluctantly they let it go" },
+    { "id": "counted-and-uncounted", "seed": "Distinguishing what has been counted by someone from what never has" },
+    { "id": "interruption-pressure", "seed": "Feeling the accumulated pressure of interruptions a thing has survived" },
+    { "id": "repetition-fatigue", "seed": "Sensing how many times an action has been repeated in a place" },
+    { "id": "unclaimed-responsibility", "seed": "Detecting duties in a room that no one has accepted" },
+    { "id": "near-miss-density", "seed": "Feeling how close a place has come to disasters that did not happen" },
+    { "id": "consent-gradient", "seed": "Perceiving how willingly a thing is participating in what it is doing" },
+    { "id": "expiry-of-truth", "seed": "Sensing how much longer a statement will remain true" },
+    { "id": "attention-shadow", "seed": "Seeing where attention has not fallen for a long time" },
+    { "id": "borrowed-motion", "seed": "Feeling which movements in a body were learned from a specific other person" },
+    { "id": "silence-type", "seed": "Distinguishing kinds of silence the way others distinguish colors" },
+    { "id": "unfinished-processes", "seed": "Sensing processes that were started and never completed nearby" },
+    { "id": "substitution-detection", "seed": "Knowing when a thing has been quietly replaced by an identical thing" }
+  ]
+}

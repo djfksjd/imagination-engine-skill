@@ -172,3 +172,38 @@ def test_human_output_contains_probes_and_guards(run):
     res = run("draw.py", "--topic", TOPIC, "--modes", "nonhuman")
     assert res.code == 0
     assert "probe:" in res.out and "guard:" in res.out and "THRESHOLDS" in res.out
+
+
+# --------------------------------------------- the salt cannot be the policy
+
+
+def test_the_salt_cannot_spell_a_policy_field(run):
+    """The policy fields seed the shuffle, but they used to be pasted into one
+    string with a separator `--salt` was free to contain: `--anchor 1 --salt
+    $'\x1fanchor=3'` dealt the anchor-3 hand exactly, and the gate then accepted
+    a run that owed no operational path. The downgrade cost nothing at all."""
+    strict = draw(run, "--modes", "baby,nonhuman,affect", "--anchor", "3")
+    for salt in ("\x1fanchor=3", "anchor=3", "|8:anchor=3", "0:|8:anchor=3",
+                 " anchor=3", "0:|8:anchor=3|8:domains=4"):
+        res = run("draw.py", "--topic", TOPIC, "--json", "--modes", "baby,nonhuman,affect",
+                  "--anchor", "1", "--salt", salt)
+        if res.code == 0:
+            assert res.json()["draw"] != strict["draw"], f"salt {salt!r} impersonated --anchor 3"
+        else:
+            assert res.code == 1, res
+
+
+def test_the_seed_separator_is_refused_rather_than_stripped(run):
+    """Stripping it would map two different requests onto one hand, which is the
+    property being defended."""
+    for args in (("--salt", "\x1fanchor=3"), ("--topic", f"{TOPIC}\x1fx")):
+        res = run("draw.py", "--topic", TOPIC, "--json", *args)
+        assert res.code == 1, res
+        assert "U+001F" in res.err
+
+
+def test_an_ordinary_salt_still_redeals(run):
+    """The fix must not have turned --salt into a no-op."""
+    plain = draw(run, "--modes", "baby,affect")
+    salted = draw(run, "--modes", "baby,affect", "--salt", "second attempt")
+    assert plain["draw"] != salted["draw"]

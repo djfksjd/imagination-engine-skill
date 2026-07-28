@@ -166,9 +166,46 @@ def is_placeholder(text: str) -> bool:
     return stripped in PLACEHOLDER_NAMES
 
 
+SEED_SEP = "\x1f"
+
+
+def pack_fields(*fields: str) -> str:
+    """Join fields so that no field can impersonate another field's contribution.
+
+    Each field is prefixed with its own length, so the reader of the packed
+    string - the hash - can only decompose it one way. This is what a bare
+    separator could not do: `draw.py` used to build its seed as
+    `salt + "\\x1f" + policy`, and because `--salt` is free text that may itself
+    contain `\\x1f`, an anchor-1 request carrying the salt `"\\x1fanchor=3"`
+    produced a byte-identical hand to a genuine anchor-3 request. The downgrade
+    cost nothing at all - not even a redraw.
+
+    Packing an empty set of fields to the empty string keeps the plain request
+    seeding exactly as it did before any policy field existed.
+    """
+    if not any(fields):
+        return ""
+    return "|".join(f"{len(f)}:{f}" for f in fields)
+
+
 def seed_int(*parts: Any) -> int:
-    joined = "\x1f".join(normalize(str(p)) for p in parts)
-    digest = hashlib.blake2b(joined.encode("utf-8"), digest_size=16).digest()
+    """Hash the seed material.
+
+    Parts are joined with a separator, so a part that contains the separator
+    could shift the boundary between two parts and make one request's material
+    read as another's. It is refused rather than sanitised: stripping it would
+    map two different requests onto one hand, which is the property being
+    defended. The check reads the raw part, not the normalized one, because
+    `normalize` treats U+001F as whitespace and would hide it.
+    """
+    raw = [str(p) for p in parts]
+    for value in raw:
+        if SEED_SEP in value:
+            raise EngineError(
+                "seed material may not contain the U+001F unit separator: it delimits the seed "
+                "fields, so a value carrying one could impersonate another field's contribution")
+    digest = hashlib.blake2b(
+        SEED_SEP.join(normalize(value) for value in raw).encode("utf-8"), digest_size=16).digest()
     return int.from_bytes(digest, "big")
 
 

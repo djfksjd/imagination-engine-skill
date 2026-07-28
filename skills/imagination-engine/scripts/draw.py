@@ -24,14 +24,14 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, pack_fields, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 except ImportError:  # executed from another cwd via absolute path
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, pack_fields, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 
@@ -46,7 +46,7 @@ DEFAULT_ANCHOR = 1
 POLICY_MODES = ("extremal", "grounded")
 
 
-def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> str:
+def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> list[str]:
     """Fold everything the gate reads off the request into the seed.
 
     A request field the gate consults but the deal ignores can be rewritten
@@ -63,7 +63,9 @@ def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> str:
     A field at its documented default contributes nothing, so the plain request
     deals the baseline hand. Each field carries its own prefix, so two requests
     that differ anywhere here get different seeds - including a change away from
-    a default.
+    a default. The parts are returned separately and packed with `pack_fields`
+    alongside the salt, because joining them into one string with a separator was
+    itself the hole: see `compose_seed` below.
 
     What this still cannot do is distinguish a downgraded run from an honest one
     that was dealt at the lower setting from the start. Redealing is always
@@ -77,7 +79,23 @@ def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> str:
             parts.append(f"mode={mode}")
     if domains != DEFAULT_DOMAINS:
         parts.append(f"domains={domains}")
-    return "|".join(parts)
+    return parts
+
+
+def compose_seed(salt: str, policy_parts: list[str]) -> str:
+    """Combine the caller's salt with the policy fields, unambiguously.
+
+    The first version of this was `f"{salt}\\x1f{policy}"`, which meant the salt
+    could simply *be* the policy: `--anchor 1 --salt $'\\x1fanchor=3'` dealt the
+    identical hand to `--anchor 3 --salt ""`, and the gate then accepted a run
+    that owed no operational path. `pack_fields` length-prefixes each field, so
+    the salt's extent is pinned and no value of it can spell another field.
+
+    Honest limit, unchanged by this: none of it proves the run was not redealt
+    until the hand suited. It costs a redraw and the work already written against
+    the old hand - it is not a forgery barrier.
+    """
+    return pack_fields(salt, *policy_parts)
 
 # grounded substitutes the axis that nonhuman mode exists to enforce. Allowing
 # the pair means one mode silently cancels the other, so it is refused here
@@ -214,8 +232,7 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
     domain_count = min(args.domains * 2, category_count) if extremal else args.domains
     # Not args.salt: the seed carries the policy-bearing request fields too, so
     # that none of them can be rewritten afterwards without changing the hand.
-    policy = policy_seed(mode_ids, args.anchor, args.domains)
-    seed = f"{args.salt}\x1f{policy}" if policy else args.salt
+    seed = compose_seed(args.salt or "", policy_seed(mode_ids, args.anchor, args.domains))
     domains, wrapped_d = draw_domains(decks, args.topic, seed, args.run, domain_count, forced_categories)
 
     constraint_count = 2 if extremal else 1

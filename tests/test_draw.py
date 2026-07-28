@@ -58,13 +58,17 @@ def test_baby_mode_forces_the_cognition_error_category(run):
         assert "cognition-error" in cats
 
 
-def test_extremal_raises_thresholds_and_widens_the_draw(run):
+def test_extremal_widens_the_draw_and_carries_no_threshold(run):
+    """extremal used to raise a rubric threshold as well as widening the hand.
+    The threshold is gone from the whole skill - it discriminated nothing - so
+    what is left is the part that always did the work: more domains, two rules
+    to break, and a stricter cull."""
     normal = draw(run, "--modes", "nonhuman")
     extremal = draw(run, "--modes", "extremal")
-    assert extremal["requirements"]["thresholds"] == {"min_mean": 9.0, "min_axis": 8}
-    assert normal["requirements"]["thresholds"] == {"min_mean": 8.0, "min_axis": 6}
     assert len(extremal["draw"]["domains"]) > len(normal["draw"]["domains"])
     assert len(extremal["draw"]["constraints"]) == 2
+    for payload in (normal, extremal):
+        assert "thresholds" not in payload["requirements"]
 
 
 def test_default_modes_apply_when_unspecified(run):
@@ -98,7 +102,7 @@ def test_the_draw_records_the_request_that_produced_it(run, tmp_path):
               "--anchor", "1", "--json")
     assert res.code == 0, res
     payload = res.json()
-    assert payload["draw_schema_version"] == 2
+    assert payload["draw_schema_version"] == 3
     assert payload["request"] == {
         "topic": "a stairwell", "run": 2, "salt": "", "mode_ids": ["nonhuman"],
         "anchor": 1, "requested_domains": 3,
@@ -171,7 +175,8 @@ def test_list_modes(run):
 def test_human_output_contains_probes_and_guards(run):
     res = run("draw.py", "--topic", TOPIC, "--modes", "nonhuman")
     assert res.code == 0
-    assert "probe:" in res.out and "guard:" in res.out and "THRESHOLDS" in res.out
+    assert "probe:" in res.out and "guard:" in res.out
+    assert "RUBRIC:" in res.out and "No numeric threshold" in res.out
 
 
 # --------------------------------------------- the salt cannot be the policy

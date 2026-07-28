@@ -117,22 +117,29 @@ python3 scripts/score_gate.py \
 ```
 
 ```text
-POLICY LOCKED: imagination-engine/0.4.0 default; mean >= 8.0; every axis >= 6
-mean 8.12
-PASSED - the required work is present.
+POLICY LOCKED: imagination-engine/0.4.0 default; all eight axes required and argued; no score threshold
+mean 8.12 - recorded, not a pass mark
+PASSED - the required work is present and the four artefacts are bound to each other. This is not a judgement that the result is good; read it yourself.
 ```
 
 Swap in your own four and the command is the same. There is no second gate:
 `cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md` is
 a mid-draft diagnostic, and passing it is not clearance.
 
-First pass failed: `non_anthropocentrism=5` and `sections.world_effect` too
-thin. The fix was not a rewording - the draft still had an operator in it (a
-municipal office that managed the layer). Removing the operator raised the axis
-to 7 and produced the estate-listing consequence, which is better than what the
-operator was doing. The final scores stand at a mean of 8.12 with
-non-anthropocentrism the acknowledged weak point, written into `weakest_fix`
-rather than quietly rounded up.
+First pass failed on `sections.world_effect`, which was too thin, and the
+self-score put `non_anthropocentrism` at 5. The fix was not a rewording - the
+draft still had an operator in it (a municipal office that managed the layer).
+Removing the operator raised that axis to 7 and produced the estate-listing
+consequence, which is better than what the operator was doing.
+
+Note what did and did not force that rewrite. The *structural* failure did:
+a section under its floor is a failure and there is no way around it. The score
+did not, and no longer could - there is no threshold in this gate. Twenty
+measured runs all self-scored into a 0.25-wide band immediately above the old
+bar, so the number never discriminated anything; what it did was let the run
+grade itself. The axes stay because answering them changes the work, and the
+field that carries the weak point is `weakest_fix`, which is required, floored
+and read by a person.
 
 ## The delivered answer
 

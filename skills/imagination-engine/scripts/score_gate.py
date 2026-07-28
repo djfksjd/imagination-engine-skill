@@ -257,8 +257,9 @@ def replay_draw(draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
         ("salt", draw.get("salt"), expected["salt"]),
         ("anchor.level", anchor_level, expected["anchor"]["level"]),
         ("modes", mode_ids(draw.get("modes")), mode_ids(expected["modes"])),
-        ("requirements.thresholds",
-         (draw.get("requirements") or {}).get("thresholds"), expected["requirements"]["thresholds"]),
+        ("requirements.domain_categories",
+         (draw.get("requirements") or {}).get("domain_categories"),
+         expected["requirements"]["domain_categories"]),
     ):
         if got != want:
             failures.append(
@@ -332,8 +333,28 @@ def bind_candidate_to_draw(candidate: dict[str, Any], draw: dict[str, Any]) -> l
 # ------------------------------------------------------------ the candidate
 
 
-def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, min_axis: int,
+def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any],
                     grounded: bool, needs_path: bool) -> tuple[list[str], list[str], dict[str, int], float]:
+    """Every structural requirement, and no numeric threshold.
+
+    The eight axes are still required, still have to be integers, and still have
+    to be argued in writing - answering them changes the work. What was removed
+    is the comparison: no mean and no per-axis floor decides the verdict.
+
+    The measurement that removed it: twenty gated runs across four unrelated
+    briefs self-scored into the interval [8.00, 8.25], fourteen of them on
+    exactly 8.125, against a threshold of 8.0 - including runs blind judges
+    ranked last in their pile. A number with no observed variance cannot tell a
+    good run from a bad one; what it could do was let the party the verdict is
+    about write the verdict. This file had already refused --min-mean,
+    --min-axis and --rubric for exactly that reason and then accepted the score
+    itself, which is the same hole one level down.
+
+    A low axis is now reported as a warning naming the axis, because it is worth
+    reading; it does not fail the run. Every structural check above and below is
+    unchanged and exactly as strict as it was - those are the ones that
+    demonstrably catch things.
+    """
     failures: list[str] = []
     warnings: list[str] = []
     substitution = rubric.get("grounded_substitution", {})
@@ -426,12 +447,12 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
 
     mean = round(sum(values.values()) / len(values), 2) if values else 0.0
     if values and len(values) == len(axis_ids):
-        if mean < min_mean:
-            failures.append(f"mean {mean} is below the {min_mean} threshold - regenerate rather than resubmit")
-        low = sorted((a for a in values if values[a] < min_axis), key=lambda a: values[a])
-        if low:
-            failures.append(
-                f"axes below the floor of {min_axis}: " + ", ".join(f"{a}={values[a]}" for a in low))
+        weakest = min(values, key=lambda a: values[a])
+        if values[weakest] <= 4:
+            warnings.append(
+                f"weakest axis {weakest}={values[weakest]}: read that axis's own question again and "
+                "check that weakest_fix names this, not something easier. This is a warning, not a "
+                "verdict - no score decides whether this run passes")
         if len(set(values.values())) == 1:
             warnings.append("every axis has the same score, which usually means the rubric was filled in, not applied")
         if min(values.values()) >= 9:
@@ -716,7 +737,9 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
 
     # The profile is read off the validated run. There is no --extremal and no
     # --grounded: a flag is a claim made at verdict time, by the same party the
-    # verdict is about.
+    # verdict is about. The profile no longer sets a threshold - there is none -
+    # but it still names how the run was dealt, and grounded still substitutes
+    # an axis, so both are recorded.
     mode_ids = set(draw["request"]["mode_ids"])
     profile = "extremal" if "extremal" in mode_ids else "default"
     grounded = "grounded" in mode_ids
@@ -725,11 +748,9 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
     # grounded mode. The gate used to ask for it only in grounded, so anchor 3
     # could ship without the one thing that level is for.
     needs_path = grounded or anchor == 3
-    thresholds = rubric[f"{profile}_thresholds"]
-    min_mean, min_axis = float(thresholds["min_mean"]), int(thresholds["min_axis"])
 
     cand_failures, warnings, values, mean = check_candidate(
-        candidate, rubric, min_mean, min_axis, grounded, needs_path)
+        candidate, rubric, grounded, needs_path)
     failures += cand_failures
     failures += check_banlist(candidate, contract)
     failures += check_markdown(candidate, markdown, rubric, contract, needs_path)
@@ -738,13 +759,17 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
     return {
         "engine_version": VERSION,
         "passed": not failures,
+        # Recorded, not compared. `establishes` says what a pass means, in the
+        # verdict itself, so a reader of the JSON cannot take it for more.
         "mean": mean,
+        "establishes": ("the required work is present and the four artefacts are bound to each "
+                        "other; not that the result is good"),
         "policy": {
             "rubric": rubric.get("rubric", "imagination-engine"),
             "rubric_version": rubric.get("version"),
             "rubric_sha256": rubric["_sha256"],
             "profile": profile,
-            "thresholds": {"min_mean": min_mean, "min_axis": min_axis},
+            "score_threshold": None,
             "anchor": anchor,
             "modes": sorted(mode_ids),
             "axis_substitution": substitution.get("axis", {}).get("id") if grounded else None,
@@ -783,13 +808,15 @@ def main(argv: list[str] | None = None) -> int:
                 f" ({policy['axis_substitution']} substituted for "
                 f"{policy['axis_substitution_replaces']})")
         print(f"POLICY LOCKED: {policy['rubric']}/{policy['rubric_version']} {profile_label}; "
-              f"mean >= {policy['thresholds']['min_mean']}; every axis >= {policy['thresholds']['min_axis']}")
-        print(f"mean {verdict['mean']}")
+              "all eight axes required and argued; no score threshold")
+        print(f"mean {verdict['mean']} - recorded, not a pass mark")
         for w in verdict["warnings"]:
             print(f"WARN  {w}")
         for f in verdict["failures"]:
             print(f"FAIL  {f}")
-        print("PASSED - the required work is present." if verdict["passed"]
+        print("PASSED - the required work is present and the four artefacts are bound to each "
+              "other. This is not a judgement that the result is good; read it yourself."
+              if verdict["passed"]
               else "GATE FAILED - do not show this to the user; fix or regenerate.")
     return 0 if verdict["passed"] else GATE_FAIL
 

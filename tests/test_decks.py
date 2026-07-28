@@ -117,7 +117,13 @@ def test_rubric_matches_schema(references):
         # code points, and a plain minLength has no way to express that.
         assert prop["minLength"] <= spec["min_units"] / 2 + 1, (
             f"{spec['id']}: schema minLength would reject CJK text the gate accepts")
-    assert rubric["extremal_thresholds"]["min_mean"] > rubric["default_thresholds"]["min_mean"]
+    # No thresholds, in either profile. The rubric is a self-interrogation aid:
+    # twenty measured runs all self-scored into a 0.25-wide band just above the
+    # old bar, so the number decided nothing and let the graded party grade
+    # itself. What replaced it is nothing - the structural checks stand alone.
+    assert "default_thresholds" not in rubric
+    assert "extremal_thresholds" not in rubric
+    assert "why_the_axes_stay" in rubric, "the rubric must say why the axes remain"
 
 
 def test_grounded_substitution_is_coherent(references):

@@ -38,7 +38,7 @@ except ImportError:  # executed from another cwd via absolute path
 DEFAULT_DOMAINS = 3
 MIN_DOMAINS = 3
 MAX_STACKED_MODES = 3
-DRAW_SCHEMA_VERSION = 2
+DRAW_SCHEMA_VERSION = 3
 
 # The request fields the gate reads when it decides what it will require. See
 # policy_seed below for why they have to reach the deal.
@@ -244,17 +244,15 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
     cliches = decks["cliches"]
     banned_phrases = [p for p in cliches["phrases"] if p["tier"] == "ban"]
 
-    thresholds = {"min_mean": 9.0, "min_axis": 8} if extremal else {"min_mean": 8.0, "min_axis": 6}
-
     required = ["domains", "constraints", "perspectives", "senses", "affects"]
     checklist = [
-        f"Every drawn domain must answer its probe inside the result; a domain that is only mentioned is a decoration - cut it or replace it.",
-        f"The drawn constraint must be broken AND replaced by a new law that makes something newly impossible.",
-        f"The drawn perspective governs the whole result; if the result survives its removal, it was never applied.",
-        f"Both affects in the pair must be produced by the same feature.",
-        f"No phrase from the ban list, no hollow adjective, no 'X meets Y' pitch.",
-        f"Before writing, list the {12} most probable answers to this topic and forbid all of them (banlist.py).",
-        f"Score the result with score_gate.py; mean below {thresholds['min_mean']} does not ship.",
+        "Every drawn domain must answer its probe inside the result; a domain that is only mentioned is a decoration - cut it or replace it.",
+        "The drawn constraint must be broken AND replaced by a new law that makes something newly impossible.",
+        "The drawn perspective governs the whole result; if the result survives its removal, it was never applied.",
+        "Both affects in the pair must be produced by the same feature.",
+        "No phrase from the ban list, no hollow adjective, no 'X meets Y' pitch.",
+        "Before writing, list the 12 most probable answers to this topic and forbid all of them (banlist.py).",
+        "Score every rubric axis and argue each score in writing (score_gate.py). The number does not decide the verdict; answering the question changes the work.",
     ]
 
     payload: dict[str, Any] = {
@@ -288,7 +286,10 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
         "requirements": {
             "required_by_modes": sorted(forced_decks),
             "all_drawn_components_are_binding": required,
-            "thresholds": thresholds,
+            # No thresholds. The gate has no numeric bar to carry down here any
+            # more: twenty measured runs all self-scored just over the old one,
+            # so the number decided nothing and let the graded party grade
+            # itself. The schema version is bumped because the field is gone.
             "domain_categories": sorted({d["category"] for d in domains}),
         },
         "forbidden_moves": cliches["moves"],
@@ -338,8 +339,8 @@ def render_human(payload: dict[str, Any]) -> str:
     lines.append(f"AFFECT PAIR: {a['a']} + {a['b']}")
     lines.append(f"      test:   {a['test']}")
     lines.append("")
-    lines.append(f"THRESHOLDS: mean >= {payload['requirements']['thresholds']['min_mean']}, "
-                 f"no axis < {payload['requirements']['thresholds']['min_axis']}")
+    lines.append("RUBRIC: every axis must be scored and each score argued in writing. No numeric "
+                 "threshold decides the verdict - the structural checks do.")
     lines.append("")
     lines.append("MODE DIRECTIVES:")
     for m in payload["modes"]:

@@ -71,8 +71,8 @@
       "forces": [],
       "directives": [
         "Discard every candidate that any competent writer would reach within one minute of hearing the prompt.",
-        "Raise all rubric thresholds: mean 9.0, no axis below 8.",
-        "Draw twice as many domains and hybridize from the three most distant survivors.",
+        "Draw twice as many domains and two rules to break instead of one, and hybridize from the three most distant survivors.",
+        "Cull harder rather than scoring higher: this mode changes the hand and the discard bar, not the gate.",
         "If nothing survives, report that honestly and show the closest failure with the reason it failed."
       ],
       "guard": "Extremal is not louder. It is a stricter cull with the same coherence requirement."

@@ -1,6 +1,6 @@
 {
   "engine_version": "0.4.0",
-  "draw_schema_version": 2,
+  "draw_schema_version": 3,
   "request": {
     "topic": "a machine that separates emotion from voice",
     "run": 1,
@@ -122,10 +122,6 @@
       "senses",
       "affects"
     ],
-    "thresholds": {
-      "min_mean": 8.0,
-      "min_axis": 6
-    },
     "domain_categories": [
       "cognition-error",
       "record-and-time",
@@ -145,7 +141,7 @@
     "Designing the thing around a human benefit and then decorating it as alien.",
     "Naming an ordinary concept with an invented word and treating the word as the invention."
   ],
-  "banned_phrase_count": 45,
+  "banned_phrase_count": 44,
   "deck_wrapped": false,
   "notes": []
 }

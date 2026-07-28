@@ -33,11 +33,15 @@ def test_the_shipped_set_passes(gate):
 
 
 def test_the_verdict_records_the_policy_that_ran(gate):
-    policy = gate().json()["policy"]
+    verdict = gate().json()
+    policy = verdict["policy"]
     assert policy["profile"] == "default"
-    assert policy["thresholds"] == {"min_mean": 8.0, "min_axis": 6}
+    assert policy["score_threshold"] is None
     assert len(policy["rubric_sha256"]) == 64
     assert policy["axis_substitution"] is None
+    # The scores are still recorded. They are just no longer a verdict.
+    assert verdict["mean"] > 0 and len(verdict["scores"]) == 8
+    assert "not that the result is good" in verdict["establishes"]
 
 
 # ------------------------------------------------------- policy cannot be set
@@ -60,12 +64,15 @@ def test_the_profile_cannot_be_asserted_at_verdict_time(run, gate_args, flag):
 
 
 def test_the_profile_comes_from_the_drawn_modes(run, gate):
-    """A run drawn with extremal is judged at 9.0/8 without anyone saying so."""
+    """The profile is still read off the run rather than asserted, and it is
+    still reported - it just no longer carries a number, because there is no
+    number anywhere in the gate."""
     res = run("draw.py", "--topic", "a machine that separates emotion from voice",
               "--modes", "baby,nonhuman,extremal", "--run", "1", "--anchor", "1", "--json")
     assert res.code == 0, res
-    out = gate(draw=res.json())
-    assert out.json()["policy"]["thresholds"] == {"min_mean": 9.0, "min_axis": 8}
+    policy = gate(draw=res.json()).json()["policy"]
+    assert policy["profile"] == "extremal"
+    assert policy["score_threshold"] is None
 
 
 def test_the_printed_verdict_names_the_substituted_axis(run, gate):
@@ -88,15 +95,13 @@ def test_the_printed_verdict_names_the_substituted_axis(run, gate):
 
 
 def test_the_printed_verdict_names_the_extremal_profile(run, gate):
-    """The extremal profile is not silently folded into 'default' either: the
-    raised thresholds are reported under their own profile name."""
+    """The extremal profile is not silently folded into 'default'."""
     res = run("draw.py", "--topic", "a machine that separates emotion from voice",
               "--modes", "baby,nonhuman,extremal", "--run", "1", "--anchor", "1", "--json")
     assert res.code == 0, res
     out = gate(draw=res.json(), json_out=False)
     assert "POLICY LOCKED: imagination-engine/0.4.0 extremal;" in out.out
-    assert "mean >= 9.0" in out.out
-    assert "every axis >= 8" in out.out
+    assert "no score threshold" in out.out
 
 
 # ----------------------------------------------------------- the draw replays
@@ -260,23 +265,54 @@ def test_the_quiet_cards_are_bound_too(gate, example_candidate, field):
 # --------------------------------------------------------------- the scoring
 
 
-def test_mean_below_threshold_fails(gate, example_candidate):
-    c = deepcopy(example_candidate)
-    for axis in c["scores"]:
-        c["scores"][axis]["score"] = 7
-    res = gate(candidate=c)
-    assert res.code == 2
-    assert "below the 8.0 threshold" in failures(res)
+def test_no_self_reported_score_decides_the_verdict(gate, example_candidate):
+    """Twenty gated runs across four unrelated briefs self-scored into
+    [8.00, 8.25], fourteen of them on exactly 8.125, against a threshold of 8.0
+    - including runs blind judges ranked last in their pile. A number with no
+    observed variance discriminates nothing, and comparing it let the party the
+    verdict is about write the verdict. This repo had already deleted
+    --min-mean, --min-axis and --rubric for that reason and then accepted the
+    score itself, which is the same hole one level down.
+
+    Low scores now pass and high scores do not rescue anything: what fails a run
+    is a structural check, and every one of those is exactly as strict as it was.
+    """
+    low = deepcopy(example_candidate)
+    for axis in low["scores"]:
+        low["scores"][axis]["score"] = 2
+    res = gate(candidate=low)
+    assert res.code == 0, res.out
+    assert res.json()["mean"] == 2.0, "the score is still recorded"
+
+    high = deepcopy(example_candidate)
+    for axis in high["scores"]:
+        high["scores"][axis]["score"] = 10
+    high["sections"]["principle"] = "too short to be a principle"
+    assert gate(candidate=high).code == 2, "a perfect self-score did not rescue a thin section"
 
 
-def test_a_single_low_axis_fails_even_with_a_good_mean(gate, example_candidate):
+def test_an_honestly_low_axis_is_reported_and_does_not_fail(gate, example_candidate):
+    """A game mechanic scores non_anthropocentrism honestly at 2 - it is a rule
+    set people execute for their own enjoyment. Under the old floor that failed,
+    and the documented recovery (`grounded`) re-seeds the deal, so the user
+    threw away the hand and every stage of work written against it. It is a
+    warning now: worth reading, not worth discarding a session over."""
     c = deepcopy(example_candidate)
-    c["scores"]["non_anthropocentrism"]["score"] = 3
-    for axis in ("internal_consistency", "emotional_residue", "integration"):
-        c["scores"][axis]["score"] = 10
+    c["scores"]["non_anthropocentrism"]["score"] = 2
     res = gate(candidate=c)
-    assert res.code == 2
-    assert "non_anthropocentrism=3" in failures(res)
+    assert res.code == 0, res.out
+    assert any("weakest axis non_anthropocentrism=2" in w for w in res.json()["warnings"])
+
+
+def test_a_score_outside_the_scale_is_still_refused(gate, example_candidate):
+    """Removing the threshold did not remove the requirement that every axis be
+    present, be an integer, and be argued."""
+    c = deepcopy(example_candidate)
+    c["scores"]["imageability"]["score"] = 11
+    assert gate(candidate=c).code == 2
+    c = deepcopy(example_candidate)
+    del c["scores"]["imageability"]
+    assert gate(candidate=c).code == 2
 
 
 def test_a_thin_justification_fails(gate, example_candidate):

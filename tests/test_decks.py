@@ -102,7 +102,20 @@ def test_rubric_matches_schema(references):
     assert len(axes) == 8 and len(set(axes)) == 8
     assert set(schema["properties"]["scores"]["required"]) == set(axes)
     sections = [s["id"] for s in rubric["required_sections"]]
-    assert set(schema["properties"]["sections"]["required"]) == set(sections)
+    conditional = {rubric["grounded_substitution"]["requires_section"]}
+    assert set(schema["properties"]["sections"]["required"]) == set(sections) - conditional
+    assert conditional <= set(schema["properties"]["sections"]["properties"])
     for spec, prop in ((s, schema["properties"]["sections"]["properties"][s["id"]]) for s in rubric["required_sections"]):
         assert prop["minLength"] == spec["min_chars"], f"{spec['id']} minimum differs between rubric and schema"
     assert rubric["extremal_thresholds"]["min_mean"] > rubric["default_thresholds"]["min_mean"]
+
+
+def test_grounded_substitution_is_coherent(references):
+    """grounded asks for something buildable, so the human-centring axis is
+    unsatisfiable by construction. It must be replaced, not waived."""
+    rubric = json.loads((references / "rubric.json").read_text(encoding="utf-8"))
+    sub = rubric["grounded_substitution"]
+    axis_ids = {a["id"] for a in rubric["axes"]}
+    assert sub["replaces"] in axis_ids
+    assert sub["axis"]["id"] not in axis_ids, "the substitute must not also be a default axis"
+    assert sub["requires_section"] in {s["id"] for s in rubric["required_sections"]}

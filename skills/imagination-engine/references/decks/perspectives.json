@@ -1,6 +1,6 @@
 {
   "deck": "perspectives",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "note": "Non-anthropocentric stances. The drawn stance governs the whole result, not one paragraph of it. If the result would survive unchanged with the stance removed, the stance was never applied.",
   "perspectives": [
     { "id": "cannot-perceive-humans", "stance": "A being for which humans are below the detection threshold", "test": "Does anything in the result treat humans as its audience? Cut it." },

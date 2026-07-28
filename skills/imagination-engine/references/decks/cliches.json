@@ -1,6 +1,6 @@
 {
   "deck": "cliches",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "note": "Default forbidden moves. 'ban' entries fail the lint (exit 3). 'warn' entries are reported but do not fail. A term can be released for a specific job with --allow <id> when the user genuinely asked for that genre - the point is that using it becomes a decision, not a default.",
   "hollow_adjectives": {
     "ban": ["creative", "innovative", "revolutionary", "cutting-edge", "futuristic", "groundbreaking", "game-changing", "next-generation", "mind-blowing", "disruptive", "unimaginable", "indescribable", "otherworldly", "one-of-a-kind", "state-of-the-art"],

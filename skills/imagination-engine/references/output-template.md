@@ -51,7 +51,7 @@ it.
 
 ---
 
-**Optional, only at anchor 3 (grounded mode):**
+**Required in grounded mode (and at anchor 3):**
 
 ### One path to something real
 

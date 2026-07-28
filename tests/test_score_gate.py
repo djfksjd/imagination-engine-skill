@@ -155,3 +155,42 @@ def test_unreadable_candidate_is_a_usage_error(run, tmp_path):
     path.write_text("{not json", encoding="utf-8")
     res = run("score_gate.py", "--candidate", str(path))
     assert res.code == 1
+
+
+def test_grounded_mode_swaps_the_unsatisfiable_axis(run, tmp_path, candidate):
+    """A buildable result exists for someone by construction, so scoring it on
+    distance from human centring guarantees failure. --grounded replaces that
+    axis and adds an obligation instead of removing one."""
+    c = deepcopy(candidate)
+    del c["scores"]["non_anthropocentrism"]
+    c["scores"]["translation_integrity"] = {
+        "score": 8,
+        "justification": "The broken law survives the buildable version intact and the losses are named in the path.",
+    }
+    c["sections"]["operational_path"] = "A" + " concrete path a team could take within a month, and the part of the principle that does not survive it." * 3
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--grounded", "--json")
+    assert res.code == 0, res.out
+    assert res.json()["grounded"] is True
+
+
+def test_grounded_requires_the_operational_path(run, tmp_path, candidate):
+    c = deepcopy(candidate)
+    del c["scores"]["non_anthropocentrism"]
+    c["scores"]["translation_integrity"] = {
+        "score": 8, "justification": "The law survives and the losses from building it are stated in full.",
+    }
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--grounded", "--json")
+    assert res.code == 2
+    assert any("operational_path" in f for f in res.json()["failures"])
+
+
+def test_the_default_gate_still_wants_the_default_axis(run, tmp_path, candidate):
+    c = deepcopy(candidate)
+    del c["scores"]["non_anthropocentrism"]
+    c["scores"]["translation_integrity"] = {
+        "score": 8, "justification": "Scored for a grounded run, but this call does not pass the flag.",
+    }
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--json")
+    assert res.code == 2
+    failures = " ".join(res.json()["failures"])
+    assert "missing axes non_anthropocentrism" in failures and "unknown axes translation_integrity" in failures

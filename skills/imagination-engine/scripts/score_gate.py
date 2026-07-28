@@ -43,6 +43,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Gate a candidate against the imagination-engine rubric.")
     p.add_argument("--candidate", required=True, help="candidate.json (see references/candidate.schema.json)")
     p.add_argument("--extremal", action="store_true", help="apply extremal thresholds (mean 9.0, no axis below 8)")
+    p.add_argument("--grounded", action="store_true",
+                   help="grounded mode: score translation_integrity in place of non_anthropocentrism, "
+                        "and require the operational_path section")
     p.add_argument("--min-mean", type=float, default=None, help="override the mean threshold")
     p.add_argument("--min-axis", type=int, default=None, help="override the per-axis floor")
     p.add_argument("--rubric", default=None, help="path to an alternative rubric.json")
@@ -65,15 +68,20 @@ def text_of(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, min_axis: int) -> dict[str, Any]:
+def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, min_axis: int,
+          grounded: bool = False) -> dict[str, Any]:
     failures: list[str] = []
     warnings: list[str] = []
+    substitution = rubric.get("grounded_substitution", {})
+    grounded_section = substitution.get("requires_section")
 
     sections = candidate.get("sections")
     if not isinstance(sections, dict):
         failures.append("sections: missing or not an object")
         sections = {}
     for spec in rubric["required_sections"]:
+        if spec["id"] == grounded_section and not grounded:
+            continue
         body = text_of(sections.get(spec["id"]))
         if not body:
             failures.append(f"sections.{spec['id']}: missing - {spec['note']}")
@@ -140,6 +148,10 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
         )
 
     axis_ids = [a["id"] for a in rubric["axes"]]
+    if grounded and substitution:
+        # Substitution, not exemption: the axis a product cannot satisfy is
+        # replaced by the one it must.
+        axis_ids = [substitution["axis"]["id"] if a == substitution["replaces"] else a for a in axis_ids]
     scores = candidate.get("scores")
     values: dict[str, int] = {}
     if not isinstance(scores, dict):
@@ -189,6 +201,7 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
         "passed": not failures,
         "mean": mean,
         "thresholds": {"min_mean": min_mean, "min_axis": min_axis},
+        "grounded": grounded,
         "scores": values,
         "failures": failures,
         "warnings": warnings,
@@ -208,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
         defaults = rubric["extremal_thresholds"] if args.extremal else rubric["default_thresholds"]
         min_mean = args.min_mean if args.min_mean is not None else float(defaults["min_mean"])
         min_axis = args.min_axis if args.min_axis is not None else int(defaults["min_axis"])
-        verdict = check(candidate, rubric, min_mean, min_axis)
+        verdict = check(candidate, rubric, min_mean, min_axis, grounded=args.grounded)
     except EngineError as exc:
         die(str(exc), 1)
         return 1

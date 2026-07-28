@@ -1,6 +1,6 @@
 {
   "deck": "modes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "note": "Modes are compatible and stack. Each mode adds mandatory directives and forces a specific deck to be drawn. Stacking more than three modes tends to produce noise rather than strangeness - the draw script warns above three.",
   "default_modes": ["nonhuman", "alien-physics"],
   "modes": [

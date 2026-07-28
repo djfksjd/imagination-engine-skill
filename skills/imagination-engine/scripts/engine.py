@@ -19,7 +19,7 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DECK_DIR = SKILL_DIR / "references" / "decks"

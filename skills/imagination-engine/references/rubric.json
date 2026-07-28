@@ -1,8 +1,14 @@
 {
   "rubric": "imagination-engine",
-  "version": "0.1.0",
-  "default_thresholds": { "min_mean": 8.0, "min_axis": 6 },
-  "extremal_thresholds": { "min_mean": 9.0, "min_axis": 8 },
+  "version": "0.2.0",
+  "default_thresholds": {
+    "min_mean": 8.0,
+    "min_axis": 6
+  },
+  "extremal_thresholds": {
+    "min_mean": 9.0,
+    "min_axis": 8
+  },
   "note": "Self-scoring is weak evidence and this rubric does not pretend otherwise. Its value is that each axis names a specific failure, so a low score has to be argued away with a rewrite rather than with an adjective. Score honestly: a 6 that gets fixed beats a 9 that was assigned.",
   "axes": [
     {
@@ -71,13 +77,63 @@
     }
   ],
   "required_sections": [
-    { "id": "name", "min_chars": 3, "note": "Names the operating principle, not the genre." },
-    { "id": "one_line", "min_chars": 60, "note": "States what it is without comparing it to a known work." },
-    { "id": "principle", "min_chars": 200, "note": "The law by which it exists and operates, including what it forbids." },
-    { "id": "first_encounter", "min_chars": 300, "note": "A concrete scene: what is seen, heard, felt, and what behaviour changes." },
-    { "id": "strangest_property", "min_chars": 150, "note": "The novelty in its mode of existence, not its appearance." },
-    { "id": "affect", "min_chars": 120, "note": "The conflicting feelings and the single feature that produces both." },
-    { "id": "world_effect", "min_chars": 200, "note": "How language, culture, relations, industry, or daily habit reorganize." },
-    { "id": "avoided", "min_chars": 150, "note": "Which familiar versions were discarded and why this is not one of them." }
-  ]
+    {
+      "id": "name",
+      "min_chars": 3,
+      "note": "Names the operating principle, not the genre."
+    },
+    {
+      "id": "one_line",
+      "min_chars": 60,
+      "note": "States what it is without comparing it to a known work."
+    },
+    {
+      "id": "principle",
+      "min_chars": 200,
+      "note": "The law by which it exists and operates, including what it forbids."
+    },
+    {
+      "id": "first_encounter",
+      "min_chars": 300,
+      "note": "A concrete scene: what is seen, heard, felt, and what behaviour changes."
+    },
+    {
+      "id": "strangest_property",
+      "min_chars": 150,
+      "note": "The novelty in its mode of existence, not its appearance."
+    },
+    {
+      "id": "affect",
+      "min_chars": 120,
+      "note": "The conflicting feelings and the single feature that produces both."
+    },
+    {
+      "id": "world_effect",
+      "min_chars": 200,
+      "note": "How language, culture, relations, industry, or daily habit reorganize."
+    },
+    {
+      "id": "avoided",
+      "min_chars": 150,
+      "note": "Which familiar versions were discarded and why this is not one of them."
+    },
+    {
+      "id": "operational_path",
+      "min_chars": 200,
+      "note": "Required in grounded mode: one path to something real, and the part of the principle that does not survive it."
+    }
+  ],
+  "grounded_substitution": {
+    "note": "grounded mode asks for something a person could build, so 'distance from human centring' is unsatisfiable by construction - a grounded run could never pass. The axis is not waived, which would be a discount; it is replaced by the obligation grounded work actually has, which is that the premise survived being made buildable.",
+    "replaces": "non_anthropocentrism",
+    "requires_section": "operational_path",
+    "axis": {
+      "id": "translation_integrity",
+      "label": "Integrity of the translation",
+      "question": "Does the operable path keep the broken law intact, and is what it costs stated plainly?",
+      "anchor_4": "The path quietly restores the law the concept deleted; what remains is an ordinary product.",
+      "anchor_7": "The law survives, but the losses from building it are vague or unstated.",
+      "anchor_9": "The law survives untouched, the buildable version forbids the same thing, and every part of the principle that does not survive the translation is named."
+    }
+  }
 }

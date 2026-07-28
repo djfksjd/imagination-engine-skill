@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "imagination-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Radical idea generation that blocks the obvious answer instead of asking for a better one. Use when the user wants something genuinely strange — creature, world, premise, concept, story seed, mechanic, ritual, form of life — or says the ideas so far are generic, predictable, or 'AI-sounding'. Burns the model's twelve most likely answers into a ban list, deals a hash-seeded hand of distant domains and a reality rule to break, and gates the result on an eight-axis rubric before it is shown. Works in any language.",
   "author": {
     "name": "djfksjd",

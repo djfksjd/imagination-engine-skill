@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "um patamar entre dois andares" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · leve o candidato pronto ao portão
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # acrescente --extremal ou --grounded
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` imprime os modos. `--run 2` distribui material novo, ainda de categorias disjuntas, para uma regeneração; `--salt` redistribui a mesma rodada sem avançá-la. `--extremal` e `--grounded` não são prova: `candidate.json` precisa declarar os mesmos modos, ou o portão recusa.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # ac
 | `3` | **há material proibido** no rascunho | reescreva o pensamento, não a palavra. Apagar a expressão apontada e manter a frase não é conserto |
 
 Se o mesmo eixo falha duas vezes, o material é que está errado, não a redação: redistribua com `--run <n+1>` em vez de editar.
+
+> [!IMPORTANT]
+> **Um único comando pode dizer "passou", e ele recebe tudo.** `score_gate.py` redistribui a mão a partir dos baralhos embutidos para conferir, amarra o candidato carta por carta, pontua com o perfil que a *rodada* implica, exige resposta escrita para cada proibição longa demais para casar automaticamente, e verifica se o rascunho prestes a ser mostrado é o que foi pontuado. Não existe `--extremal`, `--grounded`, `--min-mean`, `--min-axis` nem `--rubric`: um limiar afirmado na hora do veredicto é afirmado pela parte de que o veredicto trata. `cliche_lint.py` é um apoio de redação; passar nele não é liberação.
 
 > [!NOTE]
 > Os portões são pisos, não juízes. Provam que certas jogadas familiares estão *ausentes* e que o trabalho exigido foi *feito*. Não conseguem dizer que a ideia é boa, e a nota de aprovação é autoatribuída. Leia o resultado você mesmo.

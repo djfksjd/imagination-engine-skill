@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "两层楼之间的楼梯平台" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · 让成稿候选过网关
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # 可加 --extremal 或 --grounded
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` 会列出模式。`--run 2` 为重新生成发一副全新且依然互不相交的材料；`--salt` 在不推进轮次的情况下重发。`--extremal` 与 `--grounded` 不是证据 — `candidate.json` 必须声明相同的模式，否则网关拒绝。
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # �
 | `3` | 草稿中**存在被禁材料** | 改的是念头，不是词。删掉被标出的短语而留下那句话，不算修改 |
 
 同一条轴连续两次失败，说明错的是材料而不是措辞：别改写，用 `--run <n+1>` 重新发牌。
+
+> [!IMPORTANT]
+> **能说"通过"的命令只有一条，而这一条要拿全部东西。** `score_gate.py` 会用内置牌堆重新发一次牌来核对，把候选逐张绑到牌上，按*这一轮*所隐含的档位评分，对每条无法机械匹配的禁令要求书面回答，并检查即将展示的草稿就是被评分的那一份。没有 `--extremal`、`--grounded`、`--min-mean`、`--min-axis`、`--rubric` —— 在裁定时刻声明的阈值，是由被裁定的一方声明的。`cliche_lint.py` 只是起草辅助，通过它不算放行。
 
 > [!NOTE]
 > 网关是地板，不是裁判。它只能证明特定的熟套路*不在场*，以及该做的功课*做过了*。它无法告诉你这个想法好不好，而通过的分数是自评的。结果还得你自己读。

@@ -1,6 +1,22 @@
 # Output template
 
-Render the eight sections of `candidate.json` in this order. Headings may be
+Render the eight sections of `candidate.json` in this order.
+
+**Binding.** Each section body goes inside a bind block so the gate can check
+that the draft being shown is the one that was scored:
+
+```markdown
+### First encounter
+
+<!-- bind: sections.first_encounter -->
+The body, exactly as it appears in candidate.json.
+<!-- /bind -->
+```
+
+The comparison is exact after Unicode normalization and whitespace collapse.
+Revising the prose means updating `candidate.json` to the final wording and
+re-gating - editing one side only fails, which is the point. See
+`references/example-draft.md` for a complete one. Headings may be
 translated into the user's language; the order and the content contract may not
 change. Nothing else is added: no preamble, no summary of the process, no offer
 to make it stranger.
@@ -51,7 +67,7 @@ it.
 
 ---
 
-**Required in grounded mode (and at anchor 3):**
+**Required whenever the run is `grounded` or the anchor is 3:**
 
 ### One path to something real
 

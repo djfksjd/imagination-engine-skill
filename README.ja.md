@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "二つの階のあいだの踊り場" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · 完成した候補をゲートに通す
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --extremal / --grounded を追加
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` でモード一覧が出ます。`--run 2` は再生成用に、やはり互いに重ならない新しい素材を配ります。`--salt` はランを進めずに引き直します。`--extremal` と `--grounded` は証拠ではありません — `candidate.json` が同じモードを宣言していなければゲートが拒否します。
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --
 | `3` | 草稿に**禁止された素材がある** | 語ではなく思考を書き直す。指摘された表現だけ消して文を残すのは修正ではない |
 
 同じ軸で二度落ちたら、表現ではなく素材が間違っています。直すのではなく `--run <n+1>` で引き直してください。
+
+> [!IMPORTANT]
+> **「通過」と言えるコマンドは一つだけで、その一つがすべてを受け取ります。** `score_gate.py` は引きを同梱デッキで引き直して照合し、候補をカード一枚ずつに結び付け、*ラン*が含意するプロファイルで採点し、機械照合できない禁止項目ごとに書面の回答を求め、これから見せる草稿が採点されたその草稿かを確認します。`--extremal` も `--grounded` も `--min-mean` も `--min-axis` も `--rubric` もありません — 判定時に主張された閾値は、その判定の対象が主張したものです。`cliche_lint.py` は下書き用の補助であり、通ってもクリアランスではありません。
 
 > [!NOTE]
 > ゲートは審判ではなく床です。特定の見慣れた手が*ないこと*と、必要な作業が*行われたこと*だけを証明します。アイデアの良し悪しは判定できず、通過点数は自己申告です。結果は自分で読んでください。

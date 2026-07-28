@@ -65,8 +65,14 @@ library only, no installation.
 |---|---|---|
 | `scripts/draw.py` | Deals the constraint hand: distant domains across disjoint categories, a rule to break, a non-human stance, a sense seed, an affect pair | 1 usage/deck error |
 | `scripts/banlist.py` | Turns the stage-1 instinct dump plus the cliche deck into a machine-checkable ban list | 2 if the dump is too short |
-| `scripts/cliche_lint.py` | Scans the draft for banned phrases, hollow adjectives, and pitch-shaped sentences | 3 if banned material is present |
-| `scripts/score_gate.py` | Validates the candidate against the rubric, fail-closed | 2 if the gate fails |
+| `scripts/cliche_lint.py` | Mid-draft diagnostic only. Scans a draft for banned phrases, hollow adjectives, and pitch-shaped sentences | 3 if banned material is present |
+| `scripts/score_gate.py` | **The only gate.** Replays the draw, binds the candidate to it, scores it, answers the ban list, and binds the draft that will be shown | 2 if the gate fails |
+
+`cliche_lint.py` passing is not clearance. Two gates that never meet are one
+gate: while `score_gate.py` read `candidate.json` and `cliche_lint.py` read
+`draft.md`, nothing tied the candidate that passed to the draft that was shown.
+`score_gate.py` now takes all four artefacts and is the only command that can
+return "passed".
 
 A non-zero exit is never treated as success. Write working files to a scratch
 directory, not into the skill folder.
@@ -169,27 +175,44 @@ becomes an insult. Strip anything decorative that the law does not entail.
 
 ### 8. Gate (hidden)
 
-Write `candidate.json` per `references/candidate.schema.json`, then:
+Write `candidate.json` per `references/candidate.schema.json` and `draft.md`
+per `references/output-template.md`, then run the one gate:
 
 ```bash
-scripts/score_gate.py --candidate <work>/candidate.json      # --extremal in extremal mode
-scripts/score_gate.py --candidate <work>/candidate.json --grounded   # in grounded mode
-scripts/cliche_lint.py --banlist <work>/banlist.json --draft <work>/draft.md
+scripts/score_gate.py --candidate <work>/candidate.json --draw <work>/draw.json \
+  --banlist <work>/banlist.json --markdown <work>/draft.md
 ```
 
-**`--grounded` is not a discount.** A result with a real path to being built
-usually exists for someone, and then scores near the floor on distance from
-human centring - so that axis is *replaced* by `translation_integrity`: does the
-operable path keep the broken law intact, and is the loss stated? Grounded runs
-also owe the extra `operational_path` section. Without the flag a grounded run
-fails on an axis it was never in a position to satisfy, which is a fault in the
-gate rather than the idea.
+All four are required and must belong to each other. The gate:
 
-**And the flag is not evidence.** `candidate.json` must declare the same modes
-the run was drawn with, or the gate rejects the substitution - otherwise
-`--grounded` is simply a way to delete whichever axis you were about to score
-badly. For the same reason `grounded` cannot stack with `nonhuman`: the axis it
-removes is the one that mode exists to enforce. Pick one and regenerate.
+- **replays the draw** from its own request against the bundled decks, so a card
+  swapped after it was dealt no longer follows from the request that produced
+  it. This is a consistency boundary, not an authenticity one - it cannot show
+  that the topic came from the user, that this was the first draw, or that a
+  salt was not retried until the hand was agreeable. Say so rather than implying
+  more.
+- **binds the candidate to that draw.** Topic, run, anchor and modes must match;
+  `domains_used` must be the exact set of drawn domains; `broken_rule.constraint_ids`
+  the exact set of drawn constraints, each accounted for in `how_each_is_broken`;
+  and `perspective_id`, `sense_seed_id`, `affect_pair_id` must be the drawn ones.
+  Every drawn component is binding, so a card that did no work is not dropped -
+  it is replaced by redealing.
+- **reads the policy off the run.** There is no `--extremal`, no `--grounded`,
+  no `--min-mean`, no `--min-axis`, no `--rubric`. A threshold asserted at
+  verdict time is asserted by the same party the verdict is about. `extremal`
+  in the drawn modes raises the thresholds; `grounded` substitutes the axis;
+  the bundled rubric is the policy, and a fork edits it rather than passing one.
+  The verdict records which policy ran, with its hash.
+- **requires every manual ban answered.** Long entries from stage 1 cannot be
+  phrase-matched, so they land in `manual_checks` - and used to be printed and
+  forgotten. Each now needs a written answer in `manual_checks_cleared`.
+- **binds the draft to the candidate.** Each scored section appears in the
+  markdown inside `<!-- bind: sections.<id> -->` ... `<!-- /bind -->`, matching
+  exactly. Editing one side only fails; update `candidate.json` to the final
+  wording and re-gate.
+
+`operational_path` is required whenever the run is `grounded` **or** the anchor
+is 3.
 
 Fix by rewriting the idea, not by deleting the flagged word. If the gate fails
 twice on the same axis, return to stage 3 with `--run <n+1>`: the material is

@@ -19,7 +19,7 @@ def test_builds_from_dump_and_deck(run, tmp_path, obvious_file):
     assert "cyberpunk" in ids, "deck defaults missing"
     assert any(i.startswith("obvious-") for i in ids), "first instincts missing"
     assert any(i.startswith("hollow-") for i in ids), "hollow adjectives missing"
-    assert payload["counts"]["obvious_supplied"] == 11
+    assert payload["counts"]["obvious_supplied"] == 12
 
 
 def test_short_dump_is_refused_with_code_2(run, tmp_path):
@@ -67,15 +67,33 @@ def test_unknown_allow_id_is_an_error(run, tmp_path, obvious_file):
 
 def test_duplicate_instincts_are_collapsed(run, tmp_path):
     dump = tmp_path / "dump.txt"
-    lines = ["flat robotic voice", "Flat  Robotic Voice", "- flat robotic voice"] + [f"idea number {i}" for i in range(9)]
+    lines = ["flat robotic voice", "Flat  Robotic Voice", "- flat robotic voice"] + [f"idea number {i}" for i in range(11)]
     dump.write_text("\n".join(lines) + "\n", encoding="utf-8")
     res = run("banlist.py", "--topic", "voice", "--obvious", str(dump), "--out", str(tmp_path))
     assert res.code == 0
     payload = load(tmp_path / "banlist.json")
-    assert payload["counts"]["obvious_supplied"] == 10
+    assert payload["counts"]["obvious_supplied"] == 12
 
 
 def test_stdin_input(run, tmp_path):
-    dump = "\n".join(f"obvious idea {i}" for i in range(10))
+    dump = "\n".join(f"obvious idea {i}" for i in range(12))
     res = run("banlist.py", "--topic", "voice", "--obvious", "-", "--out", str(tmp_path), stdin=dump)
     assert res.code == 0, res
+
+
+def test_the_burn_cannot_be_declared_complete_with_a_flag(run, tmp_path):
+    """--min-obvious was a caller-supplied floor, so `--min-obvious 0` with an
+    empty file exited 0: the whole stage skipped with a passing status."""
+    empty = tmp_path / "empty.txt"
+    empty.write_text("", encoding="utf-8")
+    res = run("banlist.py", "--topic", "voice", "--obvious", str(empty), "--min-obvious", "0")
+    assert res.code == 1
+    assert "unrecognized arguments" in res.err
+
+
+def test_the_floor_is_the_twelve_the_skill_asks_for(run, tmp_path):
+    eleven = tmp_path / "eleven.txt"
+    eleven.write_text("\n".join(f"obvious idea {i}" for i in range(11)), encoding="utf-8")
+    res = run("banlist.py", "--topic", "voice", "--obvious", str(eleven), "--out", str(tmp_path))
+    assert res.code == 2
+    assert "12 are required" in res.err

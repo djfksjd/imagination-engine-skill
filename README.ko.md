@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "두 층 사이의 계단참" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · 완성된 후보를 게이트에 통과시키기
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --extremal 또는 --grounded 추가
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes`로 모드를 출력한다. `--run 2`는 재생성용으로 여전히 서로 겹치지 않는 새 재료를 뽑고, `--salt`는 같은 런을 진행시키지 않은 채 다시 뽑는다. `--extremal`과 `--grounded`는 증거가 아니다 — `candidate.json`이 같은 모드를 선언하지 않으면 게이트가 거부한다.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --
 | `3` | 초안에 **금지된 재료가 있음** | 단어가 아니라 생각을 고친다. 지적된 표현만 지우고 문장을 남기는 건 수정이 아니다 |
 
 같은 축에서 두 번 실패하면 표현이 아니라 재료가 잘못된 것이다. 고쳐 쓰지 말고 `--run <n+1>`로 다시 뽑는다.
+
+> [!IMPORTANT]
+> **"통과"라고 말할 수 있는 명령은 하나뿐이고, 그 하나가 전부를 받는다.** `score_gate.py`는 뽑기를 번들 덱으로 다시 돌려 대조하고, 후보를 카드 하나하나에 결속시키고, *런*이 함의하는 프로파일로 채점하고, 기계로 매칭할 수 없는 금지 항목마다 서면 답변을 요구하고, 지금 보여줄 초안이 채점된 그 초안인지 확인한다. `--extremal`도 `--grounded`도 `--min-mean`도 `--min-axis`도 `--rubric`도 없다 — 판정 시점에 주장된 임계값은 그 판정의 대상이 주장한 것이다. `cliche_lint.py`는 작성 보조일 뿐이고 통과해도 승인이 아니다.
 
 > [!NOTE]
 > 게이트는 심판이 아니라 바닥이다. 특정한 익숙한 수가 *없다는 것*과 필요한 작업이 *수행됐다는 것*만 증명한다. 아이디어가 좋은지는 말해주지 못하고, 통과 점수는 자기가 매긴 것이다. 결과는 직접 읽어야 한다.

@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "a stairwell between two floors" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · gate the finished candidate
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # add --extremal, or --grounded
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` prints the modes. `--run 2` deals fresh, still-disjoint material for a regeneration; `--salt` redeals the same run without advancing it.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # ad
 | `3` | **banned material is present** in the draft | rewrite the thought, not the word. Deleting the flagged phrase and keeping the sentence is not a fix |
 
 If the same axis fails twice, the material is wrong rather than the phrasing: redeal with `--run <n+1>` instead of editing.
+
+> [!IMPORTANT]
+> **One command can say "passed", and it takes everything.** `score_gate.py` replays the draw against the bundled decks, binds the candidate to it card by card, scores it on the profile the *run* implies, requires a written answer to every ban too long to match mechanically, and checks that the draft about to be shown is the one that was scored. There is no `--extremal`, no `--grounded`, no `--min-mean`, no `--min-axis`, no `--rubric` — a threshold asserted at verdict time is asserted by the party the verdict is about. `cliche_lint.py` is a drafting aid; passing it is not clearance.
 
 > [!NOTE]
 > The gates are floors, not judges. They prove that specific familiar moves are *absent* and that the required work was *done*. They cannot tell you the idea is good, and a passing score is self-assigned. Read the result yourself.
@@ -224,8 +228,8 @@ Note what is *not* there: no apparatus, no glowing device, nothing that looks un
 |---|---|---|
 | `draw.py` | Deals the constraint hand from seven decks | `1` usage or deck error |
 | `banlist.py` | Merges the instinct dump with the cliché deck into a checkable ban list | `2` the dump was too short |
-| `cliche_lint.py` | Flags banned phrases, hollow adjectives, and pitch-shaped sentences with line numbers | `3` banned material present |
-| `score_gate.py` | Validates the candidate against the rubric, fail-closed | `2` gate failed |
+| `cliche_lint.py` | Drafting aid only. Flags banned phrases, hollow adjectives, and pitch-shaped sentences with line numbers | `3` banned material present |
+| `score_gate.py` | **The only gate.** Replays the draw, binds the candidate and the draft to it, scores, and answers the ban list | `2` gate failed |
 
 **Everything is reproducible.** The draw is seeded from a hash of the topic, so the same request deals the same hand and any result can be replayed and audited. `--run 2` deals fresh, still-disjoint material for a regeneration; `--salt` redeals the same run.
 

@@ -77,10 +77,38 @@ def test_sense_carries_its_required_fields(run):
     assert len(payload["draw"]["sense"]["required_fields"]) == 4
 
 
-def test_stacking_too_many_modes_warns(run):
-    payload = draw(run, "--modes", "baby,nonhuman,affect,alien-physics")
-    assert any("modes stacked" in note for note in payload["notes"])
+def test_stacking_too_many_modes_is_refused(run):
+    """SKILL.md says stack up to three. A warning left the rule advisory."""
+    res = run("draw.py", "--topic", "x", "--modes", "baby,nonhuman,affect,extremal", "--json")
+    assert res.code == 1
+    assert "the limit is 3" in res.err
 
+
+def test_grounded_and_nonhuman_are_refused_at_the_draw(run):
+    """grounded substitutes the axis nonhuman exists to enforce, so one of the
+    two would have no effect. The draw is where the run is defined, so it is
+    refused here rather than left to the gate."""
+    res = run("draw.py", "--topic", "x", "--modes", "grounded,nonhuman", "--json")
+    assert res.code == 1
+    assert "cannot be stacked" in res.err
+
+
+def test_the_draw_records_the_request_that_produced_it(run, tmp_path):
+    res = run("draw.py", "--topic", "a stairwell", "--modes", "nonhuman", "--run", "2",
+              "--anchor", "1", "--json")
+    assert res.code == 0, res
+    payload = res.json()
+    assert payload["draw_schema_version"] == 2
+    assert payload["request"] == {
+        "topic": "a stairwell", "run": 2, "salt": "", "mode_ids": ["nonhuman"],
+        "anchor": 1, "requested_domains": 3,
+    }
+
+
+def test_a_narrower_hand_than_three_is_refused(run):
+    res = run("draw.py", "--topic", "x", "--domains", "2", "--json")
+    assert res.code == 1
+    assert "at least 3" in res.err
 
 def test_unknown_mode_fails(run):
     res = run("draw.py", "--topic", TOPIC, "--modes", "chaos")

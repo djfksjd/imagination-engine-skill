@@ -27,20 +27,20 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_deck, normalize, phrase_regex, read_text_arg,
+        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, phrase_regex, read_text_arg,
     )
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_deck, normalize, phrase_regex, read_text_arg,
+        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, phrase_regex, read_text_arg,
     )
 
 FAIL_CODE = 3
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Lint a draft against the ban list and the cliche deck.")
+    p = UsageParser(description="Lint a draft against the ban list and the cliche deck.")
     p.add_argument("--draft", required=True, help="draft file, or '-' for stdin")
     p.add_argument("--banlist", default=None, help="banlist.json from banlist.py")
     p.add_argument("--deck-only", action="store_true", help="lint against deck defaults without a ban list")

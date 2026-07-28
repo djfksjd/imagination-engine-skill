@@ -1,6 +1,6 @@
 {
   "deck": "domains",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "note": "Distant-concept deck. The draw script guarantees that a drawn set spans disjoint top-level categories, so the combination cannot collapse into one familiar field. 'probe' is the question the drawn domain must actually answer inside the result - a domain that is name-dropped but answers nothing is a decoration and must be cut.",
   "categories": [
     { "id": "cognition-error", "label": "Misunderstanding and unfinished cognition" },

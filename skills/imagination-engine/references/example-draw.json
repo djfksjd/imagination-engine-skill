@@ -1,0 +1,151 @@
+{
+  "engine_version": "0.3.0",
+  "draw_schema_version": 2,
+  "request": {
+    "topic": "a machine that separates emotion from voice",
+    "run": 1,
+    "salt": "",
+    "mode_ids": [
+      "baby",
+      "nonhuman",
+      "affect"
+    ],
+    "anchor": 1,
+    "requested_domains": 3
+  },
+  "topic": "a machine that separates emotion from voice",
+  "run": 1,
+  "salt": "",
+  "modes": [
+    {
+      "id": "baby",
+      "label": "Infant mode - unlearn function, name, and causality",
+      "directives": [
+        "Ignore the official function of every object involved; treat what it does when misused as what it is for.",
+        "Let similar-sounding names imply real kinship between unrelated things, and follow that kinship seriously.",
+        "Invert the order of cause and effect at least once and keep the inversion consistent.",
+        "Do not maintain the boundaries alive/dead, inside/outside, self/other, real/imagined unless the world's own new law restores them.",
+        "Ask 'why must it be so?' of every premise that no one usually states."
+      ],
+      "guard": "Infant logic, adult execution. Childlike results (cute, silly, whimsical for its own sake) are a failure of this mode, not an expression of it."
+    },
+    {
+      "id": "nonhuman",
+      "label": "Non-anthropocentric mode - remove human usefulness",
+      "directives": [
+        "Nothing here exists for human benefit, and nothing was designed with a human in mind.",
+        "Humans, if present, are weather, terrain, or an accident - never the audience.",
+        "If the result would be a product, a tool, or a service, it is disqualified in this mode.",
+        "Do not give it a humanoid body plan, a face, or motives that map onto human wants."
+      ],
+      "guard": "Check every sentence containing 'so that' or 'in order to'. If the beneficiary is a person, rewrite."
+    },
+    {
+      "id": "affect",
+      "label": "Sense and feeling mode - invent a perception or an unnamed emotion",
+      "directives": [
+        "Invent at least one sense or one affect that has no existing name, and answer all four required fields for it.",
+        "Show one ordinary daily situation reorganized by it - a greeting, a queue, a meal, a goodbye.",
+        "Name the new injustice, misunderstanding, or grief it creates.",
+        "Do not translate the new sense into sight or sound as a shortcut, and do not render feelings as colors."
+      ],
+      "guard": "A sense that only adds convenience is a feature. A sense that adds a new way to be wronged is an invention."
+    }
+  ],
+  "anchor": {
+    "level": 1,
+    "label": "Legible",
+    "rule": "Must be describable to a non-expert in three sentences without analogy to a known work."
+  },
+  "draw": {
+    "domains": [
+      {
+        "id": "erosion-base-level",
+        "category": "weather-and-geology",
+        "label": "Everything grinding toward one level",
+        "probe": "What is the final level this is grinding toward?"
+      },
+      {
+        "id": "palimpsest",
+        "category": "record-and-time",
+        "label": "Writing scraped away and written over",
+        "probe": "What earlier version is still faintly legible underneath?"
+      },
+      {
+        "id": "phantom-limb",
+        "category": "cognition-error",
+        "label": "Sensation from something absent",
+        "probe": "What is felt here that is no longer or never was present?"
+      }
+    ],
+    "constraints": [
+      {
+        "id": "information-copies-freely",
+        "statement": "Information can be copied without loss.",
+        "inversion_prompt": "What if each copy removes something from the original, or the copy and original must agree on which is which?",
+        "replacement_requirement": "State the cost of duplication and who audits it."
+      }
+    ],
+    "perspective": {
+      "id": "no-inside",
+      "stance": "Something with a surface but no interior at any scale",
+      "test": "What does injury mean for it?"
+    },
+    "sense": {
+      "id": "unfinished-processes",
+      "seed": "Sensing processes that were started and never completed nearby",
+      "required_fields": [
+        "detects: the exact stimulus, stated so that a false positive is describable",
+        "mechanism: the organ, substrate, or procedure, including its failure mode",
+        "consequence: how ordinary life, architecture, manners, or law reorganize around it",
+        "cost: the new pain, misunderstanding, or injustice it makes possible"
+      ]
+    },
+    "affect_pair": {
+      "id": "beauty-obligation",
+      "a": "beauty",
+      "b": "obligation",
+      "test": "What does looking at it commit the viewer to?"
+    }
+  },
+  "requirements": {
+    "required_by_modes": [
+      "affects",
+      "domains",
+      "perspectives",
+      "senses"
+    ],
+    "all_drawn_components_are_binding": [
+      "domains",
+      "constraints",
+      "perspectives",
+      "senses",
+      "affects"
+    ],
+    "thresholds": {
+      "min_mean": 8.0,
+      "min_axis": 6
+    },
+    "domain_categories": [
+      "cognition-error",
+      "record-and-time",
+      "weather-and-geology"
+    ]
+  },
+  "forbidden_moves": [
+    "Attaching a modern buzzword to an ordinary object and calling the result new.",
+    "Changing only size, color, material, or scale.",
+    "Combining two adjacent concepts from the same field.",
+    "Reskinning an existing famous work with new proper nouns.",
+    "Making a being strange in appearance while its motives stay human and legible.",
+    "Explaining the weirdness away with a technology that could be swapped for any other technology.",
+    "Strangeness that exists only in the visual description and changes nothing about how the thing works.",
+    "A twist that the reader can name before it arrives.",
+    "Random incoherence presented as depth: rules that contradict each other with no accounting.",
+    "Designing the thing around a human benefit and then decorating it as alien.",
+    "Naming an ordinary concept with an invented word and treating the word as the invention."
+  ],
+  "banned_phrase_count": 45,
+  "deck_wrapped": false,
+  "notes": []
+}

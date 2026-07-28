@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "un palier entre deux étages" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · faire passer la barrière au candidat terminé
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # ajoutez --extremal ou --grounded
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` affiche les modes. `--run 2` distribue du matériel neuf, toujours de catégories disjointes, pour une régénération ; `--salt` redistribue le même tirage sans l'avancer. `--extremal` et `--grounded` ne sont pas des preuves : `candidate.json` doit déclarer les mêmes modes, sinon la barrière les refuse.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # aj
 | `3` | **du matériel interdit** est présent dans le brouillon | réécrivez la pensée, pas le mot. Supprimer la formule signalée et garder la phrase n'est pas un correctif |
 
 Si le même axe échoue deux fois, c'est le matériel qui est mauvais, pas la formulation : redistribuez avec `--run <n+1>` au lieu d'éditer.
+
+> [!IMPORTANT]
+> **Une seule commande peut dire « passé », et elle prend tout.** `score_gate.py` redistribue la main à partir des paquets embarqués pour la comparer, lie le candidat carte par carte, le note selon le profil qu'implique le *tirage*, exige une réponse écrite à chaque interdit trop long pour être apparié, et vérifie que le brouillon sur le point d'être montré est celui qui a été noté. Pas de `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric` : un seuil affirmé au moment du verdict est affirmé par la partie que ce verdict concerne. `cliche_lint.py` est une aide à la rédaction ; le passer n'est pas une autorisation.
 
 > [!NOTE]
 > Les barrières sont des planchers, pas des juges. Elles prouvent que certains gestes familiers sont *absents* et que le travail exigé a *été fait*. Elles ne peuvent pas vous dire que l'idée est bonne, et la note de passage est auto-attribuée. Lisez le résultat vous-même.

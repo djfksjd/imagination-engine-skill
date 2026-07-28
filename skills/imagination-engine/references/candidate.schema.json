@@ -2,12 +2,19 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/djfksjd/imagination-engine-skill/candidate.schema.json",
   "title": "imagination-engine candidate",
-  "description": "The structure score_gate.py validates. Written before the prose is shown to anyone: the sections here are the source, and the delivered answer is a rendering of them.",
+  "description": "The structure score_gate.py validates, together with draw.json, banlist.json and the markdown that will be shown. Length floors here are halved relative to the gate's own minimums, because the gate counts units (a CJK letter counts as two) and a plain minLength cannot.",
   "type": "object",
   "required": [
+    "topic",
+    "run",
+    "modes",
+    "anchor",
     "sections",
     "broken_rule",
     "domains_used",
+    "perspective_id",
+    "sense_seed_id",
+    "affect_pair_id",
     "resembles",
     "scores",
     "weakest_fix"
@@ -89,22 +96,49 @@
     "broken_rule": {
       "type": "object",
       "required": [
-        "constraint_id",
+        "constraint_ids",
+        "how_each_is_broken",
         "new_law",
         "now_impossible"
       ],
+      "description": "Extremal mode draws two constraints. A single constraint_id could only account for one of them, so the second was silently dropped.",
       "properties": {
-        "constraint_id": {
-          "type": "string",
-          "description": "id from decks/constraints.json"
+        "constraint_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact set of ids drawn in decks/constraints.json for this run."
+        },
+        "how_each_is_broken": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "constraint_id",
+              "explanation"
+            ],
+            "properties": {
+              "constraint_id": {
+                "type": "string"
+              },
+              "explanation": {
+                "type": "string",
+                "minLength": 15
+              }
+            }
+          },
+          "description": "One entry per drawn constraint. A single replacement law may cover all of them, but none may go unaccounted for."
         },
         "new_law": {
           "type": "string",
-          "minLength": 30
+          "minLength": 15
         },
         "now_impossible": {
           "type": "string",
-          "minLength": 30,
+          "minLength": 15,
           "description": "what the new law forbids that the old world allowed"
         }
       }
@@ -177,16 +211,6 @@
     },
     "scores": {
       "type": "object",
-      "required": [
-        "unpredictability",
-        "conceptual_distance",
-        "internal_consistency",
-        "emotional_residue",
-        "imageability",
-        "retroactive_inevitability",
-        "non_anthropocentrism",
-        "integration"
-      ],
       "additionalProperties": {
         "type": "object",
         "required": [
@@ -225,12 +249,36 @@
             }
           }
         }
-      }
+      },
+      "description": "Which axes are required depends on the run: grounded substitutes translation_integrity for non_anthropocentrism. score_gate.py derives that from the validated draw, which plain JSON Schema cannot express - so no axis is listed as unconditionally required here."
     },
     "weakest_fix": {
       "type": "string",
       "minLength": 40,
       "description": "the weakest axis and what a rewrite would change"
+    },
+    "perspective_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "id from decks/perspectives.json, must equal the drawn one"
+    },
+    "sense_seed_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "id from decks/senses.json, must equal the drawn one"
+    },
+    "affect_pair_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "id from decks/affects.json, must equal the drawn one"
+    },
+    "manual_checks_cleared": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 15
+      },
+      "description": "One written answer per manual check in banlist.json. A check that is only printed is not a check."
     }
   }
 }

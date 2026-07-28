@@ -75,6 +75,7 @@ def obvious_file(tmp_path: Path) -> Path:
                 "therapy machine for grief",
                 "- singer who loses feeling",
                 "1. black market for emotions",
+                "neural implant that mutes affect",
                 "a very long entry that describes an entire premise in more words than any lint could usefully match",
             ]
         )
@@ -89,3 +90,64 @@ def banlist(tmp_path: Path, run, obvious_file: Path) -> Path:
     res = run("banlist.py", "--topic", "voice", "--obvious", str(obvious_file), "--out", str(tmp_path))
     assert res.code == 0, res
     return tmp_path / "banlist.json"
+
+
+@pytest.fixture
+def gate_args(references: Path):
+    """The four artefacts the single gate requires, as a shipped, passing set."""
+    return [
+        "--candidate", str(references / "example-candidate.json"),
+        "--draw", str(references / "example-draw.json"),
+        "--banlist", str(references / "example-banlist.json"),
+        "--markdown", str(references / "example-draft.md"),
+    ]
+
+
+@pytest.fixture
+def gate(run, references: Path, tmp_path: Path):
+    """Run the gate with one artefact swapped for an edited copy.
+
+    Every test here is the same shape: take the shipped set that passes, change
+    exactly one thing, and check the gate notices.
+    """
+    def _gate(*, candidate=None, draw=None, banlist=None, markdown=None, json_out=True):
+        paths = {}
+        for name, value, default in (
+            ("candidate", candidate, "example-candidate.json"),
+            ("draw", draw, "example-draw.json"),
+            ("banlist", banlist, "example-banlist.json"),
+        ):
+            if value is None:
+                paths[name] = str(references / default)
+            else:
+                path = tmp_path / f"{name}.json"
+                path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+                paths[name] = str(path)
+        if markdown is None:
+            paths["markdown"] = str(references / "example-draft.md")
+        else:
+            path = tmp_path / "draft.md"
+            path.write_text(markdown, encoding="utf-8")
+            paths["markdown"] = str(path)
+        args = ["--candidate", paths["candidate"], "--draw", paths["draw"],
+                "--banlist", paths["banlist"], "--markdown", paths["markdown"]]
+        if json_out:
+            args.append("--json")
+        return run("score_gate.py", *args)
+
+    return _gate
+
+
+@pytest.fixture
+def example_candidate(references: Path) -> dict:
+    return json.loads((references / "example-candidate.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def example_draw(references: Path) -> dict:
+    return json.loads((references / "example-draw.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def example_markdown(references: Path) -> str:
+    return (references / "example-draft.md").read_text(encoding="utf-8")

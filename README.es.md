@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "un rellano entre dos plantas" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · haz pasar por la verja el candidato terminado
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # añade --extremal o --grounded
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla. `--extremal` y `--grounded` no son pruebas: `candidate.json` tiene que declarar los mismos modos o la verja los rechaza.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # a�
 | `3` | **hay material prohibido** en el borrador | reescribe el pensamiento, no la palabra. Borrar la frase señalada y conservar la oración no es un arreglo |
 
 Si falla el mismo eje dos veces, lo que está mal es el material y no la redacción: reparte de nuevo con `--run <n+1>` en vez de editar.
+
+> [!IMPORTANT]
+> **Un solo comando puede decir "pasó", y ese toma todo.** `score_gate.py` vuelve a repartir la mano contra los mazos incluidos para cotejarla, ata el candidato carta por carta, lo puntúa con el perfil que implica la *tirada*, exige una respuesta escrita a cada prohibición demasiado larga para cotejar, y comprueba que el borrador a punto de mostrarse es el que se puntuó. No hay `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric`: un umbral afirmado en el momento del veredicto lo afirma la parte sobre la que trata el veredicto. `cliche_lint.py` es una ayuda de redacción; superarlo no es una autorización.
 
 > [!NOTE]
 > Las verjas son suelos, no jueces. Prueban que ciertas jugadas conocidas están *ausentes* y que el trabajo exigido se *hizo*. No pueden decirte que la idea sea buena, y la nota de aprobado es autoasignada. Lee el resultado tú mismo.

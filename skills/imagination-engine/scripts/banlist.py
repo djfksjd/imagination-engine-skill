@@ -27,27 +27,29 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_deck, normalize, read_text_arg, write_json,
+        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, read_text_arg, write_json,
     )
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_deck, normalize, read_text_arg, write_json,
+        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, read_text_arg, write_json,
     )
 
-MIN_OBVIOUS = 8
+# SKILL.md asks for twelve. A caller-supplied floor made the requirement
+# advisory: --min-obvious 0 with an empty file exited 0, which is the whole
+# stage skipped with a passing status.
+MIN_OBVIOUS = 12
 MATCHABLE_MAX_WORDS = 6
 BULLET = re.compile(r"^\s*(?:[-*+•]|\d+[.)])\s*")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Build a ban list from the obvious-answer dump plus the cliche deck.")
+    p = UsageParser(description="Build a ban list from the obvious-answer dump plus the cliche deck.")
     p.add_argument("--topic", required=True, help="the subject being re-imagined")
     p.add_argument("--obvious", required=True, help="file with one obvious answer per line, or '-' for stdin")
     p.add_argument("--extra", default=None, help="comma-separated extra phrases to ban")
     p.add_argument("--allow", default=None, help="comma-separated cliche ids to release (the user asked for that genre)")
-    p.add_argument("--min-obvious", type=int, default=MIN_OBVIOUS, help=f"minimum obvious answers required (default {MIN_OBVIOUS})")
     p.add_argument("--out", default=None, help="directory to write banlist.json into")
     p.add_argument("--json", action="store_true", help="print the ban list as JSON only")
     return p
@@ -72,9 +74,9 @@ def parse_obvious(raw: str) -> list[str]:
 
 def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str, Any]:
     obvious = parse_obvious(read_text_arg(args.obvious))
-    if len(obvious) < args.min_obvious:
+    if len(obvious) < MIN_OBVIOUS:
         raise EngineError(
-            f"the obvious dump has {len(obvious)} usable entries but {args.min_obvious} are required. "
+            f"the obvious dump has {len(obvious)} usable entries but {MIN_OBVIOUS} are required. "
             "Stage 1 exists to burn your high-probability answers before you write; a short dump means "
             "the familiar answers are still available to you.",
         )

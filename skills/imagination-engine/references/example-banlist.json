@@ -1,0 +1,747 @@
+{
+  "engine_version": "0.3.0",
+  "topic": "a machine that separates emotion from voice",
+  "counts": {
+    "obvious_supplied": 12,
+    "matchable": 71,
+    "warn": 23,
+    "manual": 1
+  },
+  "allowed": [],
+  "entries": [
+    {
+      "id": "cyberpunk",
+      "phrase": "cyberpunk",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "dystopia",
+      "phrase": "dystopian",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "dystopia-noun",
+      "phrase": "dystopia",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "post-apocalyptic",
+      "phrase": "post-apocalyptic",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "wasteland",
+      "phrase": "wasteland",
+      "tier": "warn",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "steampunk",
+      "phrase": "steampunk",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "neon-lit",
+      "phrase": "neon-lit",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "neon-lights",
+      "phrase": "neon lights",
+      "tier": "ban",
+      "group": "genre-skin",
+      "source": "deck"
+    },
+    {
+      "id": "hologram",
+      "phrase": "hologram",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "holographic",
+      "phrase": "holographic",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "nanobots",
+      "phrase": "nanobots",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "nanomachines",
+      "phrase": "nanomachines",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "neural-interface",
+      "phrase": "neural interface",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "neural-link",
+      "phrase": "neural link",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "brainwave",
+      "phrase": "brainwave",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "cybernetic",
+      "phrase": "cybernetic",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "metaverse",
+      "phrase": "metaverse",
+      "tier": "ban",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "blockchain",
+      "phrase": "blockchain",
+      "tier": "warn",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "augmented-reality",
+      "phrase": "augmented reality",
+      "tier": "warn",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "quantum-computer",
+      "phrase": "quantum computer",
+      "tier": "warn",
+      "group": "tech-veneer",
+      "source": "deck"
+    },
+    {
+      "id": "ai-uprising",
+      "phrase": "AI uprising",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "robot-uprising",
+      "phrase": "robot uprising",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "sentient-ai",
+      "phrase": "sentient AI",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "singularity",
+      "phrase": "singularity",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "simulation-theory",
+      "phrase": "simulation theory",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "mind-upload",
+      "phrase": "mind upload",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "consciousness-upload",
+      "phrase": "consciousness upload",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "digital-consciousness",
+      "phrase": "digital consciousness",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "hive-mind",
+      "phrase": "hive mind",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "chosen-one",
+      "phrase": "chosen one",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "ancient-prophecy",
+      "phrase": "ancient prophecy",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "multiverse",
+      "phrase": "multiverse",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "parallel-universe",
+      "phrase": "parallel universe",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "time-machine",
+      "phrase": "time machine",
+      "tier": "ban",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "time-travel",
+      "phrase": "time travel",
+      "tier": "warn",
+      "group": "plot-cliche",
+      "source": "deck"
+    },
+    {
+      "id": "zombie",
+      "phrase": "zombie",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "vampire",
+      "phrase": "vampire",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "dragon",
+      "phrase": "dragon",
+      "tier": "warn",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "tentacle",
+      "phrase": "tentacle",
+      "tier": "warn",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "eldritch",
+      "phrase": "eldritch",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "lovecraftian",
+      "phrase": "Lovecraftian",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "cosmic-horror",
+      "phrase": "cosmic horror",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "bioluminescent",
+      "phrase": "bioluminescent",
+      "tier": "warn",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "glowing-blue",
+      "phrase": "glowing blue",
+      "tier": "ban",
+      "group": "creature-default",
+      "source": "deck"
+    },
+    {
+      "id": "aura",
+      "phrase": "aura",
+      "tier": "ban",
+      "group": "affect-shortcut",
+      "source": "deck"
+    },
+    {
+      "id": "emotion-as-color",
+      "phrase": "emotions as colors",
+      "tier": "ban",
+      "group": "affect-shortcut",
+      "source": "deck"
+    },
+    {
+      "id": "color-coded-emotion",
+      "phrase": "color-coded emotion",
+      "tier": "ban",
+      "group": "affect-shortcut",
+      "source": "deck"
+    },
+    {
+      "id": "mood-ring",
+      "phrase": "mood ring",
+      "tier": "ban",
+      "group": "affect-shortcut",
+      "source": "deck"
+    },
+    {
+      "id": "empath",
+      "phrase": "empath",
+      "tier": "warn",
+      "group": "affect-shortcut",
+      "source": "deck"
+    },
+    {
+      "id": "blade-runner",
+      "phrase": "Blade Runner",
+      "tier": "ban",
+      "group": "named-work",
+      "source": "deck"
+    },
+    {
+      "id": "black-mirror",
+      "phrase": "Black Mirror",
+      "tier": "ban",
+      "group": "named-work",
+      "source": "deck"
+    },
+    {
+      "id": "the-matrix",
+      "phrase": "the Matrix",
+      "tier": "ban",
+      "group": "named-work",
+      "source": "deck"
+    },
+    {
+      "id": "ghost-in-the-shell",
+      "phrase": "Ghost in the Shell",
+      "tier": "ban",
+      "group": "named-work",
+      "source": "deck"
+    },
+    {
+      "id": "black-hole",
+      "phrase": "black hole",
+      "tier": "warn",
+      "group": "physics-default",
+      "source": "deck"
+    },
+    {
+      "id": "wormhole",
+      "phrase": "wormhole",
+      "tier": "ban",
+      "group": "physics-default",
+      "source": "deck"
+    },
+    {
+      "id": "portal",
+      "phrase": "portal",
+      "tier": "warn",
+      "group": "physics-default",
+      "source": "deck"
+    },
+    {
+      "id": "fourth-dimension",
+      "phrase": "fourth dimension",
+      "tier": "warn",
+      "group": "physics-default",
+      "source": "deck"
+    },
+    {
+      "id": "quantum-entanglement",
+      "phrase": "quantum entanglement",
+      "tier": "warn",
+      "group": "physics-default",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-creative",
+      "phrase": "creative",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-innovative",
+      "phrase": "innovative",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-revolutionary",
+      "phrase": "revolutionary",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-cutting-edge",
+      "phrase": "cutting-edge",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-futuristic",
+      "phrase": "futuristic",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-groundbreaking",
+      "phrase": "groundbreaking",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-game-changing",
+      "phrase": "game-changing",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-next-generation",
+      "phrase": "next-generation",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-mind-blowing",
+      "phrase": "mind-blowing",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-disruptive",
+      "phrase": "disruptive",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-unimaginable",
+      "phrase": "unimaginable",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-indescribable",
+      "phrase": "indescribable",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-otherworldly",
+      "phrase": "otherworldly",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-one-of-a-kind",
+      "phrase": "one-of-a-kind",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-state-of-the-art",
+      "phrase": "state-of-the-art",
+      "tier": "ban",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-unique",
+      "phrase": "unique",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-surreal",
+      "phrase": "surreal",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-ethereal",
+      "phrase": "ethereal",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-haunting",
+      "phrase": "haunting",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-eerie",
+      "phrase": "eerie",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-mysterious",
+      "phrase": "mysterious",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-bizarre",
+      "phrase": "bizarre",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-uncanny",
+      "phrase": "uncanny",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-visionary",
+      "phrase": "visionary",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "hollow-immersive",
+      "phrase": "immersive",
+      "tier": "warn",
+      "group": "hollow-adjective",
+      "source": "deck"
+    },
+    {
+      "id": "obvious-01",
+      "phrase": "headset that strips feeling",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-02",
+      "phrase": "emotion filter for phone calls",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-03",
+      "phrase": "feelings stored in glass vials",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-04",
+      "phrase": "flat robotic voice",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-05",
+      "phrase": "company selling emotional privacy",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-06",
+      "phrase": "government mandate on tone",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-07",
+      "phrase": "feelings shown as colour",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-08",
+      "phrase": "therapy machine for grief",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-09",
+      "phrase": "singer who loses their feeling",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-10",
+      "phrase": "black market for stolen emotions",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    },
+    {
+      "id": "obvious-11",
+      "phrase": "neural implant that mutes affect",
+      "tier": "ban",
+      "group": "first-instinct",
+      "source": "obvious-dump"
+    }
+  ],
+  "manual_checks": [
+    {
+      "id": "obvious-12",
+      "statement": "a machine that turns out to have been feeling everything it removed all along",
+      "note": "too long to match literally - check this one by reading, not by grep"
+    }
+  ],
+  "structural_patterns": [
+    {
+      "id": "x-meets-y",
+      "regex": "\\b[A-Za-z]+\\s+meets\\s+[A-Za-z]+\\b",
+      "tier": "ban",
+      "why": "The pitch reduces to two known things joined by a verb. If the idea survives this sentence, it is a combination, not an invention."
+    },
+    {
+      "id": "cross-between",
+      "regex": "\\bcross between\\b",
+      "tier": "ban",
+      "why": "Same failure as X meets Y, stated more honestly."
+    },
+    {
+      "id": "mix-of-a-and-b",
+      "regex": "\\b(a )?(mix|blend|fusion|mashup) of\\b",
+      "tier": "ban",
+      "why": "Announces assembly. The parts should have stopped being separable."
+    },
+    {
+      "id": "but-with-ai",
+      "regex": "\\bbut with (AI|robots|magic|aliens|blockchain)\\b",
+      "tier": "ban",
+      "why": "An ordinary thing with a topical noun attached."
+    },
+    {
+      "id": "ai-powered",
+      "regex": "\\b(AI|smart|quantum|holographic|nano|cyber|neuro)[- ]powered\\b",
+      "tier": "ban",
+      "why": "A prefix is doing the work the idea should do."
+    },
+    {
+      "id": "it-is-like",
+      "regex": "\\bit'?s (basically |essentially |kind of )?like\\b",
+      "tier": "warn",
+      "why": "The description is leaning on a reference instead of on its own principle."
+    },
+    {
+      "id": "in-the-future",
+      "regex": "\\bin the (near |far |distant )?future\\b",
+      "tier": "warn",
+      "why": "Setting the clock forward is not a premise change."
+    },
+    {
+      "id": "year-stamp",
+      "regex": "\\b(the year )?2[01]\\d{2}\\b",
+      "tier": "warn",
+      "why": "A date is being used as a substitute for a different world."
+    },
+    {
+      "id": "imagine-a",
+      "regex": "\\bimagine (a|an|if)\\b",
+      "tier": "warn",
+      "why": "Pitch filler. Start with the thing itself."
+    }
+  ],
+  "forbidden_moves": [
+    "Attaching a modern buzzword to an ordinary object and calling the result new.",
+    "Changing only size, color, material, or scale.",
+    "Combining two adjacent concepts from the same field.",
+    "Reskinning an existing famous work with new proper nouns.",
+    "Making a being strange in appearance while its motives stay human and legible.",
+    "Explaining the weirdness away with a technology that could be swapped for any other technology.",
+    "Strangeness that exists only in the visual description and changes nothing about how the thing works.",
+    "A twist that the reader can name before it arrives.",
+    "Random incoherence presented as depth: rules that contradict each other with no accounting.",
+    "Designing the thing around a human benefit and then decorating it as alien.",
+    "Naming an ordinary concept with an invented word and treating the word as the invention."
+  ]
+}

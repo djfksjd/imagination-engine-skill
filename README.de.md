@@ -172,7 +172,8 @@ python3 scripts/banlist.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
 # 4 · den fertigen Kandidaten durchs Gatter schicken
-python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --extremal oder --grounded ergänzen
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
+    --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
 `draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen. `--extremal` und `--grounded` sind kein Beleg: `candidate.json` muss dieselben Modi deklarieren, sonst weist das Gatter sie ab.
@@ -187,6 +188,9 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --
 | `3` | **verbotenes Material** im Entwurf | schreiben Sie den Gedanken neu, nicht das Wort. Die markierte Wendung zu löschen und den Satz zu behalten ist kein Fix |
 
 Scheitert dieselbe Achse zweimal, ist das Material falsch und nicht die Formulierung: neu austeilen mit `--run <n+1>`, statt zu redigieren.
+
+> [!IMPORTANT]
+> **Nur ein Befehl kann „bestanden" sagen, und der nimmt alles.** `score_gate.py` teilt die Hand aus den mitgelieferten Decks neu aus und vergleicht, bindet den Kandidaten Karte für Karte daran, bewertet ihn nach dem Profil, das der *Zug* impliziert, verlangt zu jedem nicht maschinell prüfbaren Verbot eine schriftliche Antwort und prüft, ob der gleich gezeigte Entwurf der bewertete ist. Es gibt kein `--extremal`, `--grounded`, `--min-mean`, `--min-axis`, `--rubric`: Eine zur Urteilszeit behauptete Schwelle behauptet die Partei, um die es im Urteil geht. `cliche_lint.py` ist eine Schreibhilfe; sie zu bestehen ist keine Freigabe.
 
 > [!NOTE]
 > Gatter sind Böden, keine Richter. Sie belegen, dass bestimmte vertraute Züge *fehlen* und dass die verlangte Arbeit *getan* wurde. Ob die Idee gut ist, können sie nicht sagen, und die bestandene Note ist selbst vergeben. Lesen Sie das Ergebnis selbst.

@@ -24,23 +24,30 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 except ImportError:  # executed from another cwd via absolute path
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 
 DEFAULT_DOMAINS = 3
+MIN_DOMAINS = 3
 MAX_STACKED_MODES = 3
+DRAW_SCHEMA_VERSION = 2
+
+# grounded substitutes the axis that nonhuman mode exists to enforce. Allowing
+# the pair means one mode silently cancels the other, so it is refused here
+# rather than at the gate - the draw is where the run is defined.
+INCOMPATIBLE_MODES = [("grounded", "nonhuman")]
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Deal the constraint hand for an imagination-engine run.")
+    p = UsageParser(description="Deal the constraint hand for an imagination-engine run.")
     p.add_argument("--topic", help="the subject to be re-imagined")
     p.add_argument("--modes", default=None, help="comma-separated mode ids (see --list-modes)")
     p.add_argument("--run", type=int, default=1, help="run index; higher runs draw fresh material (default 1)")
@@ -131,8 +138,19 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
         raise EngineError(f"--anchor must be one of {sorted(anchors)}")
     if args.run < 1:
         raise EngineError("--run must be 1 or greater")
-    if args.domains < 2:
-        raise EngineError("--domains must be at least 2; a single domain cannot be distant from anything")
+    if args.domains < MIN_DOMAINS:
+        raise EngineError(
+            f"--domains must be at least {MIN_DOMAINS}; below that the hand stops being a spread "
+            "and the candidate contract cannot require every drawn domain to do work")
+    if len(modes) > MAX_STACKED_MODES:
+        raise EngineError(
+            f"{len(modes)} modes stacked; the limit is {MAX_STACKED_MODES}. Above that the removals "
+            "overlap and the result is noisy rather than strange - pick the three that matter")
+    for a, b in INCOMPATIBLE_MODES:
+        if a in mode_ids and b in mode_ids:
+            raise EngineError(
+                f"modes {a} and {b} cannot be stacked: {a} substitutes the rubric axis that {b} "
+                "exists to enforce, so one of them would have no effect. Pick one")
 
     forced_categories = []
     forced_decks = set()
@@ -181,6 +199,17 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
 
     payload: dict[str, Any] = {
         "engine_version": VERSION,
+        "draw_schema_version": DRAW_SCHEMA_VERSION,
+        # The request is what the gate replays. Everything below it is derived,
+        # so a card swapped after the fact no longer matches its own recipe.
+        "request": {
+            "topic": args.topic,
+            "run": args.run,
+            "salt": args.salt,
+            "mode_ids": mode_ids,
+            "anchor": args.anchor,
+            "requested_domains": args.domains,
+        },
         "topic": args.topic,
         "run": args.run,
         "salt": args.salt,
@@ -208,10 +237,6 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
         "notes": [],
     }
 
-    if len(modes) > MAX_STACKED_MODES:
-        payload["notes"].append(
-            f"{len(modes)} modes stacked; above {MAX_STACKED_MODES} the result usually becomes noisy rather than strange."
-        )
     if payload["deck_wrapped"]:
         payload["notes"].append(
             "A deck wrapped around to material already used at this run depth. Change --salt for genuinely fresh cards."

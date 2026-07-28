@@ -10,6 +10,7 @@ defence when a result turns out to be a cliche.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import random
@@ -19,7 +20,7 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DECK_DIR = SKILL_DIR / "references" / "decks"
@@ -29,6 +30,18 @@ DECK_NAMES = ("domains", "constraints", "senses", "perspectives", "affects", "mo
 
 class EngineError(Exception):
     """Fatal, user-facing error. Callers exit non-zero with the message."""
+
+
+
+class UsageParser(argparse.ArgumentParser):
+    """argparse exits 2 on a usage error, which collides with "gate failed".
+
+    A typo in a flag name must never be reportable as a policy verdict, in
+    either direction. Usage errors exit 1.
+    """
+
+    def error(self, message: str) -> None:  # type: ignore[override]
+        die(f"usage: {message}", 1)
 
 
 def die(message: str, code: int = 1) -> "None":

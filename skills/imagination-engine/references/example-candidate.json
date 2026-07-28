@@ -1,7 +1,11 @@
 {
   "topic": "a machine that separates emotion from voice",
   "run": 1,
-  "modes": ["baby", "nonhuman", "affect"],
+  "modes": [
+    "baby",
+    "nonhuman",
+    "affect"
+  ],
   "anchor": 1,
   "sections": {
     "name": "Flatting",
@@ -14,7 +18,15 @@
     "avoided": "The first twelve answers to this prompt were devices: something worn on the head that strips feeling out of speech, something that files feeling into a container, something that shows feeling as a readout or a colour, and the accompanying story about a state that mandates its use. All of those keep the two premises this result deletes, that the separation is performed by an apparatus somebody built, and that the separated feeling has to be stored somewhere legible and retrievable. Here there is no apparatus and no operator, the separation is a property of terrain that repetition produces, what is removed is deposited where it fell rather than collected, and the harm lands on the past rather than on the future."
   },
   "broken_rule": {
-    "constraint_id": "information-copies-freely",
+    "constraint_ids": [
+      "information-copies-freely"
+    ],
+    "how_each_is_broken": [
+      {
+        "constraint_id": "information-copies-freely",
+        "explanation": "Copying is inverted rather than merely restricted: a duplicate does not add an instance, it empties the ones already made."
+      }
+    ],
     "new_law": "A copy of an utterance is subtractive and retroactive: each repetition of a sentence takes the charge from every earlier instance of that sentence within earshot, and the charge is deposited on the nearest surface rather than transferred to the new instance.",
     "now_impossible": "Reassurance by frequency is impossible. A phrase said daily for forty years leaves exactly one instance that can still be felt, the most recent, and a corridor of flat ones behind it, so no one here can strengthen a bond by saying the same thing often, and rehearsing a confession destroys every earlier private version of it."
   },
@@ -53,14 +65,44 @@
     }
   ],
   "scores": {
-    "unpredictability": { "score": 8, "justification": "The topic pulls hard toward an apparatus; the result deletes the apparatus and puts the separation into terrain and into the direction of time." },
-    "conceptual_distance": { "score": 8, "justification": "River base level, scraped manuscripts, and phantom sensation have no established traffic between them and are joined here by one mechanism rather than by metaphor." },
-    "internal_consistency": { "score": 9, "justification": "The subtractive-copy law produces the flats, the vow construction, the funeral practice, and the scraping trade without further assumptions, and it forbids reassurance by frequency." },
-    "emotional_residue": { "score": 9, "justification": "The layer produces the warmth and the debt at once, so the reader cannot take the comfort without the obligation, and the kitchen scene lands on a specific ordinary loss." },
-    "imageability": { "score": 8, "justification": "The February kitchen, the delayed swallow, and the estate listing that includes the layer are all filmable without further invention." },
-    "retroactive_inevitability": { "score": 8, "justification": "Once copying is subtractive and retroactive, single-use vows and the inverted funeral reading follow closely enough that they feel found rather than added." },
-    "non_anthropocentrism": { "score": 7, "justification": "The grade has no interior and cannot register speakers, but the consequences are narrated from human households, which keeps the result partly addressed to people." },
-    "integration": { "score": 8, "justification": "No section can be removed and labelled as the geology part or the manuscript part; the layer does the work of all three sources at once." }
+    "unpredictability": {
+      "score": 8,
+      "justification": "The topic pulls hard toward an apparatus; the result deletes the apparatus and puts the separation into terrain and into the direction of time."
+    },
+    "conceptual_distance": {
+      "score": 8,
+      "justification": "River base level, scraped manuscripts, and phantom sensation have no established traffic between them and are joined here by one mechanism rather than by metaphor."
+    },
+    "internal_consistency": {
+      "score": 9,
+      "justification": "The subtractive-copy law produces the flats, the vow construction, the funeral practice, and the scraping trade without further assumptions, and it forbids reassurance by frequency."
+    },
+    "emotional_residue": {
+      "score": 9,
+      "justification": "The layer produces the warmth and the debt at once, so the reader cannot take the comfort without the obligation, and the kitchen scene lands on a specific ordinary loss."
+    },
+    "imageability": {
+      "score": 8,
+      "justification": "The February kitchen, the delayed swallow, and the estate listing that includes the layer are all filmable without further invention."
+    },
+    "retroactive_inevitability": {
+      "score": 8,
+      "justification": "Once copying is subtractive and retroactive, single-use vows and the inverted funeral reading follow closely enough that they feel found rather than added."
+    },
+    "non_anthropocentrism": {
+      "score": 7,
+      "justification": "The grade has no interior and cannot register speakers, but the consequences are narrated from human households, which keeps the result partly addressed to people."
+    },
+    "integration": {
+      "score": 8,
+      "justification": "No section can be removed and labelled as the geology part or the manuscript part; the layer does the work of all three sources at once."
+    }
   },
-  "weakest_fix": "Non-anthropocentrism at 7 is the weakest axis: the consequences are still told through households and funerals. A rewrite would show the grade acting where no one speaks at all, such as a pumping station whose recorded announcement flattens itself for eighty years with no listener present."
+  "weakest_fix": "Non-anthropocentrism at 7 is the weakest axis: the consequences are still told through households and funerals. A rewrite would show the grade acting where no one speaks at all, such as a pumping station whose recorded announcement flattens itself for eighty years with no listener present.",
+  "perspective_id": "no-inside",
+  "sense_seed_id": "unfinished-processes",
+  "affect_pair_id": "beauty-obligation",
+  "manual_checks_cleared": {
+    "obvious-12": "Nothing here was ever feeling anything. The grade is a deposit left by repetition and has no interior, which is why the last section says removing it leaves no hidden sufferer behind."
+  }
 }

@@ -100,7 +100,11 @@ def test_rubric_matches_schema(references):
     schema = json.loads((references / "candidate.schema.json").read_text(encoding="utf-8"))
     axes = [a["id"] for a in rubric["axes"]]
     assert len(axes) == 8 and len(set(axes)) == 8
-    assert set(schema["properties"]["scores"]["required"]) == set(axes)
+    # scores has no unconditional 'required': grounded substitutes one axis for
+    # another, and plain JSON Schema cannot express a condition the gate derives
+    # from the validated draw.
+    assert "required" not in schema["properties"]["scores"]
+    assert set(schema["properties"]["scores"]["properties"]) <= set(axes) | {"translation_integrity"}
     sections = [s["id"] for s in rubric["required_sections"]]
     conditional = {rubric["grounded_substitution"]["requires_section"]}
     assert set(schema["properties"]["sections"]["required"]) == set(sections) - conditional

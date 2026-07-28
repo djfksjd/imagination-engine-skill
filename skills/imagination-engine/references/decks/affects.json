@@ -1,6 +1,6 @@
 {
   "deck": "affects",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "note": "Conflicting affect pairs. The finished result must hold both at once so that a reader cannot decide within one second whether to move toward it or away from it. Both members of the pair must be produced by the same feature - if one comes from the appearance and the other from a separate paragraph of backstory, the conflict is fake.",
   "pairs": [
     { "id": "tenderness-dread", "a": "tenderness", "b": "dread", "test": "Name the single feature that produces both." },

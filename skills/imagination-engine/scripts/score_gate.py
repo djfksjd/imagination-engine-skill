@@ -40,7 +40,7 @@ try:
         VERSION, EngineError, SKILL_DIR, UsageParser, die, distinct_ratio, is_placeholder,
         load_all_decks, normalize, text_units,
     )
-    from banlist import MIN_OBVIOUS  # type: ignore
+    from banlist import MIN_OBVIOUS, compose_banlist, parse_obvious  # type: ignore
     from cliche_lint import deck_entries, lint  # type: ignore
     from draw import DRAW_SCHEMA_VERSION, build_draw  # type: ignore
 except ImportError:
@@ -50,7 +50,7 @@ except ImportError:
         VERSION, EngineError, SKILL_DIR, UsageParser, die, distinct_ratio, is_placeholder,
         load_all_decks, normalize, text_units,
     )
-    from banlist import MIN_OBVIOUS  # type: ignore
+    from banlist import MIN_OBVIOUS, compose_banlist, parse_obvious  # type: ignore
     from cliche_lint import deck_entries, lint  # type: ignore
     from draw import DRAW_SCHEMA_VERSION, build_draw  # type: ignore
 
@@ -120,7 +120,8 @@ def section_minimum(spec: dict[str, Any]) -> int:
     return int(spec.get("min_units", spec.get("min_chars", 0)))
 
 
-def check_text(label: str, value: Any, minimum: int = 0, note: str = "") -> list[str]:
+def check_text(label: str, value: Any, minimum: int = 0, note: str = "",
+               titles_ok: bool = False) -> list[str]:
     """The one place a written field is judged.
 
     Every floor in this gate used to be a length comparison and nothing else,
@@ -128,6 +129,13 @@ def check_text(label: str, value: Any, minimum: int = 0, note: str = "") -> list
     fields with no length floor - `sections.name` aside - satisfiable by a
     hyphen. So each field is asked the same three questions here: is there
     anything, is it a stand-in, and is it argument rather than filler.
+
+    The third question is only asked where there is a floor to pad towards. Asked
+    everywhere, it rejected honest short answers that were never claiming to be
+    long ones: the title "Run Run Run" scored 0.33 distinct, and so did a
+    four-character CJK title built on a repeated character. A gate that rejects
+    honest work is the reason a user turns it off, which costs more than the
+    padding it caught.
     """
     failures: list[str] = []
     body = text_of(value)
@@ -135,10 +143,12 @@ def check_text(label: str, value: Any, minimum: int = 0, note: str = "") -> list
     if not body:
         failures.append(f"{label}: missing{tail}")
         return failures
-    if is_placeholder(body):
+    if is_placeholder(body, titles_ok=titles_ok):
         failures.append(f"{label}: '{body[:40]}' is a placeholder, not content{tail}")
         return failures
-    if minimum and text_units(body) < minimum:
+    if not minimum:
+        return failures
+    if text_units(body) < minimum:
         failures.append(f"{label}: {text_units(body)} units, needs {minimum}{tail}")
     ratio = distinct_ratio(body)
     if ratio < MIN_DISTINCT_RATIO:
@@ -154,6 +164,27 @@ def canonical(text: str) -> str:
 
 def _ids(items: Any) -> set[str]:
     return {i["id"] for i in items if isinstance(i, dict) and "id" in i} if isinstance(items, list) else set()
+
+
+def _card_ids(node: Any) -> set[str]:
+    """Ids of a drawn slot, whether the slot holds one card or several."""
+    if isinstance(node, list):
+        return _ids(node)
+    return {node["id"]} if isinstance(node, dict) and "id" in node else set()
+
+
+def _edited_fields(got: Any, want: Any) -> list[str]:
+    """Which keys of a card differ, for a message that names the edit."""
+    got_list = got if isinstance(got, list) else [got]
+    want_list = want if isinstance(want, list) else [want]
+    changed: list[str] = []
+    for a, b in zip(got_list, want_list):
+        if not isinstance(a, dict) or not isinstance(b, dict):
+            continue
+        for key in sorted(set(a) | set(b)):
+            if a.get(key) != b.get(key) and key not in changed:
+                changed.append(key)
+    return changed
 
 
 # ------------------------------------------------------- the draw, replayed
@@ -193,20 +224,25 @@ def replay_draw(draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
     except (KeyError, TypeError) as exc:
         raise EngineError(f"draw.json request block is malformed: {exc}") from exc
 
-    def one(node: Any) -> set[str]:
-        return {node["id"]} if isinstance(node, dict) and "id" in node else set()
-
-    for label, got, want in (
-        ("domains", _ids(dealt.get("domains")), _ids(expected["draw"]["domains"])),
-        ("constraints", _ids(dealt.get("constraints")), _ids(expected["draw"]["constraints"])),
-        ("perspective", one(dealt.get("perspective")), one(expected["draw"]["perspective"])),
-        ("sense", one(dealt.get("sense")), one(expected["draw"]["sense"])),
-        ("affect_pair", one(dealt.get("affect_pair")), one(expected["draw"]["affect_pair"])),
-    ):
-        if got != want:
+    # Whole cards, not their ids. Comparing id sets left every word on the card
+    # trusted: a domain keeping its id while its probe became "merely mention
+    # this card" replayed clean, and draw.json then recorded, as a dealt hand,
+    # instructions that were never dealt. The ids are still reported separately
+    # because "you swapped a card" and "you rewrote one" are different mistakes.
+    for label in ("domains", "constraints", "perspective", "sense", "affect_pair"):
+        got, want = dealt.get(label), expected["draw"][label]
+        if got == want:
+            continue
+        got_ids, want_ids = _card_ids(got), _card_ids(want)
+        if got_ids != want_ids:
             failures.append(
-                f"draw.{label}: does not follow from its own request - the file says {sorted(got)} "
-                f"but that request deals {sorted(want)}. The hand was edited after it was dealt")
+                f"draw.{label}: does not follow from its own request - the file says {sorted(got_ids)} "
+                f"but that request deals {sorted(want_ids)}. The hand was edited after it was dealt")
+        else:
+            failures.append(
+                f"draw.{label}: carries the cards this request deals but not their text - "
+                f"{', '.join(_edited_fields(got, want)) or 'the card body'} differs from the deck. A "
+                "card whose probe, stance or replacement requirement was rewritten is a different card")
 
     # The rest of the file is derived from the same request, and the human-
     # readable half is what the user was shown. If it disagrees with the request
@@ -275,11 +311,14 @@ def bind_candidate_to_draw(candidate: dict[str, Any], draw: dict[str, Any]) -> l
             "broken_rule.how_each_is_broken: must account for every drawn constraint by id - one "
             "replacement law may cover both, but neither may be silently dropped")
     elif isinstance(explained, list):
+        # check_text, not a bare length comparison: this field kept its own copy
+        # of the floor and so was the one field the anti-padding rule never
+        # reached - thirty repeated letters satisfied it.
         for entry in explained:
-            if text_units(text_of(entry.get("explanation"))) < MIN_IMPOSSIBLE:
-                failures.append(
-                    f"broken_rule.how_each_is_broken[{entry.get('constraint_id')}]: needs at least "
-                    f"{MIN_IMPOSSIBLE} units")
+            failures += check_text(
+                f"broken_rule.how_each_is_broken[{entry.get('constraint_id')}]",
+                entry.get("explanation"), MIN_IMPOSSIBLE,
+                "say what the drawn constraint stopped being able to do")
 
     for field, node in (("perspective_id", dealt.get("perspective")),
                         ("sense_seed_id", dealt.get("sense")),
@@ -342,9 +381,12 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
             if not isinstance(r, dict):
                 failures.append(f"resembles[{i}]: not an object")
                 continue
+            # titles_ok: a great many real works are called "Untitled", and this
+            # is a citation field, not a field the author names themselves.
             failures += check_text(
                 f"resembles[{i}].work", r.get("work"), 0,
-                "name the work, or state what you searched and found nothing close to")
+                "name the work, or state what you searched and found nothing close to",
+                titles_ok=True)
             failures += check_text(f"resembles[{i}].how_it_differs", r.get("how_it_differs"), MIN_DIFFERENCE)
 
     failures += check_text(
@@ -400,29 +442,56 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
 # -------------------------------------- the ban list and what will be shown
 
 
-def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
-    """Require the ban list to be a contract this run produced, not a file named like one.
+def recover_dump(banlist: dict[str, Any]) -> list[str]:
+    """Reconstruct, in order, the stage-1 dump this file says it was built from.
 
-    The draw is replayed card by card so a tampered hand cannot pass, and the
-    ban list - the artefact carrying the claim the whole skill is named after -
-    used to get no equivalent treatment at all: `--banlist` accepted any JSON
-    object, so a file containing `{}` passed the shipped example with exit 0 and
-    stage 1 was optional in practice.
+    banlist.py numbers every line of the dump `obvious-NN` and files it either as
+    a matchable entry or, if it is too long to match literally, as a manual
+    check. Reading both back by that number recovers the input; recomputing from
+    it is what turns "these strings appear somewhere" into "this is the file
+    banlist.py would have written".
+    """
+    numbered: list[tuple[int, str]] = []
+    for entry in banlist.get("entries") or []:
+        if isinstance(entry, dict) and entry.get("group") == "first-instinct":
+            numbered.append((_dump_index(entry.get("id")), str(entry.get("phrase", ""))))
+    for check in banlist.get("manual_checks") or []:
+        if isinstance(check, dict):
+            numbered.append((_dump_index(check.get("id")), str(check.get("statement", ""))))
+    return [text for _, text in sorted(numbered, key=lambda pair: pair[0])]
 
-    Three structural facts are checked, none of which a hand-written file has:
 
-      it belongs to this run   - the topic is the topic that was drawn;
-      it carries the deck      - every bundled cliche phrase is in it, minus
-                                 only the ids the list itself records releasing;
-      stage 1 actually happened - the twelve burnt instincts are present as
-                                 entries and manual checks, so the floor
-                                 banlist.py enforces still holds at verdict time.
+def _dump_index(entry_id: Any) -> int:
+    match = re.fullmatch(r"obvious-(\d+)", str(entry_id))
+    return int(match.group(1)) if match else 10**6
 
-    Containment rather than equality: a later round may add bans (--extra, the
-    regeneration protocol) and adding bans cannot weaken a verdict. Removing
-    them can, and that is what this refuses.
+
+def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
+                   decks: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+    """Recompute the ban list this run implies, and lint against that, not the file.
+
+    The first version of this checked that expected *phrases* appeared somewhere
+    in the supplied file and then linted with the supplied objects, which is a
+    much weaker thing than it reads as. Presence of a string is not the contract:
+    demoting one real instinct from `ban` to `warn` left its phrase present and
+    let the draft print it verbatim, and twelve copies of `"zzzzzz"` with
+    `manual_checks` emptied satisfied "the twelve instincts are still there".
+
+    So the file is not consulted for what to enforce. The dump it claims to have
+    been built from is read back out of it, banlist.py is run again over that
+    dump and the bundled deck, and the result is what the markdown is linted
+    against - severities, structural patterns and manual checks included. The
+    supplied file may only *add*: entries it carries beyond the recomputed set
+    are kept, because adding a ban cannot relax a verdict.
+
+    The honest limit: this proves the file is internally consistent with a run of
+    banlist.py, not that the dump was the model's genuine first instincts. Twelve
+    distinct throwaway lines still recompute cleanly. What it removes is the free
+    edit - a downgrade now has to be committed to before the work is written,
+    where SKILL.md's regeneration protocol can see it.
     """
     failures: list[str] = []
+    cliches = decks["cliches"]
 
     drawn_topic = str(draw["request"]["topic"])
     topic = text_of(banlist.get("topic"))
@@ -434,62 +503,127 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any], decks: dict[st
             f"banlist.topic: the ban list was built for {topic!r} but the hand was dealt for "
             f"{drawn_topic!r} - a ban list from another run bans another run's answers")
 
-    entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
-    supplied = {normalize(str(e.get("phrase", ""))) for e in entries}
     allowed = banlist.get("allowed", [])
     if not isinstance(allowed, list) or any(not isinstance(i, str) for i in allowed):
         failures.append("banlist.allowed: must be the list of cliche ids released when the list was built")
         allowed = []
-    cliches = decks["cliches"]
     known_ids = {p["id"] for p in cliches["phrases"]}
     unknown = sorted(set(allowed) - known_ids)
     if unknown:
         failures.append(f"banlist.allowed: releases id(s) that are not in the cliche deck: {', '.join(unknown)}")
 
-    expected = [p["phrase"] for p in cliches["phrases"] if p["id"] not in set(allowed)]
-    expected += list(cliches["hollow_adjectives"]["ban"]) + list(cliches["hollow_adjectives"]["warn"])
-    missing = [p for p in expected if normalize(p) not in supplied]
+    supplied_entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
+    # Through banlist.py's own parser, because that is what it did to the dump:
+    # it strips bullets, drops stubs and - the part that matters here - dedupes.
+    # Twelve copies of one string are one instinct, not twelve.
+    dump = [line for line in parse_obvious("\n".join(recover_dump(banlist))) if not is_placeholder(line)]
+    try:
+        expected = compose_banlist(
+            topic=drawn_topic, obvious=dump, extra=[], allow=set(allowed) - set(unknown), cliches=cliches)
+    except EngineError as exc:
+        # compose_banlist refuses a short dump for the same reason banlist.py
+        # does, and parse_obvious dedupes, so twelve identical lines arrive here
+        # as one and are refused rather than counted.
+        failures.append(
+            f"banlist: carries {len(dump)} distinct first instincts, {MIN_OBVIOUS} are required, so "
+            "the contract for this run - the bundled cliche deck plus the instincts burnt before "
+            "writing - cannot be rebuilt from it. Stage 1 is the subtraction this skill is named "
+            f"after: build the list with banlist.py rather than by hand ({exc})")
+        return failures, {
+            "entries": [e for e in deck_entries(cliches) if e["tier"] in ("ban", "warn")] + supplied_entries,
+            "patterns": list(cliches["structural_patterns"]),
+            "manual_checks": [],
+        }
+
+    by_phrase = {normalize(str(e.get("phrase", ""))): e for e in supplied_entries}
+    mismatched: list[str] = []
+    missing: list[str] = []
+    for want in expected["entries"]:
+        got = by_phrase.get(normalize(want["phrase"]))
+        if got is None:
+            missing.append(want["phrase"])
+        elif (got.get("tier"), got.get("group")) != (want["tier"], want["group"]):
+            mismatched.append(
+                f"{want['phrase']!r} is {got.get('tier')}/{got.get('group')} here and "
+                f"{want['tier']}/{want['group']} in the list this run produces")
     if missing:
         failures.append(
-            f"banlist.entries: missing {len(missing)} phrase(s) of the bundled cliche deck "
-            f"({', '.join(missing[:3])}...) - build the list with banlist.py rather than by hand")
-
-    patterns = banlist.get("structural_patterns")
-    patterns = patterns if isinstance(patterns, list) else []
-    have = {p.get("id") for p in patterns if isinstance(p, dict)}
-    missing_patterns = [p["id"] for p in cliches["structural_patterns"] if p["id"] not in have]
-    if missing_patterns:
+            f"banlist.entries: missing {len(missing)} phrase(s) of the contract this run produces - the "
+            f"bundled cliche deck plus the burnt instincts ({', '.join(missing[:3])}...). Build the "
+            "list with banlist.py rather than by hand")
+    if mismatched:
         failures.append(
-            f"banlist.structural_patterns: missing {', '.join(missing_patterns)} - these are what "
-            "catch the pitch-shaped sentence, and a list without them lints for nothing")
+            "banlist.entries: severities do not replay - " + "; ".join(mismatched[:3]) +
+            ". A demoted entry is a released ban wearing the word 'ban list'")
 
-    manual = [m for m in (banlist.get("manual_checks") or []) if isinstance(m, dict)]
-    instincts = [
-        str(e.get("phrase", "")) for e in entries
-        if e.get("group") == "first-instinct" and not is_placeholder(str(e.get("phrase", "")))
-    ]
-    long_instincts = [
-        str(m.get("statement", "")) for m in manual if not is_placeholder(str(m.get("statement", "")))
-    ]
-    burned = len(instincts) + len(long_instincts)
-    if burned < MIN_OBVIOUS:
+    supplied_manual = {
+        str(m.get("id")): str(m.get("statement", ""))
+        for m in (banlist.get("manual_checks") or []) if isinstance(m, dict)
+    }
+    lost = [m for m in expected["manual_checks"] if supplied_manual.get(m["id"]) != m["statement"]]
+    if lost:
         failures.append(
-            f"banlist: carries {burned} first instincts, {MIN_OBVIOUS} are required - stage 1 is the "
-            "subtraction this skill is named after, and banlist.py refuses a shorter dump. A list that "
-            "arrives at the gate without them was not built from one")
+            f"banlist.manual_checks: {len(lost)} check(s) the recomputed contract carries are absent or "
+            f"altered (first: {lost[0]['statement'][:60]!r}) - the long instincts are the ones grep "
+            "cannot help with, so dropping them drops exactly the part that needs a person")
+
+    supplied_patterns = [p for p in (banlist.get("structural_patterns") or []) if isinstance(p, dict)]
+    by_id = {p.get("id"): p for p in supplied_patterns}
+    for want in expected["structural_patterns"]:
+        got = by_id.get(want["id"])
+        if got is None:
+            failures.append(
+                f"banlist.structural_patterns: missing {want['id']} - these are what catch the "
+                "pitch-shaped sentence, and a list without them lints for nothing")
+        elif got.get("regex") != want["regex"] or got.get("tier") != want["tier"]:
+            failures.append(
+                f"banlist.structural_patterns: {want['id']} does not match the bundled pattern - a "
+                "supplied rule carrying a reserved id is a rewritten rule, not an added one")
+
     counts = banlist.get("counts")
     declared = counts.get("obvious_supplied") if isinstance(counts, dict) else None
-    if declared != burned:
+    if declared != expected["counts"]["obvious_supplied"]:
         failures.append(
-            f"banlist.counts.obvious_supplied says {declared!r} but the file carries {burned} - the "
-            "count and the contents disagree, so one of them was edited")
-    return failures
+            f"banlist.counts.obvious_supplied says {declared!r} but the file replays as "
+            f"{expected['counts']['obvious_supplied']} - the count and the contents disagree, so one "
+            "of them was edited")
+
+    # What the markdown is actually linted against: the recomputed contract,
+    # plus whatever the supplied file adds on top of it. Bundled patterns are
+    # taken from the deck rather than from the file, so a supplied rule bearing a
+    # reserved id cannot replace the rule it is named after.
+    #
+    # Recomputed with nothing released: `allowed` is read off the artefact under
+    # verification, so it is allowed to explain why a deck phrase is absent from
+    # the file (above) but not to decide what the gate enforces. Unchanged from
+    # before this round - the gate has never honoured `--allow`, which SKILL.md
+    # records as a known gap rather than a feature.
+    enforced = compose_banlist(
+        topic=drawn_topic, obvious=dump, extra=[], allow=set(), cliches=cliches)
+    effective_entries = list(enforced["entries"])
+    known_phrases = {normalize(e["phrase"]) for e in effective_entries}
+    effective_entries += [
+        e for e in supplied_entries
+        if normalize(str(e.get("phrase", ""))) not in known_phrases and e.get("phrase")
+    ]
+    reserved = {p["id"] for p in enforced["structural_patterns"]}
+    effective_patterns = list(enforced["structural_patterns"])
+    effective_patterns += [p for p in supplied_patterns if p.get("id") not in reserved and p.get("regex")]
+    return failures, {
+        "entries": effective_entries,
+        "patterns": effective_patterns,
+        "manual_checks": expected["manual_checks"],
+    }
 
 
-def check_banlist(candidate: dict[str, Any], banlist: dict[str, Any]) -> list[str]:
-    """Manual entries used to be printed and then forgotten. Now they are answered."""
+def check_banlist(candidate: dict[str, Any], contract: dict[str, Any]) -> list[str]:
+    """Manual entries used to be printed and then forgotten. Now they are answered.
+
+    The checks come from the recomputed contract, not from the supplied file:
+    emptying `manual_checks` used to empty this loop with it.
+    """
     failures: list[str] = []
-    manual = banlist.get("manual_checks")
+    manual = contract.get("manual_checks")
     manual = manual if isinstance(manual, list) else []
     cleared = candidate.get("manual_checks_cleared")
     cleared = cleared if isinstance(cleared, dict) else {}
@@ -512,7 +646,7 @@ def bound_blocks(markdown: str) -> dict[str, list[str]]:
 
 
 def check_markdown(candidate: dict[str, Any], markdown: str, rubric: dict[str, Any],
-                   banlist: dict[str, Any], needs_path: bool, decks: dict[str, Any]) -> list[str]:
+                   contract: dict[str, Any], needs_path: bool) -> list[str]:
     """The artefact that will be shown must be the one that was scored.
 
     Bound blocks rather than a similarity score: a fuzzy match cannot tell the
@@ -547,15 +681,10 @@ def check_markdown(candidate: dict[str, Any], markdown: str, rubric: dict[str, A
     if unknown:
         failures.append(f"markdown: bind blocks for unknown fields: {', '.join(unknown)}")
 
-    entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
-    entries += [e for e in deck_entries(decks["cliches"]) if e["tier"] in ("ban", "warn")]
-    # The deck's patterns are re-added the way its phrases are, so that the worst
-    # a trimmed file can do is fail the replay above rather than quietly shrink
-    # the lint to what its author chose to leave in.
-    patterns = [p for p in (banlist.get("structural_patterns") or []) if isinstance(p, dict)]
-    have = {p.get("id") for p in patterns}
-    patterns += [p for p in decks["cliches"]["structural_patterns"] if p["id"] not in have]
-    for f in lint(markdown, entries, patterns, allow=set()):
+    # The contract is the one replay_banlist recomputed, so a trimmed, demoted or
+    # rule-shadowed file cannot quietly shrink the lint to what its author chose
+    # to leave in.
+    for f in lint(markdown, contract["entries"], contract["patterns"], allow=set()):
         if f["tier"] != "ban":
             continue
         failures.append(
@@ -571,7 +700,8 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
          markdown: str, rubric: dict[str, Any], decks: dict[str, Any]) -> dict[str, Any]:
     failures = replay_draw(draw, decks)
     failures += bind_candidate_to_draw(candidate, draw)
-    failures += replay_banlist(banlist, draw, decks)
+    banlist_failures, contract = replay_banlist(banlist, draw, decks)
+    failures += banlist_failures
 
     # The profile is read off the validated run. There is no --extremal and no
     # --grounded: a flag is a claim made at verdict time, by the same party the
@@ -590,8 +720,8 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
     cand_failures, warnings, values, mean = check_candidate(
         candidate, rubric, min_mean, min_axis, grounded, needs_path)
     failures += cand_failures
-    failures += check_banlist(candidate, banlist)
-    failures += check_markdown(candidate, markdown, rubric, banlist, needs_path, decks)
+    failures += check_banlist(candidate, contract)
+    failures += check_markdown(candidate, markdown, rubric, contract, needs_path)
 
     substitution = rubric.get("grounded_substitution", {})
     return {

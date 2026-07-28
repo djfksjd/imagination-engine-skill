@@ -90,32 +90,42 @@ PLACEHOLDER_NAMES = {
     "placeholder", "name", "?", "??", "???", "xxx", "test", "foo", "bar",
 }
 
+# Words that are stand-ins when the author is naming their own result and real
+# titles when the author is citing someone else's. A great many catalogued works
+# are called exactly "Untitled", so rejecting it in a citation field rejects
+# honest work - and a gate that rejects honest work is the reason a user turns it
+# off. See is_placeholder(titles_ok=...).
+REAL_TITLE_WORDS = {"untitled", "unnamed"}
+
 
 def text_units(text: str) -> int:
-    """Length in units rather than code points.
+    """Length in *content* units rather than code points.
 
-    Every minimum in this skill is asking for an amount of *argument*, not an
-    amount of Unicode. Counting code points makes a Korean, Japanese or Chinese
-    section roughly twice as hard to satisfy as an English one carrying the same
-    content, because one Han character or Hangul syllable does the work of about
-    two Latin letters. So a wide letter or digit counts as two units.
+    Every minimum in this skill is asking for an amount of argument, so only the
+    characters that carry argument are counted: letters and digits. Spaces,
+    punctuation and symbols count nothing at all. Counting them was the hole that
+    voided the whole anti-padding rule - `text_units` counted a space while
+    `distinct_ratio` tokenised it away, so `"Sound" + 200 spaces + "stays"` was
+    210 units at a perfect distinctness score and cleared every floor in the
+    gate. Fixing that per field would have left the next punctuation trick open;
+    it is fixed here, once, at the measurement every floor shares.
 
-    Only letters and digits are widened. Wide punctuation, box drawing and emoji
-    stay at one, otherwise a row of decorative characters would clear a floor
-    that plain prose has to earn. Compatibility-normalizing first stops fullwidth
-    Latin from being used to inflate the count.
+    Counting code points also made a Korean, Japanese or Chinese section roughly
+    twice as hard to satisfy as an English one carrying the same content, because
+    one Han character or Hangul syllable does the work of about two Latin
+    letters. So a wide letter or digit counts as two units. Wide punctuation, box
+    drawing and emoji are not letters and count zero, so a row of decorative
+    characters cannot clear a floor that plain prose has to earn.
+    Compatibility-normalizing first stops fullwidth Latin from inflating the
+    count.
     """
     if not isinstance(text, str):
         return 0
     total = 0
     for ch in unicodedata.normalize("NFKC", text):
-        category = unicodedata.category(ch)
-        if category in ("Cc", "Cf", "Mn", "Me"):
+        if unicodedata.category(ch)[0] not in ("L", "N"):
             continue
-        if category[0] in ("L", "N") and unicodedata.east_asian_width(ch) in ("W", "F"):
-            total += 2
-        else:
-            total += 1
+        total += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
     return total
 
 
@@ -148,7 +158,7 @@ def distinct_ratio(text: str) -> float:
     return ratio
 
 
-def is_placeholder(text: str) -> bool:
+def is_placeholder(text: str, titles_ok: bool = False) -> bool:
     """Whether a field holds a stand-in rather than content.
 
     A length floor cannot answer this: it rejects a complete two-character name
@@ -157,13 +167,19 @@ def is_placeholder(text: str) -> bool:
     a stand-in would defeat the field's purpose, not only to the name: a
     `resembles[].work` of "-" used to satisfy the one requirement that carries
     this skill's honesty guarantee.
+
+    `titles_ok` is for citation fields, where the author is naming a work that
+    already exists rather than filling in their own. "Untitled" there is the
+    actual title of a very large number of real works, and refusing it made the
+    gate reject honest citations. "TBD" and "-" are refused in either mode.
     """
     stripped = normalize(text).strip(" .-_·")
     if not stripped:
         return True
     if not any(unicodedata.category(ch)[0] in ("L", "N") for ch in stripped):
         return True
-    return stripped in PLACEHOLDER_NAMES
+    names = PLACEHOLDER_NAMES - REAL_TITLE_WORDS if titles_ok else PLACEHOLDER_NAMES
+    return stripped in names
 
 
 SEED_SEP = "\x1f"

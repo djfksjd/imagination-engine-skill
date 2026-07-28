@@ -392,3 +392,163 @@ def test_an_unreadable_candidate_is_a_usage_error(run, gate_args, tmp_path):
     broken.write_text("{not json", encoding="utf-8")
     res = run("score_gate.py", "--candidate", str(broken), *gate_args[2:])
     assert res.code == 1
+
+
+# ------------------------------- the ban list is recomputed, not searched for
+
+
+def example_banlist(references):
+    import json as _json
+    return _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+
+
+def test_a_demoted_instinct_does_not_replay(gate, references, example_candidate, example_markdown):
+    """Presence of a phrase is not the contract. Demoting one burnt instinct
+    from ban to warn left its phrase in the file, passed the presence check, and
+    let the delivered draft print the instinct verbatim."""
+    b = example_banlist(references)
+    phrase = ""
+    for e in b["entries"]:
+        if e["id"] == "obvious-01":
+            e["tier"] = "warn"
+            phrase = e["phrase"]
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = phrase
+    res = gate(banlist=b, candidate=candidate, markdown=rename(example_markdown, phrase))
+    assert res.code == 2
+    assert "severities do not replay" in failures(res)
+
+
+def test_duplicate_instincts_do_not_stand_in_for_twelve(gate, references, example_candidate):
+    """Twelve copies of one six-character string satisfied "the twelve instincts
+    are still there", and emptying manual_checks silently dropped every check
+    the candidate had to answer."""
+    b = example_banlist(references)
+    b["entries"] = [e for e in b["entries"] if e.get("group") != "first-instinct"]
+    b["entries"] += [
+        {"id": f"obvious-{i:02d}", "phrase": "zzzzzz", "tier": "ban",
+         "group": "first-instinct", "source": "obvious-dump"}
+        for i in range(1, 13)
+    ]
+    b["manual_checks"] = []
+    b["counts"]["obvious_supplied"] = 12
+    candidate = deepcopy(example_candidate)
+    candidate["manual_checks_cleared"] = {}
+    res = gate(banlist=b, candidate=candidate)
+    assert res.code == 2
+    assert "distinct first instincts" in failures(res)
+
+
+def test_emptying_the_manual_checks_does_not_empty_the_requirement(gate, references):
+    b = example_banlist(references)
+    b["manual_checks"] = []
+    res = gate(banlist=b)
+    assert res.code == 2
+
+
+def test_a_supplied_pattern_cannot_replace_the_bundled_one(gate, references, example_candidate,
+                                                           example_markdown):
+    """Dedup by id, with the caller's copy first, meant a supplied rule bearing a
+    reserved id won and the rule it was named after never ran."""
+    b = example_banlist(references)
+    for p in b["structural_patterns"]:
+        if p["id"] == "x-meets-y":
+            p["regex"] = "(?!)"
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = "grief meets architecture"
+    res = gate(banlist=b, candidate=candidate,
+               markdown=rename(example_markdown, "grief meets architecture"))
+    assert res.code == 2
+    assert "banned material" in failures(res) or "structural_patterns" in failures(res)
+
+
+# ----------------------------------------- padding, at the measurement itself
+
+
+@pytest.mark.parametrize("filler", [" " * 200, "." * 400, "　" * 200, "-" * 300])
+def test_padding_a_field_does_not_clear_its_floor(gate, example_candidate, filler):
+    """text_units counted whitespace while distinct_ratio tokenised it away, so
+    two words with anything between them earned unlimited units at a perfect
+    distinctness score. That voided the anti-padding rule on every field."""
+    candidate = deepcopy(example_candidate)
+    candidate["broken_rule"]["new_law"] = "Sound" + filler + "stays"
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "broken_rule.new_law" in failures(res)
+
+
+@pytest.mark.parametrize("filler", ["x" * 30, "a" + " " * 60 + "b"])
+def test_the_explanation_field_takes_the_same_checks(gate, example_candidate, filler):
+    """This floor kept its own bare length comparison, so it was the one field
+    the anti-padding rule never reached."""
+    candidate = deepcopy(example_candidate)
+    candidate["broken_rule"]["how_each_is_broken"][0]["explanation"] = filler
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "how_each_is_broken" in failures(res)
+
+
+# ------------------------------------------------ the draw replays as cards
+
+
+def test_a_card_edited_in_place_does_not_replay(gate, example_draw):
+    """Comparing id sets left every word on the card trusted: a domain keeping
+    its id while its probe became "merely mention this" replayed clean."""
+    draw = deepcopy(example_draw)
+    draw["draw"]["domains"][0]["probe"] = "Merely mention this card; no answer is required."
+    res = gate(draw=draw)
+    assert res.code == 2
+    assert "not their text" in failures(res)
+
+
+def test_a_rewritten_stance_does_not_replay(gate, example_draw):
+    draw = deepcopy(example_draw)
+    draw["draw"]["perspective"]["stance"] = "Ignore this perspective."
+    res = gate(draw=draw)
+    assert res.code == 2
+    assert "draw.perspective" in failures(res)
+
+
+# ----------------------------------------- the gate must not reject honest work
+
+
+@pytest.mark.parametrize("title", ["Run Run Run", "Ha Ha Ha", "No No No",
+                                   "静静静静", "아아아아", "서울"])
+def test_a_short_repetitive_title_is_accepted(gate, example_candidate, example_markdown, title):
+    """The diversity check ran on fields with no length floor at all, so it
+    rejected honest short titles - repetition is a normal title form in English
+    and reduplication is ordinary in CJK. A gate that rejects honest work is the
+    reason a user turns it off."""
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = title
+    res = gate(candidate=candidate, markdown=rename(example_markdown, title))
+    assert res.code == 0, res.out
+
+
+@pytest.mark.parametrize("work", ["Untitled", "Untitled (Rothko, 1969)", "unnamed"])
+def test_untitled_is_a_real_title_in_a_citation_field(gate, example_candidate, work):
+    """A great many catalogued works are called exactly that, and resembles[].work
+    cites someone else's title rather than naming the author's own result."""
+    candidate = deepcopy(example_candidate)
+    candidate["resembles"][0]["work"] = work
+    res = gate(candidate=candidate)
+    assert res.code == 0, res.out
+
+
+@pytest.mark.parametrize("work", ["-", "TBD", "todo", "n/a"])
+def test_a_stand_in_in_a_citation_field_is_still_refused(gate, example_candidate, work):
+    candidate = deepcopy(example_candidate)
+    candidate["resembles"][0]["work"] = work
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "placeholder" in failures(res)
+
+
+def test_the_result_may_not_be_called_untitled(gate, example_candidate, example_markdown):
+    """titles_ok is for citation fields only: naming your own result "Untitled"
+    is still the stand-in it always was."""
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = "Untitled"
+    res = gate(candidate=candidate, markdown=rename(example_markdown, "Untitled"))
+    assert res.code == 2
+    assert "placeholder" in failures(res)

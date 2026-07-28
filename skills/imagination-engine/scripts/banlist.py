@@ -73,7 +73,23 @@ def parse_obvious(raw: str) -> list[str]:
 
 
 def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str, Any]:
-    obvious = parse_obvious(read_text_arg(args.obvious))
+    return compose_banlist(
+        topic=args.topic,
+        obvious=parse_obvious(read_text_arg(args.obvious)),
+        extra=csv_list(args.extra),
+        allow=set(csv_list(args.allow)),
+        cliches=cliches,
+    )
+
+
+def compose_banlist(topic: str, obvious: list[str], extra: list[str], allow: set[str],
+                    cliches: dict[str, Any]) -> dict[str, Any]:
+    """Build the contract from already-parsed inputs.
+
+    Split out from `build_banlist` so that score_gate.py can recompute the ban
+    list this run's inputs imply and compare it with the file it was handed,
+    rather than checking that some expected string appears somewhere in it.
+    """
     if len(obvious) < MIN_OBVIOUS:
         raise EngineError(
             f"the obvious dump has {len(obvious)} usable entries but {MIN_OBVIOUS} are required. "
@@ -81,7 +97,6 @@ def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str
             "the familiar answers are still available to you.",
         )
 
-    allow = set(csv_list(args.allow))
     known_ids = {p["id"] for p in cliches["phrases"]}
     unknown_allow = allow - known_ids
     if unknown_allow:
@@ -133,7 +148,7 @@ def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str
                 "note": "too long to match literally - check this one by reading, not by grep",
             })
 
-    for i, item in enumerate(csv_list(args.extra), start=1):
+    for i, item in enumerate(extra, start=1):
         entries.append({
             "id": f"extra-{i:02d}",
             "phrase": item,
@@ -159,7 +174,7 @@ def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str
 
     return {
         "engine_version": VERSION,
-        "topic": args.topic,
+        "topic": topic,
         "counts": {
             "obvious_supplied": len(obvious),
             "matchable": sum(1 for e in deduped if e["tier"] == "ban"),

@@ -18,6 +18,31 @@ Une compétence d'agent qui fait produire à une IA des idées réellement étra
 
 ---
 
+> [!CAUTION]
+> ## Mesurée deux fois en aveugle. Perdue les deux fois.
+>
+> L'affirmation centrale de cette compétence — retirer les chemins vers la réponse évidente donne de meilleures idées qu'une invite ordinaire — a maintenant été mesurée deux fois contre un contrôle en invite ordinaire, et elle a perdu nettement les deux fois. Le second test a été préenregistré intégralement avant l'existence de la moindre donnée, et il a tourné sur la version actuelle, au réglage par défaut actuel (`alien-physics` seul, ancrage 1), le seuil auto-évalué ayant déjà été retiré de la barrière. Aucun de ces deux changements n'a rattrapé l'écart.
+>
+> Six commandes, cinq tirages du moteur et cinq du contrôle sur chacune, cinq juges en aveugle par commande à qui l'on n'a jamais dit que deux conditions existaient. Moteur moins contrôle, médiane des cinq juges, échelles de 1 à 7, moyenne à poids égal sur les six commandes :
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | moteur − contrôle | **−2,83** | **−3,03** | **−1,67** |
+>
+> Chaque commande est négative sur chaque mesure. Le contrôle passe devant le moteur dans **30 cellules commande × juge sur 30** et rafle **90 des 90** places du trio de tête. Agrégé : WANT 5,76 → 2,98 ; FIT 6,35 → 3,33 ; CRAFT 5,88 → 4,23.
+>
+> La convergence — le problème pour lequel cette compétence a été construite — n'a pas été réduite de façon mesurable : `g_CORE` +0,10 et `g_SKELETON` −0,22, contre les +0,30 exigés par la règle. L'α ordinal de Krippendorff entre codeurs ressort à 0,786 et 0,673, sous le plancher préenregistré de 0,80 : **cette mesure est donc non concluante, et non favorable** — elle ne constitue pas une preuve en faveur de la compétence, et elle ne compte pas non plus contre elle.
+>
+> Le moteur a coûté **48× le contrôle par sortie**.
+>
+> La règle préenregistrée rend **FAIL**, et elle avait consigné d'avance « puissance insuffisante », « presque passé », « la marge était serrée » et « il a gagné sur les commandes de réserve » comme des FAIL, précisément pour que personne n'aille les chercher après coup. Selon cette règle, le contrôle en invite ordinaire devient le réglage recommandé et un nouveau banc d'essai est conçu.
+>
+> **Une affirmation causale que cette page portait est retirée.** Elle disait que le mode `nonhuman` avait causé l'effondrement de l'adéquation. Non : retirer `nonhuman` du réglage par défaut a fait passer le FIT agrégé de 3,27 à 3,33, face à un contrôle à 6,35. L'effondrement a survécu presque intact à son retrait. L'avertissement propre à ce mode — il dissout toute commande où figure une personne — tient toujours comme règle de conception, mais il n'est pas la cause de la perte mesurée.
+>
+> **À part, et toujours étayé.** Le résultat de la première expérience — un modèle sans aide s'effondre bel et bien quand la commande a une réponse évidente — est réel : sur la commande de la créature d'estuaire, six tirages indépendants en invite ordinaire ont produit le même organisme. Le problème visé existe. Ce qui est réfuté, c'est que ce pipeline le résolve.
+
+---
+
 > Demander à un modèle d'« être créatif » l'amène à échantillonner les suites les plus probables du mot *créatif*. D'où la convergence des résultats : encore les réseaux mycéliens, encore la ville de néon sous la pluie, encore la machine qui se découvre des sentiments.
 >
 > **Insister ne déplace pas la distribution. Retirer des options, si.**
@@ -90,7 +115,7 @@ Mode extremal, ancrage 2 — je dois pouvoir la fabriquer réellement.
 | `extremal` | Tout candidat sûr. Élargit la main, distribue deux règles à briser et relève la barre du rebut. |
 | `grounded` | Rien. Ajoute une voie vers quelque chose de réel sans modifier le principe, et remplace l'axe `non_anthropocentrism` par `translation_integrity`. |
 
-**Le réglage par défaut est `alien-physics` à l'ancrage 1, et `nonhuman` n'en fait plus partie.** Il en faisait partie. Une expérience contrôlée — quatre commandes, cinq tirages avec une invite ordinaire et cinq avec le moteur pour chacune, huit juges en aveugle à qui l'on n'a jamais dit ce qui était testé — a mesuré que l'ancien défaut divisait par deux l'adéquation du résultat à la commande (6,45 → 3,27), et que les juges ont retenu 24 sorties sur 24 côté invite ordinaire, et 0 sur 24 côté moteur. Leurs raisons étaient constantes : le moteur avait dissous la commande au lieu d'y répondre. C'est `nonhuman` fonctionnant exactement comme spécifié — il retire l'utilité humaine par construction — et c'est ce qu'il ne faut pas appliquer à une commande pour laquelle personne ne l'a choisi. **Si votre commande contient une personne — un joueur, un lecteur, une assemblée, un client — n'ajoutez pas `nonhuman`.** Il l'effacera.
+**Le réglage par défaut est `alien-physics` à l'ancrage 1, et `nonhuman` n'en fait plus partie.** Il en faisait partie. Cette page affirmait qu'une expérience contrôlée avait mesuré ce que coûtait `nonhuman` : adéquation à la commande divisée par deux, et 0 sortie du moteur retenue sur 24 par des juges en aveugle. **Cette attribution causale est retirée.** La reprise préenregistrée a tourné avec `alien-physics` seul, et le FIT agrégé n'a bougé que de 3,27 à 3,33, face à un contrôle à 6,35 : l'effondrement de l'adéquation n'était pas dû à `nonhuman` et n'est pas parti avec lui. Le reste de l'avertissement tient de lui-même comme règle de conception — `nonhuman` retire l'utilité humaine par construction, et c'est ce qu'il ne faut pas appliquer à une commande pour laquelle personne ne l'a choisi. **Si votre commande contient une personne — un joueur, un lecteur, une assemblée, un client — n'ajoutez pas `nonhuman`.** Il l'effacera.
 
 ### Ancrages · à quel point le résultat doit rester atteignable
 
@@ -267,13 +292,35 @@ Notez ce qui *n'y est pas* : aucun appareil, aucun dispositif lumineux, rien d'�
 
 ## Ce qu'elle est mesurée faire — et ce qu'elle ne fait pas
 
-Cette compétence a été testée en juillet 2026 : quatre commandes dans quatre domaines sans rapport, cinq tirages avec une invite ordinaire et cinq avec le pipeline complet pour chacune, vingt mains distribuées sans recouvrement, codées et jugées en aveugle par des agents à qui l'on n'a jamais dit que deux conditions existaient. Les deux moitiés du résultat figurent ici, parce qu'une compétence qui cache sa propre mesure demande qu'on lui fasse confiance plutôt qu'on la lise.
+Deux expériences ont été menées. Les deux figurent ici en entier, parce qu'une compétence qui cache sa propre mesure demande qu'on lui fasse confiance plutôt qu'on la lise.
+
+### Expérience 1 — juillet 2026
+
+Quatre commandes dans quatre domaines sans rapport, cinq tirages avec une invite ordinaire et cinq avec le pipeline complet pour chacune, vingt mains distribuées sans recouvrement, codées et jugées en aveugle par des agents à qui l'on n'a jamais dit que deux conditions existaient.
 
 **Confirmé, sous condition.** Une invite ordinaire converge vraiment — mais seulement quand la commande a une réponse évidente vers laquelle converger. Sur une créature d'estuaire, cinq tirages indépendants ont produit cinq versions du même organisme, et un sixième l'a produit encore. Sur une prémisse se déroulant entièrement dans un immeuble, cinq tirages ont produit cinq idées sans rapport. L'affirmation en tête de page décrit ce qui arrive à *certaines* commandes ; ce n'est pas une loi.
 
 **Non démontré : que retirer des chemins décorrèle les réponses répétées.** Vingt tirages du moteur sur vingt mains disjointes ont convergé vers une seule forme — un processus sans corps plutôt qu'une chose, une obligation le plus souvent formulée comme une dette, une conséquence administrative. Agrégés, ils se ressemblaient *davantage* que ceux de l'invite ordinaire, pas moins. Et les cartes n'étaient pas décoratives : la plupart n'ont laissé aucune trace dans la formulation, donc elles avaient bien été absorbées, et les sorties ont convergé malgré tout. La lecture honnête : retirer l'attracteur de premier ordre marche — ces réponses ne ressemblent effectivement pas à celles d'une invite ordinaire — mais le retrait ne répartit pas uniformément ce qui reste. **Il déplace le mode.**
 
 Ce n'est pas corrigé et cette page ne prétendra pas le contraire. Ce qui en découle en pratique : s'il vous faut des options réellement différentes, donnez-lui des commandes ou des modes différents plutôt que de relancer deux fois la même ; et si votre résultat est un processus sans corps qui impose une obligation et engendre de la paperasse, vous êtes arrivé là où les vingt derniers tirages sont arrivés — renvoyez-le.
+
+### Expérience 2 — la reprise préenregistrée, sur la version actuelle
+
+L'expérience 1 comportait deux défauts que son propre rapport a nommés : la section obligatoire du moteur « ce que ceci n'est pas » a permis à un codeur en aveugle de reconstituer la séparation des conditions, et un agent de contrôle a trouvé la compétence installée et exécuté le pipeline sans qu'on le lui demande. La reprise a fermé les deux : un typographe en aveugle a reformaté les sorties des deux bras dans un même gabarit de quatre sections, et chaque sortie de contrôle provenait d'un appel sans état, sans outil et sans compétence, où aucun mécanisme ne permettait de charger quoi que ce soit. La règle de décision, les six commandes, l'ordre d'agrégation et tous les seuils ont été fixés par écrit avant l'existence de la moindre donnée.
+
+Six commandes (quatre reprises, deux de réserve désignées à l'avance), cinq tirages du moteur et cinq du contrôle sur chacune, cinq juges en aveugle et cinq codeurs en aveugle par paires sur chaque commande. Le moteur a tourné au réglage par défaut actuel, `alien-physics` à l'ancrage 1, le seuil auto-évalué étant retiré de la barrière. Les 30 tirages du moteur ont passé `score_gate.py` dans la limite fixée, dont 29 du premier coup : ce n'est pas un échec d'exécution.
+
+| moteur − contrôle, médiane des juges, poids égal par commande | WANT | FIT | CRAFT |
+|---|---|---|---|
+| moyenne | **−2,83** | **−3,03** | **−1,67** |
+
+Les six commandes sont négatives sur les trois mesures, les commandes de réserve exactement comme les commandes reprises. Sur les 300 notations agrégées : WANT 5,76 → 2,98 ; FIT 6,35 → 3,33 ; CRAFT 5,88 → 4,23. Le contrôle passe devant le moteur dans **30 cellules commande × juge sur 30** et prend **90 des 90** places du trio de tête. Le moteur a coûté **48× le contrôle par sortie**, et 12× le temps d'horloge.
+
+Sur la convergence — ce pour quoi cette compétence existe — `g_CORE` vaut +0,10 et `g_SKELETON` −0,22, une valeur positive signifiant que le moteur converge moins, la règle exigeant +0,30. L'α ordinal de Krippendorff sur les cinq codeurs est de 0,786 pour CORE et 0,673 pour SKELETON, tous deux sous le plancher préenregistré de 0,80 : les codeurs n'appliquaient donc pas un seul et même construit, et **le résultat de convergence est non concluant, et non favorable**. Ni recodage, ni clarification de la grille, ni arbitrage n'étaient permis après coup, et il n'y en a pas eu.
+
+Quinze des dix-sept conditions de la règle de décision sont violées, dont le veto CRAFT, qui coule le résultat à lui seul. La règle les exigeait toutes les dix-sept et rend **FAIL**. Sa conséquence était fixée elle aussi d'avance : le contrôle en invite ordinaire devient le réglage recommandé, et un nouveau banc d'essai est conçu.
+
+**Ce que cela n'autorise pas.** Cela ne dit rien de `nonhuman` ni d'aucune autre configuration non par défaut, hors périmètre. Et comme les deux bras ne sont pas appariés en calcul, cela ne peut pas dire *quelle* partie du pipeline — la liste d'interdits, les cartes distribuées, le contrat de sortie figé — a produit la perte. Ce que cela dit, c'est que retirer `nonhuman` du réglage par défaut n'a pas corrigé le problème mesuré : le FIT agrégé est passé de 3,27 à 3,33 face à un contrôle à 6,35.
 
 ## Sous le capot
 

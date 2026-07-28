@@ -1,9 +1,23 @@
 # Worked example
 
 One complete run, from the request to the delivered answer, including the parts
-the user never sees. The machine-readable version of the result is
-`references/example-candidate.json`; it is the fixture the test suite gates
-against, so if the pipeline ever stops accepting it, the tests fail.
+the user never sees. Every artefact this run produced is shipped, so the whole
+example can be replayed command by command:
+
+| Stage | Artefact |
+|---|---|
+| 1 | `references/example-obvious.txt` - the twelve first instincts |
+| 1 | `references/example-banlist.json` - what `banlist.py` made of them |
+| 3 | `references/example-draw.json` - the hand |
+| 8 | `references/example-candidate.json` - the scored result |
+| 8 | `references/example-draft.md` - the draft that was shown |
+
+The last four are the four inputs `score_gate.py` takes, and they are the test
+suite's fixture: if the pipeline ever stops accepting them, the tests fail.
+
+Commands below are written for the skill directory - the one holding this
+file's parent, `skills/imagination-engine/` in the repository. Working files
+go to a scratch directory; `/tmp/work` here.
 
 **Request.** "Use the imagination engine on: a machine that separates emotion
 from voice. Baby, non-human and affect modes. No neural scanning, no feelings
@@ -13,28 +27,36 @@ rendered as colour."
 
 ## Stage 1 - burn the first instincts (never shown to the user)
 
-Twelve most probable answers, written down precisely so they become unavailable:
+Twelve most probable answers, written down precisely so they become unavailable.
+They go in a file, one per line - this run's is shipped as
+`references/example-obvious.txt`:
 
 ```
-headset that strips feeling from speech
+headset that strips feeling
 emotion filter for phone calls
-device that stores feelings in vials
-voice that becomes flat and robotic
-a company selling emotional privacy
-government mandate to use the filter
-feelings displayed as colour
-therapist machine that removes grief
+feelings stored in glass vials
+flat robotic voice
+company selling emotional privacy
+government mandate on tone
+feelings shown as colour
+therapy machine for grief
 singer who loses their feeling
 black market for stolen emotions
-child hears parent's flattened voice
-machine develops feelings itself
+neural implant that mutes affect
+a machine that turns out to have been feeling everything it removed all along
 ```
 
 ```bash
-banlist.py --topic "a machine that separates emotion from voice" \
-  --obvious obvious.txt --extra "neural scan,emotion meter,feeling as colour" \
-  --out ./work
+mkdir -p /tmp/work
+python3 scripts/banlist.py --topic "a machine that separates emotion from voice" \
+  --obvious references/example-obvious.txt --out /tmp/work
 ```
+
+Eleven are short enough to be matched literally and become bans. The twelfth is
+a whole premise, so it becomes a manual check, and the gate will not pass a
+result until `manual_checks_cleared` answers it in writing. Fewer than twelve
+usable lines and `banlist.py` exits 2: the familiar answers are still available
+to you.
 
 Every one of these is now a failure condition rather than a temptation. Note
 what they share: an apparatus, an operator, and a stored substance. That shared
@@ -55,9 +77,12 @@ Assumptions the request smuggles in, and the three that were deleted:
 ## Stage 3 - the draw
 
 ```bash
-draw.py --topic "a machine that separates emotion from voice" \
-  --modes baby,nonhuman,affect --run 1 --anchor 1 --out ./work
+python3 scripts/draw.py --topic "a machine that separates emotion from voice" \
+  --modes baby,nonhuman,affect --run 1 --anchor 1 --out /tmp/work
 ```
+
+That command reproduces `references/example-draw.json` exactly - the deal is
+hashed from the request, so the hand is not something anyone chose.
 
 | Slot | Card | What it had to answer |
 |---|---|---|
@@ -78,10 +103,28 @@ one mechanism: *copying is subtractive and runs backwards*.
 
 ## Stage 8 - the gate
 
+The result is written twice: `candidate.json` for the gate to score, and
+`draft.md` for the user to read, with each scored section marked in the draft
+inside `<!-- bind: sections.<id> -->` ... `<!-- /bind -->` so the two cannot
+drift apart. Then one command takes all four artefacts:
+
 ```bash
-score_gate.py --candidate ./work/candidate.json
-cliche_lint.py --banlist ./work/banlist.json --draft ./work/draft.md
+python3 scripts/score_gate.py \
+  --candidate references/example-candidate.json \
+  --draw      references/example-draw.json \
+  --banlist   references/example-banlist.json \
+  --markdown  references/example-draft.md
 ```
+
+```text
+POLICY LOCKED: imagination-engine/0.4.0 default; mean >= 8.0; every axis >= 6
+mean 8.12
+PASSED - the required work is present.
+```
+
+Swap in your own four and the command is the same. There is no second gate:
+`cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md` is
+a mid-draft diagnostic, and passing it is not clearance.
 
 First pass failed: `non_anthropocentrism=5` and `sections.world_effect` too
 thin. The fix was not a rewording - the draft still had an operator in it (a
@@ -93,87 +136,51 @@ rather than quietly rounded up.
 
 ## The delivered answer
 
+This is `references/example-draft.md` verbatim, bindings included. What the user
+sees is the prose; the comments are how the gate knows the draft in front of
+them is the one that was scored.
+
 ---
 
-## Flatting
+## <!-- bind: sections.name -->Flatting<!-- /bind -->
 
-A grade that forms wherever a sentence is said more than once, drawing the
-charge out of every earlier saying and leaving it on the surfaces of the room.
+*<!-- bind: sections.one_line -->A grade that forms wherever a sentence is said more than once, drawing the charge out of every earlier saying and leaving it on the surfaces of the room.<!-- /bind -->*
 
 ### How it exists
 
-Speech carries a charge that is separate from its meaning. The charge belongs
-to the utterance rather than to the speaker, and an utterance holds it only
-until the same sentence is said again within earshot. The second saying takes
-the charge from the first, the third from the second and the first, backwards
-without limit. The displaced charge does not move to the new sentence; it
-settles on whatever surface the sound reached, in a layer about one saying
-thick, and stays there. Meaning is untouched: a flattened sentence still
-informs, still instructs, still can be obeyed. What it can no longer do is
-arrive. Because the taking runs backwards, this edits what has already
-happened - a promise repeated on a Tuesday reaches back and empties every
-earlier occasion on which it was made, including the one that mattered.
-Reassurance by frequency is therefore impossible here.
+<!-- bind: sections.principle -->
+Speech carries a charge that is separate from its meaning. The charge is not conserved inside a person: it belongs to the utterance, and an utterance holds it only until the same sentence is said again nearby. The second saying takes the charge from the first, the third from the second and the first, and so on backwards without limit. Displaced charge does not travel to the new sentence. It settles on whatever surface the sound reached, in a layer roughly one saying thick, and stays there. Meaning is untouched throughout; a flattened sentence still informs, still instructs, still can be obeyed. What it can no longer do is arrive. Because the taking runs backwards, the process edits what has already happened rather than what will: a promise repeated on a Tuesday reaches back and empties every earlier occasion on which it was made, including the one that mattered. Nothing in this arrangement is aimed at anyone. Flatting has no interior at any scale, no preference between rooms, and no way to register that a speaker is present rather than a recording.
+<!-- /bind -->
 
 ### First encounter
 
-She comes back to the kitchen eleven months after the funeral, to sort out the
-cupboards, and the room is warm the way a wall is warm after an afternoon of
-sun, except that it is February and the heating has been off since spring. She
-says her mother's name out loud, once, into the empty room, and the sound does
-something it has never done in her flat in the city: it stays. It does not
-echo, it lands, and the plaster takes it, and there is a half-second delay
-before her throat lets her swallow. Everything her mother said to her only once
-is still in that kitchen. Everything her mother said every single day - the
-phrases she would have paid to hear again - is gone from the room and gone from
-her memory of it. She can recite those sentences accurately. She feels nothing
-when she does, and the nothing has an outline, like a tooth that has been out
-for a week.
+<!-- bind: sections.first_encounter -->
+She comes back to the kitchen eleven months after the funeral, to sort out the cupboards, and the room is warm in the way that a wall is warm after a whole afternoon of sun, except that it is February and the heating has been off since spring. When she says her mother's name out loud, once, into the empty room, the sound does something it has never done in her flat in the city: it stays. It does not echo, it lands, and the plaster takes it, and there is a half-second delay before her throat lets her swallow. Everything her mother said to her only once is still in that kitchen, in the layer. Everything her mother said every single day, the phrases she would have paid to hear again, is gone from the room and gone from her memory of it, ground off by the last repetition and then by the one before that. She can recite those sentences accurately. She feels nothing when she does, and the nothing has an outline, like a tooth that has been out for a week. She sits on the floor with her back against the cupboard and does not speak again for an hour, because everything she can think of to say she has said in that room before.
+<!-- /bind -->
 
 ### The strangest thing about it
 
-It is not an object and not a creature; it is a grade, the way a river valley
-is a grade. It has no inside, so it cannot be entered, opened, negotiated with
-or killed - only re-cut, by refinishing the surfaces, which erases the layer
-and starts the grinding from a fresh height. And it acts backwards. Every other
-process in the world takes from the present. This one takes from what already
-happened, so the danger here is not the future but the accumulated past, which
-thins every time anyone opens their mouth.
+<!-- bind: sections.strangest_property -->
+It is not an object and not a creature. It is a grade, the way a river valley is a grade: a slope down which charge runs, produced by nothing but repetition and gradually flattening whatever produces it. It has no inside, so it cannot be entered, opened, hacked, negotiated with, or killed; it can only be re-cut, by refinishing the surfaces, which erases the layer and starts the grinding from a fresh height. And it acts backwards. Every other process in the world takes from the present. This one takes from what already happened, which means it is not the future that is dangerous here but the accumulated past, which thins every time anyone opens their mouth.
+<!-- /bind -->
 
 ### What it does to the people near it
 
-The layer is the same feature that makes a room beautiful and the same feature
-that indebts anyone standing in it. Rooms with a deep layer are the best places
-in the world to speak, and people travel to sit in them. But an utterance whose
-charge was taken before it was answered stays outstanding, and being in the
-room and speaking is how one is inherited. Nobody has found a way to want the
-warmth without picking something up.
+<!-- bind: sections.affect -->
+The layer is the same feature that makes a room beautiful and the same feature that indebts anyone who stands in it. Rooms with a deep layer are the best places in the world to speak: the charge underfoot and overhead gives even an ordinary greeting a fullness that no new room can produce, and people travel to sit in them. But an utterance that lost its charge before it was answered stays outstanding, and the outstanding ones are all in there, and being in the room and speaking is how one is inherited. You cannot enjoy the warmth without picking something up. Nobody has found a way to want one and not the other.
+<!-- /bind -->
 
 ### What changes because it exists
 
-Saying a thing once becomes the expensive form and saying it often the cheap,
-slightly cruel one, so vows are built to be unrepeatable - anchored to a date,
-a weather, a person's exact age - so that the sentence cannot be said a second
-time without becoming false. Estate agents list the layer alongside the square
-footage, and there is an unresolved legal fight over whether it belongs to the
-building or to the people whose sayings are in it. Districts where the grinding
-finished centuries ago are called flats: perfectly intelligible, cheap,
-favoured by administrators and by people who cannot bear to be reached.
-Funerals have inverted - the readings are the things the dead person said
-exactly once, usually trivial, often about the weather, because those are the
-only sentences of theirs that still carry anything.
+<!-- bind: sections.world_effect -->
+Saying a thing once becomes the expensive form, and saying it often becomes the cheap and slightly cruel form, so vows are constructed to be unrepeatable: they are built around a date, a weather, a person's exact age, so that the sentence cannot be uttered a second time without becoming false and therefore cannot strip its own original. Households keep an unspoken register of which sentences have been used up. Estate agents list the layer with the square footage, and there is a legal fight, unresolved, over whether the layer belongs to the building or to the people whose sayings are in it. Old districts where the grinding finished centuries ago are called flats: perfectly intelligible places, cheap, favoured by administrators and by people who cannot bear to be reached. Scraping is a trade and a crime depending on the jurisdiction, because raising an old charge off a wall also raises the obligation attached to it, and the scraper is the one standing there when it comes due. Funeral practice has inverted: the readings at a funeral are the things the dead person said exactly once, often trivial, often about the weather, because those are the only sentences of theirs that still carry anything at all.
+<!-- /bind -->
 
 ### What this is not
 
-The twelve discarded answers were all apparatus: something worn on the head,
-something that files feeling into a container, something that shows feeling as
-a readout, plus the accompanying story about a state that mandates its use.
-Each keeps two premises this deletes - that a builder performs the separation,
-and that what is removed is stored somewhere retrievable. Here there is no
-builder and no store, what is removed stays where it fell, and the harm lands
-on the past rather than on the future. It is closest to ghost-in-the-house
-stories, and differs from them in that the grade cannot register that anyone is
-present; a radio left on will flatten a house by itself.
+<!-- bind: sections.avoided -->
+The first twelve answers to this prompt were devices: something worn on the head that strips feeling out of speech, something that files feeling into a container, something that shows feeling as a readout or a colour, and the accompanying story about a state that mandates its use. All of those keep the two premises this result deletes, that the separation is performed by an apparatus somebody built, and that the separated feeling has to be stored somewhere legible and retrievable. Here there is no apparatus and no operator, the separation is a property of terrain that repetition produces, what is removed is deposited where it fell rather than collected, and the harm lands on the past rather than on the future.
+<!-- /bind -->
 
 ---
 

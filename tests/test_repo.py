@@ -110,6 +110,31 @@ def test_install_script_targets_both_hosts(repo):
     assert "djfksjd/imagination-engine-skill" in text
 
 
+def test_the_worked_example_shows_the_draft_that_was_gated(references):
+    """Its delivered answer used to carry no bindings at all, so a reader who
+    copied it got eight bind-block failures from the gate."""
+    draft = (references / "example-draft.md").read_text(encoding="utf-8").strip()
+    example = (references / "worked-example.md").read_text(encoding="utf-8")
+    assert draft in example, "worked-example.md has drifted from the draft it gates"
+
+
+def test_the_worked_example_calls_the_one_gate_with_all_four_artefacts(references):
+    """It taught the pre-merge two-gate invocation, which now exits 1."""
+    text = (references / "worked-example.md").read_text(encoding="utf-8")
+    blocks = [b for b in re.findall(r"```bash\n(.*?)```", text, re.S) if "score_gate.py" in b]
+    assert blocks, "the worked example never runs the gate"
+    for block in blocks:
+        for flag in ("--candidate", "--draw", "--banlist", "--markdown"):
+            assert flag in block, f"the gate is invoked without {flag}"
+
+
+def test_the_worked_examples_artefacts_are_the_shipped_ones(references):
+    text = (references / "worked-example.md").read_text(encoding="utf-8")
+    for name in ("example-obvious.txt", "example-banlist.json", "example-draw.json",
+                 "example-candidate.json", "example-draft.md"):
+        assert name in text, f"the worked example does not say where {name} fits"
+
+
 def test_worked_example_matches_the_shipped_candidate(repo, references):
     candidate = json.loads((references / "example-candidate.json").read_text(encoding="utf-8"))
     example = (references / "worked-example.md").read_text(encoding="utf-8")

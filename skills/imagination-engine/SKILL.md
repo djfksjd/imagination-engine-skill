@@ -203,6 +203,11 @@ All four are required and must belong to each other. The gate:
   in the drawn modes raises the thresholds; `grounded` substitutes the axis;
   the bundled rubric is the policy, and a fork edits it rather than passing one.
   The verdict records which policy ran, with its hash.
+- **replays the ban list.** It must be the contract `banlist.py` built for this
+  run: the topic that was drawn, the bundled cliche deck and its structural
+  patterns present minus only the ids the list records releasing, and the twelve
+  burnt instincts still in it. A hand-written file, or a shorter one, is
+  refused - otherwise stage 1 is optional at the only place a verdict is issued.
 - **requires every manual ban answered.** Long entries from stage 1 cannot be
   phrase-matched, so they land in `manual_checks` - and used to be printed and
   forgotten. Each now needs a written answer in `manual_checks_cleared`.
@@ -212,7 +217,10 @@ All four are required and must belong to each other. The gate:
   wording and re-gate.
 
 `operational_path` is required whenever the run is `grounded` **or** the anchor
-is 3.
+is 3. Both of those reach the deal: the anchor, `grounded`, `extremal` and the
+requested domain count seed the shuffle, so lowering one of them in `draw.json`
+afterwards deals a different hand rather than relaxing the verdict. If you need
+a different setting, redeal and do the work for it.
 
 Fix by rewriting the idea, not by deleting the flagged word. If the gate fails
 twice on the same axis, return to stage 3 with `--run <n+1>`: the material is

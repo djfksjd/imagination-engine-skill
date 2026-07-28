@@ -180,3 +180,46 @@ def test_worked_example_matches_the_shipped_candidate(repo, references):
     assert candidate["sections"]["name"] in example
     for domain in candidate["domains_used"]:
         assert domain["id"] in example or domain["id"].replace("-", " ") in example
+
+
+BIND = re.compile(r"<!--\s*bind:\s*([A-Za-z0-9_.\[\]]+)\s*-->(.*?)<!--\s*/bind\s*-->", re.S)
+
+
+def test_output_template_bind_blocks_satisfy_the_gates_required_sections(
+    references, example_candidate, gate
+):
+    """SKILL.md step 8 tells the user to write draft.md "per that template", so a
+    reader who does exactly that and nothing else has to end up with a draft the
+    gate accepts. Build that draft mechanically: take the delivered-contract body
+    of output-template.md (everything the two `---` rules bracket off from the
+    explanatory prose above and below it), and drop the shipped candidate's own
+    section text into whatever bind blocks the template itself shows. A section
+    the template never wraps in a bind block is a section this draft never binds
+    either - which is exactly what a user copying only the template would produce.
+
+    The template used to carry a bind block for `first_encounter` alone, so this
+    reproduced eight "no bind block" failures before the fix.
+    """
+    template = (references / "output-template.md").read_text(encoding="utf-8")
+    parts = template.split("---")
+    assert len(parts) == 3, "expected exactly two --- rules bracketing the delivered contract"
+    body = "---".join(parts[1:])
+
+    sections = example_candidate["sections"]  # anchor 1, non-grounded: no operational_path
+
+    def fill(match: re.Match[str]) -> str:
+        key = match.group(1)
+        section_id = key.split(".", 1)[1]
+        text = sections.get(section_id)
+        if text is None:
+            return ""  # naive user leaves out the conditional section, as instructed
+        return f"<!-- bind: {key} -->{text}<!-- /bind -->"
+
+    draft = BIND.sub(fill, body)
+    res = gate(markdown=draft)
+    failures = res.json()["failures"]
+    missing_binds = [f for f in failures if "no <!-- bind:" in f]
+    assert missing_binds == [], (
+        "a draft built strictly from output-template.md's own bind-block structure "
+        f"is missing required binds the gate demands: {missing_binds}"
+    )

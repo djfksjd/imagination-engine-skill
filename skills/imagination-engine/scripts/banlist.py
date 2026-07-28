@@ -27,13 +27,15 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, read_text_arg, write_json,
+        VERSION, EngineError, UsageParser, csv_list, die, is_placeholder, load_deck, normalize,
+        read_text_arg, write_json,
     )
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_deck, normalize, read_text_arg, write_json,
+        VERSION, EngineError, UsageParser, csv_list, die, is_placeholder, load_deck, normalize,
+        read_text_arg, write_json,
     )
 
 # SKILL.md asks for twelve. A caller-supplied floor made the requirement
@@ -55,14 +57,38 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def parse_obvious(raw: str) -> list[str]:
+def parse_obvious(raw: str, strip_bullets: bool = True) -> list[str]:
+    """Read the stage-1 dump into the twelve instincts it claims to carry.
+
+    This is the *only* definition of what a line of the dump becomes, and it has
+    to be, because `score_gate.py` re-reads the same lines back out of the built
+    file and recomputes. Every normalisation that happens on one side has to
+    happen on the other, or the builder produces a file its own sibling rejects
+    with a message telling the user to build it with the builder. That happened
+    twice:
+
+    - `is_placeholder` was applied at the gate and not here, so a dump whose
+      first line was `Untitled` built cleanly at twelve entries and replayed as
+      eleven. The filter belongs here, where the user still has the dump open:
+      the run now exits 2 with "the dump is too short", which is true and
+      actionable, instead of exiting 0 and failing an hour later.
+    - The bullet prefix was stripped here and then stripped *again* at the gate,
+      so a legitimate nested bullet - `- - nested instinct` - was stored as
+      `- nested instinct` by the builder and read as `nested instinct` by the
+      gate. Bullet stripping is not idempotent, so the gate passes
+      `strip_bullets=False`: the phrases it recovers have already been through
+      this function once.
+    """
     lines: list[str] = []
     seen: set[str] = set()
     for line in raw.splitlines():
-        cleaned = BULLET.sub("", line).strip().strip('"').strip()
+        cleaned = BULLET.sub("", line) if strip_bullets else line
+        cleaned = cleaned.strip().strip('"').strip()
         if len(cleaned) < 3:
             continue
         if cleaned.startswith("#"):
+            continue
+        if is_placeholder(cleaned):
             continue
         key = normalize(cleaned)
         if key in seen:

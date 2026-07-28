@@ -514,9 +514,14 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
 
     supplied_entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
     # Through banlist.py's own parser, because that is what it did to the dump:
-    # it strips bullets, drops stubs and - the part that matters here - dedupes.
+    # it drops stubs and placeholders and - the part that matters here - dedupes.
     # Twelve copies of one string are one instinct, not twelve.
-    dump = [line for line in parse_obvious("\n".join(recover_dump(banlist))) if not is_placeholder(line)]
+    #
+    # strip_bullets=False: these phrases have already been through parse_obvious
+    # once, in the builder, and bullet stripping is not idempotent. Stripping
+    # again turned a legitimate nested bullet into a different phrase, and the
+    # gate then told the user to build the list with the tool that had built it.
+    dump = parse_obvious("\n".join(recover_dump(banlist)), strip_bullets=False)
     try:
         expected = compose_banlist(
             topic=drawn_topic, obvious=dump, extra=[], allow=set(allowed) - set(unknown), cliches=cliches)

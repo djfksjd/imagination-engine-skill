@@ -772,3 +772,177 @@ def test_answers_that_are_present_but_thin_are_still_reported_one_by_one(
     manual = [f for f in res.json()["failures"] if f.startswith("manual_checks_cleared")]
     assert len(manual) == 2, manual
     assert all("obvious-03" in f or "obvious-07" in f for f in manual)
+
+
+# ------------------------------------------- protected items, enforced by content
+#
+# Everything below is one defect class, found five times in the sibling skill and
+# then looked for here: an artefact the author writes stopping a protected ban
+# from firing. The protected items are the twelve burnt instincts and the user's
+# own --extra exclusions. Each test edits banlist.json the way an author would -
+# empty a field, demote a row, relabel it, delete it - and requires that the
+# refusal *names the item*. Asserting only that the exit code is non-zero is how
+# a green suite sits on a live route: some other check fails for some other
+# reason and the release goes unnoticed.
+
+PROHIBITED = "porcelain dragon"
+
+
+def example_dump(references) -> list[str]:
+    """The stage-1 dump the shipped ban list was built from, read back out of it."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    rows = [(e["id"], e["phrase"]) for e in b["entries"] if e.get("group") == "first-instinct"]
+    rows += [(m["id"], m["statement"]) for m in b["manual_checks"]]
+    return [text for _, text in sorted(rows)]
+
+
+def built_banlist(run, tmp_path, references, extra=None, plus=()):
+    """A ban list for the shipped run, built by banlist.py, with real --extra."""
+    import json as _json
+    dump = tmp_path / "dump.txt"
+    dump.write_text("\n".join(example_dump(references) + list(plus)) + "\n", encoding="utf-8")
+    args = ["banlist.py", "--topic", "a machine that separates emotion from voice",
+            "--obvious", str(dump), "--out", str(tmp_path)]
+    if extra:
+        args += ["--extra", extra]
+    res = run(*args)
+    assert res.code == 0, res
+    return _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+
+
+def carrying(example_candidate, example_markdown, text):
+    """Put a sentence into one bound section, on both sides of the binding."""
+    old = example_candidate["sections"]["world_effect"]
+    new = old + " " + text
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["world_effect"] = new
+    markdown = re.sub(
+        r"(<!-- bind: sections\.world_effect -->)(.*?)(<!-- /bind -->)",
+        lambda m: m.group(1) + m.group(2).replace(old, new) + m.group(3),
+        example_markdown, count=1, flags=re.S)
+    assert markdown != example_markdown
+    return candidate, markdown
+
+
+def test_the_users_exclusion_fires_when_nothing_has_been_edited(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+
+
+def test_emptying_the_extra_field_does_not_discharge_the_users_exclusion(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: field membership. `extra` is author-written, and the gate used to
+    recompute the contract from it alone, so deleting one line released a
+    prohibition the user had stated - while its row sat in the file untouched."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert "the user's own exclusion" in failures(res)
+
+
+def test_emptying_the_field_and_demoting_the_row_does_not_discharge_it(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """The same route with the one loose end tied: with `extra` emptied the row
+    is no longer part of the recomputed contract, so its tier stopped being
+    compared, and `warn` is not `ban`. Exit 0, PASSED, no warning."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    for e in b["entries"]:
+        if e.get("group") == "user-specified":
+            e["tier"] = "warn"
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert "the user's own exclusion" in failures(res)
+
+
+def test_a_row_relabelled_as_a_bundled_deck_rule_does_not_release_it(
+        run, tmp_path, references, gate, example_candidate, example_markdown, decks):
+    """Route: id collision. Erase every mark that says what the row is - id,
+    group, source - and it stops being anything the gate protects."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    deck_id = decks["cliches"]["phrases"][0]["id"]
+    for e in b["entries"]:
+        if e.get("group") == "user-specified":
+            e.update({"id": deck_id, "group": "deck", "source": "deck", "tier": "warn"})
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert f"{deck_id} carries a reserved deck id" in failures(res)
+
+
+def test_an_instinct_refiled_as_a_deck_rule_is_still_a_burnt_instinct(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: field membership again, on the other protected set. The dump was
+    recovered by reading `group == "first-instinct"`, so retyping that one word
+    deleted a line from the dump the whole contract is recomputed from."""
+    instinct = "silver moth accountant"
+    b = built_banlist(run, tmp_path, references, plus=[instinct])
+    for e in b["entries"]:
+        if e.get("phrase") == instinct:
+            e.update({"group": "deck", "source": "deck", "tier": "warn"})
+    c, m = carrying(example_candidate, example_markdown, "A silver moth accountant audits it.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert instinct in failures(res)
+    assert "a first instinct burnt in stage 1" in failures(res)
+
+
+def test_deleting_a_protected_row_leaves_the_file_disagreeing_with_itself(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: single-row deletion. Above the twelve-line floor, deleting one
+    instinct outright passed. It is now caught by the counts it leaves stale -
+    which narrows the route rather than closing it: a number cannot restore a
+    deleted line, and an edit that also rewrites the counts still releases it.
+    That is the stated limit of the whole scheme; see `protected_statements`."""
+    instinct = "silver moth accountant"
+    b = built_banlist(run, tmp_path, references, plus=[instinct])
+    b["entries"] = [e for e in b["entries"] if e.get("phrase") != instinct]
+    b["counts"]["obvious_supplied"] -= 1
+    c, m = carrying(example_candidate, example_markdown, "A silver moth accountant audits it.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert "banlist.counts.matchable" in failures(res)
+
+
+def test_the_release_field_releases_nothing_the_gate_enforces(
+        gate, references, example_candidate, example_markdown, decks):
+    """Route: a release field read off the artefact under verification. This
+    repo refuses them by design - `allowed` explains an absence, it does not
+    decide what is enforced - and this is the test that says so."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    banned = next(p for p in decks["cliches"]["phrases"] if p["tier"] == "ban")
+    b["allowed"] = [banned["id"]]
+    b["entries"] = [e for e in b["entries"] if e.get("id") != banned["id"]]
+    c, m = carrying(example_candidate, example_markdown, f"It is {banned['phrase']}.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert "banned material" in failures(res)
+
+
+def test_a_supplied_structural_pattern_is_never_compiled(gate, references):
+    """Route: a supplied regex that does not finish. `(a+)+b$` against a line of
+    a's backtracks past any patience, and a gate with no verdict is read as one
+    that did not fail. Only the bundled patterns are compiled now."""
+    import json as _json
+    import time
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = list(b["structural_patterns"]) + [
+        {"id": "supplied-catastrophic", "regex": "(a+)+b$", "tier": "ban", "why": "hangs"}]
+    started = time.monotonic()
+    res = gate(banlist=b, markdown=(references / "example-draft.md").read_text(encoding="utf-8")
+               + "\n\n" + "a" * 64 + "\n")
+    assert time.monotonic() - started < 20
+    assert res.code == 0, res.out

@@ -463,6 +463,29 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any],
 # -------------------------------------- the ban list and what will be shown
 
 
+OBVIOUS_ID = re.compile(r"obvious-\d+")
+EXTRA_ID = re.compile(r"extra-\d+")
+
+
+def marks_instinct(entry: dict[str, Any]) -> bool:
+    """Does this row record a burnt first instinct, by any of the marks it carries?
+
+    Three independent marks, any one of which counts: the group, the source and
+    the reserved id. banlist.py writes all three together, so a row that has lost
+    two of them is still recognised by the third. See `protected_statements`.
+    """
+    return (entry.get("group") == "first-instinct"
+            or entry.get("source") == "obvious-dump"
+            or bool(OBVIOUS_ID.fullmatch(str(entry.get("id")))))
+
+
+def marks_user_prohibition(entry: dict[str, Any]) -> bool:
+    """Same question for a row that records one of the user's own exclusions."""
+    return (entry.get("group") == "user-specified"
+            or entry.get("source") == "--extra"
+            or bool(EXTRA_ID.fullmatch(str(entry.get("id")))))
+
+
 def recover_dump(banlist: dict[str, Any]) -> list[str]:
     """Reconstruct, in order, the stage-1 dump this file says it was built from.
 
@@ -471,10 +494,15 @@ def recover_dump(banlist: dict[str, Any]) -> list[str]:
     check. Reading both back by that number recovers the input; recomputing from
     it is what turns "these strings appear somewhere" into "this is the file
     banlist.py would have written".
+
+    A row is read as an instinct if *any* of its three marks says so. Selecting
+    on the group alone made one keystroke enough to delete a line from the dump:
+    retyping `first-instinct` as `deck` dropped the row out of this function, the
+    recomputed contract no longer carried the phrase, and the draft printed it.
     """
     numbered: list[tuple[int, str]] = []
     for entry in banlist.get("entries") or []:
-        if isinstance(entry, dict) and entry.get("group") == "first-instinct":
+        if isinstance(entry, dict) and marks_instinct(entry):
             numbered.append((_dump_index(entry.get("id")), str(entry.get("phrase", ""))))
     for check in banlist.get("manual_checks") or []:
         if isinstance(check, dict):
@@ -485,6 +513,46 @@ def recover_dump(banlist: dict[str, Any]) -> list[str]:
 def _dump_index(entry_id: Any) -> int:
     match = re.fullmatch(r"obvious-(\d+)", str(entry_id))
     return int(match.group(1)) if match else 10**6
+
+
+def protected_statements(dump: list[str], extra: list[str]) -> list[dict[str, str]]:
+    """The statements the gate enforces by content, whatever else the file says.
+
+    Every other check in this file reads *something* the run wrote about a rule -
+    its id, its group, its tier, its source, its membership of `extra` - to decide
+    what the contract is. Each of those readings is a lever: five separate edits
+    to banlist.json were found that left a protected phrase sitting in the file,
+    in plain sight, and stopped it being enforced. Deleting the `extra` field
+    while leaving the row; demoting the leftover row to `warn`; renaming its id
+    onto a bundled deck id; retyping an instinct's group as `deck`; deleting an
+    instinct row outright once the dump was longer than the twelve-line floor.
+    Every one of them exited 0 and printed PASSED.
+
+    So the levers are not patched one at a time. A statement is protected if any
+    location in the file records it, the set is the union of those locations, and
+    the pass that enforces it (`check_protected`) reads no id, no tier, no group
+    and no release. Union is what makes editing monotone: a rename, a retier, a
+    regrouping, a collision or a deletion from one field removes the statement
+    from at most one source, and the others still carry it.
+
+    The limit, stated exactly: a statement deleted from *every* location that
+    records it is gone. The gate holds no copy of the ban list that the judged
+    run did not write, so twelve instincts and a user exclusion cannot be
+    recovered from an artefact that no longer mentions them. What union removes
+    is the cheap edit - the one that keeps the file looking like a ban list.
+    """
+    out: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for label, items in (("a first instinct burnt in stage 1", dump),
+                         ("the user's own exclusion", extra)):
+        for text in items:
+            body = text.strip()
+            key = normalize(body)
+            if not body or key in seen:
+                continue
+            seen.add(key)
+            out.append({"phrase": body, "label": label})
+    return out
 
 
 def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
@@ -548,6 +616,19 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
         failures.append(
             "banlist.extra: must be the list of user prohibitions the list was built with")
         extra = []
+    # The user's exclusions, as the union of the two places this file records
+    # them: the `extra` field and the rows built from it. Reading the field alone
+    # made deleting one line enough to discharge a prohibition the user stated -
+    # the row stayed in the file, wearing its own id, and stopped being enforced.
+    # Adding a phrase here can only ban more, never less, which is why the union
+    # is safe to take off the artefact under verification at all.
+    extra = list(extra)
+    known_extra = {normalize(str(i)) for i in extra}
+    for entry in supplied_entries:
+        phrase = str(entry.get("phrase", "")).strip()
+        if phrase and marks_user_prohibition(entry) and normalize(phrase) not in known_extra:
+            known_extra.add(normalize(phrase))
+            extra.append(phrase)
     try:
         expected = compose_banlist(
             topic=drawn_topic, obvious=dump, extra=extra,
@@ -565,6 +646,7 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
             "entries": [e for e in deck_entries(cliches) if e["tier"] in ("ban", "warn")] + supplied_entries,
             "patterns": list(cliches["structural_patterns"]),
             "manual_checks": [],
+            "protected": protected_statements(dump, extra),
         }
 
     by_phrase = {normalize(str(e.get("phrase", ""))): e for e in supplied_entries}
@@ -612,6 +694,29 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
                 f"banlist.structural_patterns: {want['id']} does not match the bundled pattern - a "
                 "supplied rule carrying a reserved id is a rewritten rule, not an added one")
 
+    # A row cannot claim to be part of the bundled deck unless it is. Without
+    # this, the way to release a protected phrase was to erase every mark that
+    # said what it was: retype its id as a deck id, its group and source as
+    # `deck`, its tier as `warn`, and the phrase sat in the file as a rule that
+    # the deck had supposedly always carried. The deck is on disk and cannot be
+    # edited from here, so the claim is checkable, and the union above then has
+    # nothing left to lose a mark to.
+    deck_rows = {e["id"]: e for e in deck_entries(cliches)}
+    for entry in supplied_entries:
+        eid = str(entry.get("id"))
+        row = deck_rows.get(eid)
+        if row is None:
+            if entry.get("source") == "deck" or entry.get("group") == "deck":
+                failures.append(
+                    f"banlist.entries: {eid!r} is filed as a bundled deck rule and the deck has no such "
+                    f"rule. A row relabelled as the deck's is a row whose own provenance was erased")
+        elif (normalize(str(entry.get("phrase", ""))) != normalize(row["phrase"])
+              or entry.get("tier") != row["tier"]):
+            failures.append(
+                f"banlist.entries: {eid} carries a reserved deck id but not the deck's rule - the deck "
+                f"says {row['phrase']!r}/{row['tier']} and this file says "
+                f"{str(entry.get('phrase', ''))[:40]!r}/{entry.get('tier')}")
+
     counts = banlist.get("counts")
     declared = counts.get("obvious_supplied") if isinstance(counts, dict) else None
     if declared != expected["counts"]["obvious_supplied"]:
@@ -619,6 +724,16 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
             f"banlist.counts.obvious_supplied says {declared!r} but the file replays as "
             f"{expected['counts']['obvious_supplied']} - the count and the contents disagree, so one "
             "of them was edited")
+    # The other three counts, for the same reason. They do not protect a phrase -
+    # a number cannot restore a deleted line - but a deleted row leaves them
+    # stale, so removing one is no longer a single edit.
+    for key in ("matchable", "warn", "manual"):
+        got = counts.get(key) if isinstance(counts, dict) else None
+        if got != expected["counts"][key]:
+            failures.append(
+                f"banlist.counts.{key} says {got!r} but the file replays as "
+                f"{expected['counts'][key]} - the count and the contents disagree, so one of them "
+                "was edited")
 
     # What the markdown is actually linted against: the recomputed contract,
     # plus whatever the supplied file adds on top of it. Bundled patterns are
@@ -650,13 +765,21 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
         e for e in supplied_entries
         if normalize(str(e.get("phrase", ""))) not in known_phrases and e.get("phrase")
     ]
-    reserved = {p["id"] for p in enforced["structural_patterns"]}
+    # Only the bundled patterns are compiled. A supplied pattern used to be added
+    # if its id was not reserved, on the reasoning that an added rule can only ban
+    # more; what it can also do is not finish. `(a+)+b$` against a line of sixty
+    # a's backtracks for longer than anyone waits, and a gate that never reaches a
+    # verdict is one an impatient caller reads as "it did not fail". The deck is
+    # the least author-controlled source of a regex available here, so it is the
+    # only one. This costs the ability to add a project-specific pattern at
+    # verdict time; add it to a forked deck instead, where it is a distribution
+    # decision rather than a per-run one.
     effective_patterns = list(enforced["structural_patterns"])
-    effective_patterns += [p for p in supplied_patterns if p.get("id") not in reserved and p.get("regex")]
     return failures, {
         "entries": effective_entries,
         "patterns": effective_patterns,
         "manual_checks": expected["manual_checks"],
+        "protected": protected_statements(dump, extra),
     }
 
 
@@ -765,6 +888,36 @@ def check_markdown(candidate: dict[str, Any], markdown: str, rubric: dict[str, A
         failures.append(
             f"markdown line {f['line']}: banned material '{f['match']}' [{f['id']}] - "
             "rewrite the thought, not the word")
+    failures += check_protected(markdown, contract)
+    return failures
+
+
+def check_protected(markdown: str, contract: dict[str, Any]) -> list[str]:
+    """The second pass, over content alone.
+
+    Deliberately duplicates work the pass above already does, and deliberately
+    knows nothing about how the file above filed any of it. This one takes the
+    union of every location that records a burnt instinct or a user exclusion,
+    forces every one of them to `ban`, and reads no id, no tier, no group and no
+    release on the way. A statement that survives in one field of banlist.json
+    therefore still fires from that field, however the other fields describing it
+    were edited.
+
+    The message names the statement rather than an id, because an id is one of
+    the things an attacker edits: `[cyberpunk]` on a line that is really the
+    user's own exclusion tells the reader nothing true.
+    """
+    failures: list[str] = []
+    protected = contract.get("protected") or []
+    entries = [{"id": f"protected-{i:02d}", "phrase": p["phrase"], "tier": "ban", "group": "protected"}
+               for i, p in enumerate(protected, start=1)]
+    labels = {e["id"]: p["label"] for e, p in zip(entries, protected)}
+    statements = {e["id"]: p["phrase"] for e, p in zip(entries, protected)}
+    for f in lint(markdown, entries, [], allow=set()):
+        failures.append(
+            f"markdown line {f['line']}: '{f['match']}' is {labels[f['id']]} - "
+            f"\"{statements[f['id']][:60]}\" is enforced by its content, not by how banlist.json "
+            "files it, so retiering, renaming or unfiling the row does not release it")
     return failures
 
 

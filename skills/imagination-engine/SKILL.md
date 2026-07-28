@@ -260,6 +260,23 @@ All four are required and must belong to each other. The gate:
   does not prove the dump was the model's genuine first instincts. Twelve
   distinct throwaway lines still recompute cleanly. What it removes is the free
   edit after the fact.
+- **enforces the burnt instincts and your own exclusions by content.** Everything
+  above reads *something the run wrote about a rule* - its id, its group, its
+  tier, its membership of `extra` - to decide what the contract is, and each of
+  those readings was a way to leave a protected phrase sitting in the file while
+  it stopped being enforced. Five were found and are now closed: emptying
+  `extra` while keeping its row, demoting that row to `warn`, relabelling it with
+  a bundled deck id, retyping an instinct's group as `deck`, and adding a
+  structural pattern whose regex never finishes. So a second pass takes the union
+  of every location that records a burnt instinct or an `--extra` exclusion and
+  lints the draft against those statements as bans, reading no id, no tier, no
+  group and no release. Only the bundled `structural_patterns` are compiled - a
+  pattern supplied in `banlist.json` is ignored rather than run, because a gate
+  that never returns is read as one that did not fail; add yours to a forked
+  deck. **The limit, exactly:** a statement deleted from *every* row that records
+  it is gone. Deleting one row now leaves `counts` disagreeing with the contents,
+  which catches the cheap version and not a thorough one - the gate holds no copy
+  of the ban list that the run did not write.
 - **requires every manual ban answered.** Long entries from stage 1 cannot be
   phrase-matched, so they land in `manual_checks` - and used to be printed and
   forgotten. Each needs a written answer of at least thirty units in

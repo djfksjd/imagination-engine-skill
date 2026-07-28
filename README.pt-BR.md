@@ -18,6 +18,31 @@ Uma skill de agente que faz uma IA produzir ideias realmente estranhas — não 
 
 ---
 
+> [!CAUTION]
+> ## Testada duas vezes sob julgamento às cegas. Perdeu as duas.
+>
+> A afirmação central desta habilidade — que remover os caminhos até a resposta óbvia produz ideias melhores do que um prompt comum — já foi medida duas vezes contra um controle com prompt comum, e perdeu com clareza nas duas. O segundo teste foi pré-registrado por inteiro antes de existir qualquer dado, e rodou sobre a build atual, no padrão atual (`alien-physics` sozinho, âncora 1), com o limiar autoatribuído já retirado do portão. Nenhuma das duas mudanças recuperou a diferença.
+>
+> Seis briefings, cinco rodadas do motor e cinco do controle em cada um, cinco juízes cegos por briefing a quem nunca se disse que existiam duas condições. Motor menos controle, mediana dos cinco juízes, escalas de 1 a 7, média de igual peso sobre os seis briefings:
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | motor − controle | **−2,83** | **−3,03** | **−1,67** |
+>
+> Todo briefing ficou negativo em toda medida. O controle ficou acima do motor em **30 de 30** células briefing × juiz e levou **90 de 90** vagas entre os três primeiros. Agregado: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23.
+>
+> A convergência — o problema para o qual esta habilidade foi construída — não foi reduzida de forma mensurável: `g_CORE` +0,10 e `g_SKELETON` −0,22, contra os +0,30 exigidos pela regra. O α ordinal de Krippendorff entre os codificadores ficou em 0,786 e 0,673, abaixo do piso pré-registrado de 0,80, de modo que **essa medida é inconclusiva, e não favorável** — não é evidência a favor da habilidade, e também não conta contra ela.
+>
+> O motor custou **48× o controle por saída**.
+>
+> A regra pré-registrada devolve **FAIL**, e ela já havia registrado de antemão "pouco poder estatístico", "quase passou", "a margem foi apertada" e "ganhou nos briefings de reserva" como FAIL, justamente para que ninguém recorresse a isso depois. Por essa regra, o controle com prompt comum passa a ser o padrão recomendado e um novo aparato de teste é projetado.
+>
+> **Uma afirmação causal que esta página fazia fica retirada.** Ela dizia que o modo `nonhuman` causara o colapso da adequação. Não causou: tirar `nonhuman` do padrão moveu o FIT agregado de 3,27 para 3,33, contra um controle em 6,35. O colapso sobreviveu quase intacto à remoção. O aviso próprio desse modo — que ele dissolve qualquer briefing com uma pessoa dentro — continua valendo como orientação de projeto, mas não foi a causa da perda medida.
+>
+> **À parte, e ainda sustentado.** O achado do primeiro experimento — que um modelo sem auxílio de fato colapsa quando o briefing tem uma resposta óbvia — é um resultado real: no briefing da criatura de estuário, seis rodadas independentes com prompt comum produziram o mesmo organismo. O problema para o qual esta habilidade foi feita existe. O que se refutou é que este pipeline o resolva.
+
+---
+
 > Pedir a um modelo que "seja criativo" faz com que ele amostre as continuações mais prováveis da palavra *criativo*. É por isso que os resultados convergem: de novo as redes de micélio, de novo a cidade de neon sob a chuva, de novo a máquina que descobre ter sentimentos.
 >
 > **Insistir mais não move a distribuição. Remover opções, sim.**
@@ -90,7 +115,7 @@ Modo extremal, âncora 2 — eu preciso conseguir construir de verdade.
 | `extremal` | Todo candidato seguro. Alarga a mão, distribui duas regras a quebrar e eleva a régua do descarte. |
 | `grounded` | Nada. Acrescenta um caminho até algo real sem editar o princípio e substitui o eixo `non_anthropocentrism` por `translation_integrity`. |
 
-**O padrão é `alien-physics` na âncora 1, e `nonhuman` não está mais nele.** Já esteve. Um experimento controlado — quatro briefings, cinco rodadas com um prompt comum e cinco com o motor em cada um, oito juízes cegos a quem nunca se disse o que estava sendo testado — mediu que o padrão antigo cortava pela metade o quanto o resultado atendia ao briefing (6,45 → 3,27), e que os juízes aceitaram 24 de 24 saídas do prompt comum e 0 de 24 do motor. As razões foram consistentes: o motor havia dissolvido o briefing em vez de respondê-lo. Isso é `nonhuman` funcionando exatamente como especificado — ele remove a utilidade humana por construção — e é o que não se deve aplicar a um briefing para o qual ninguém o escolheu. **Se o seu briefing tem uma pessoa dentro — um jogador, um leitor, uma congregação, um cliente — não acrescente `nonhuman`.** Ele vai removê-la.
+**O padrão é `alien-physics` na âncora 1, e `nonhuman` não está mais nele.** Já esteve. Esta página vinha dizendo que um experimento controlado havia medido o custo de `nonhuman`: que ele cortava pela metade a adequação ao briefing e que os juízes cegos aceitaram 0 de 24 saídas do motor. **Essa atribuição causal fica retirada.** A repetição pré-registrada rodou `alien-physics` sozinho e o FIT agregado moveu-se apenas de 3,27 para 3,33, contra um controle em 6,35: o colapso da adequação não foi causado por `nonhuman` nem foi embora com ele. O resto do aviso se sustenta sozinho como orientação de projeto — `nonhuman` remove a utilidade humana por construção, e isso não se aplica a um briefing para o qual ninguém o escolheu. **Se o seu briefing tem uma pessoa dentro — um jogador, um leitor, uma congregação, um cliente — não acrescente `nonhuman`.** Ele vai removê-la.
 
 ### Âncoras · quão alcançável o resultado precisa continuar
 
@@ -265,13 +290,35 @@ Repare no que *não* está ali: nenhum aparelho, nenhum dispositivo luminoso, na
 
 ## O que foi medido que ela faz — e o que não
 
-Esta habilidade foi testada em julho de 2026: quatro briefings de quatro domínios sem relação entre si, cinco rodadas com prompt comum e cinco com o pipeline completo em cada um, vinte mãos distribuídas sem sobreposição, codificadas e julgadas às cegas por agentes a quem nunca se disse que existiam duas condições. As duas metades do resultado estão aqui, porque uma habilidade que esconde a própria medição está pedindo para ser acreditada em vez de lida.
+Houve dois experimentos. Os dois estão aqui por inteiro, porque uma habilidade que esconde a própria medição está pedindo para ser acreditada em vez de lida.
+
+### Experimento 1 — julho de 2026
+
+Quatro briefings de quatro domínios sem relação entre si, cinco rodadas com prompt comum e cinco com o pipeline completo em cada um, vinte mãos distribuídas sem sobreposição, codificadas e julgadas às cegas por agentes a quem nunca se disse que existiam duas condições.
 
 **Confirmado, com uma condição.** Um prompt comum converge mesmo — mas só quando o briefing tem uma resposta óbvia para a qual convergir. Pedida uma criatura de estuário, cinco rodadas independentes produziram cinco versões do mesmo organismo, e uma sexta o produziu de novo. Pedida uma premissa passada inteiramente dentro de um prédio, cinco rodadas produziram cinco ideias sem relação. A afirmação no topo desta página descreve o que acontece com *alguns* briefings; não é uma lei.
 
 **Não demonstrado: que remover caminhos descorrelacione respostas repetidas.** Vinte rodadas do motor sobre vinte mãos disjuntas convergiram para uma única forma — um processo sem corpo em vez de uma coisa, uma obrigação em geral formulada como dívida, uma consequência administrativa. Agregadas, pareciam-se *mais* entre si do que as do prompt comum, não menos. E as cartas não eram enfeite: a maioria não deixou rastro algum na redação, ou seja, foram de fato absorvidas — e ainda assim as saídas convergiram. A leitura honesta é que remover o atrator de primeira ordem funciona — estas respostas realmente não se parecem com as de um prompt comum — mas remover não espalha uniformemente o que sobra. **Só muda a moda de lugar.**
 
 Isso não foi consertado e esta página não vai dizer que foi. O que se segue na prática: se você precisa de opções realmente diferentes, dê briefings diferentes ou modos diferentes em vez de rodar o mesmo duas vezes; e se o seu resultado for um processo sem corpo que impõe uma obrigação e gera papelada, você chegou aonde as últimas vinte rodadas chegaram — devolva.
+
+### Experimento 2 — a repetição pré-registrada, sobre a build atual
+
+O experimento 1 tinha duas falhas que o próprio relatório nomeou: a seção obrigatória do motor "o que isto não é" permitiu que um codificador cego reconstruísse a separação entre as condições, e um agente de controle encontrou a habilidade instalada e rodou o pipeline sem que ninguém pedisse. A repetição fechou as duas: um tipógrafo cego reformatou as saídas dos dois braços em um único formato de quatro seções, e cada saída de controle veio de uma chamada sem estado, sem ferramentas e sem habilidades, na qual não havia mecanismo algum para carregar nada. A regra de decisão, os seis briefings, a ordem de agregação e todos os limiares foram fixados por escrito antes de existir qualquer dado.
+
+Seis briefings (quatro herdados, dois de reserva nomeados de antemão), cinco rodadas do motor e cinco do controle em cada um, cinco juízes cegos e cinco codificadores cegos por pares em cada briefing. O motor rodou o padrão atual, `alien-physics` na âncora 1, com o limiar autoatribuído retirado do portão. As 30 rodadas do motor passaram por `score_gate.py` dentro do teto, 29 delas de primeira: não foi uma falha de execução.
+
+| motor − controle, mediana dos juízes, peso igual por briefing | WANT | FIT | CRAFT |
+|---|---|---|---|
+| média | **−2,83** | **−3,03** | **−1,67** |
+
+Os seis briefings ficaram negativos nas três medidas, e os de reserva se comportaram igual aos herdados. Agregando as 300 notas: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23. O controle ficou acima do motor em **30 de 30** células briefing × juiz e levou **90 de 90** vagas entre os três primeiros. O motor custou **48× o controle por saída** e 12× o tempo de relógio.
+
+Na convergência — a razão pela qual esta habilidade existe — `g_CORE` deu +0,10 e `g_SKELETON` −0,22, sendo que positivo significaria o motor convergir menos e a regra exigia +0,30. O α ordinal de Krippendorff entre os cinco codificadores foi 0,786 em CORE e 0,673 em SKELETON, ambos abaixo do piso pré-registrado de 0,80: os codificadores não estavam aplicando um mesmo construto, e portanto **o resultado de convergência é inconclusivo, e não favorável**. Não se permitiu recodificar, ajustar a rubrica ou arbitrar depois do fato, e nada disso foi feito.
+
+Quinze das dezessete condições da regra de decisão foram violadas, inclusive o veto de CRAFT, que afunda o resultado sozinho. A regra exigia as dezessete e devolve **FAIL**. Sua consequência também estava fixada de antemão: o controle com prompt comum passa a ser o padrão recomendado e um novo aparato de teste é projetado.
+
+**O que isto não autoriza.** Não diz nada sobre `nonhuman` nem sobre qualquer outra configuração fora do padrão, que ficou fora do escopo. E como os braços não têm computação equiparada, também não pode dizer *qual* parte do pipeline — a lista de banimentos, as cartas distribuídas, o contrato de saída fixo — produziu a perda. O que diz é que tirar `nonhuman` do padrão não consertou o problema medido: o FIT agregado foi de 3,27 para 3,33, contra um controle em 6,35.
 
 ## Por dentro
 

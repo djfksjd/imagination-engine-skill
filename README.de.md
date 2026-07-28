@@ -18,6 +18,31 @@ Ein Agenten-Skill, der eine KI wirklich fremdartige Ideen hervorbringen lässt �
 
 ---
 
+> [!CAUTION]
+> ## Zweimal blind beurteilt geprüft. Beide Male verloren.
+>
+> Die zentrale Behauptung dieser Fähigkeit — dass das Entfernen der Wege zur naheliegenden Antwort bessere Ideen liefert als ein gewöhnlicher Prompt — wurde nun zweimal gegen eine Kontrolle mit gewöhnlichem Prompt gemessen und beide Male deutlich geschlagen. Die zweite Prüfung wurde vollständig präregistriert, bevor auch nur ein Datenpunkt existierte, und lief auf dem aktuellen Stand, in der aktuellen Voreinstellung (`alien-physics` allein, Anker 1) und mit der bereits aus dem Gatter entfernten selbstvergebenen Schwelle. Keine der beiden Änderungen holte den Abstand auf.
+>
+> Sechs Aufträge, je fünf Durchläufe der Maschine und fünf der Kontrolle, pro Auftrag fünf blinde Beurteilende, denen nie gesagt wurde, dass zwei Bedingungen existieren. Maschine minus Kontrolle, Median der fünf Beurteilenden, Skalen von 1 bis 7, gleichgewichteter Mittelwert über die sechs Aufträge:
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | Maschine − Kontrolle | **−2,83** | **−3,03** | **−1,67** |
+>
+> Jeder Auftrag ist auf jedem Maß negativ. Die Kontrolle liegt in **30 von 30** Zellen Auftrag × Beurteilende vor der Maschine und belegt **90 von 90** Plätzen in den ersten drei. Zusammengefasst: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23.
+>
+> Die Konvergenz — genau das Problem, für das diese Fähigkeit gebaut wurde — wurde nicht messbar verringert: `g_CORE` +0,10 und `g_SKELETON` −0,22 gegen die von der Regel verlangten +0,30. Krippendorffs ordinales α unter den Kodierenden lag bei 0,786 und 0,673 und damit unter der präregistrierten Untergrenze von 0,80. **Dieses Maß ist deshalb unentschieden, nicht günstig** — es ist kein Beleg für die Fähigkeit, und es zählt auch nicht gegen sie.
+>
+> Die Maschine kostete **das 48-Fache der Kontrolle pro Ausgabe**.
+>
+> Die präregistrierte Regel ergibt **FAIL**, und sie hatte „zu geringe Teststärke", „fast bestanden", „der Abstand war knapp" und „auf den zurückgehaltenen Aufträgen gewonnen" im Voraus als FAIL festgeschrieben, genau damit niemand später danach greift. Nach dieser Regel wird die Kontrolle mit gewöhnlichem Prompt zur empfohlenen Voreinstellung, und ein neuer Prüfstand wird entworfen.
+>
+> **Eine kausale Behauptung dieser Seite wird zurückgezogen.** Sie sagte, der Modus `nonhuman` habe den Einbruch der Auftragspassung verursacht. Hat er nicht: `nonhuman` aus der Voreinstellung zu nehmen bewegte den gepoolten FIT nur von 3,27 auf 3,33, gegen eine Kontrolle bei 6,35. Der Einbruch überstand die Entfernung nahezu unverändert. Die Warnung dieses Modus — dass er jeden Auftrag mit einem Menschen darin auflöst — gilt weiter als Entwurfshinweis, war aber nicht die Ursache des gemessenen Verlusts.
+>
+> **Getrennt davon, und weiterhin belegt.** Der Befund des ersten Experiments, dass ein Modell ohne Hilfe bei einem Auftrag mit naheliegender Antwort tatsächlich zusammenfällt, ist ein echtes Ergebnis: beim Ästuar-Auftrag lieferten sechs unabhängige Durchläufe mit gewöhnlichem Prompt denselben Organismus. Das Problem, für das diese Fähigkeit gebaut wurde, ist real. Widerlegt ist, dass diese Pipeline es löst.
+
+---
+
 > Einem Modell zu sagen, es solle „kreativ sein", lässt es die wahrscheinlichsten Fortsetzungen des Wortes *kreativ* ziehen. Deshalb konvergieren die Ergebnisse: schon wieder Pilzgeflechte, schon wieder die regennasse Neonstadt, schon wieder die Maschine, die am Ende Gefühle hat.
 >
 > **Nachdrücklicher anweisen verschiebt die Verteilung nicht. Optionen entfernen schon.**
@@ -90,7 +115,7 @@ Extremal-Modus, Anker 2 — ich muss es tatsächlich bauen können.
 | `extremal` | Jeden sicheren Kandidaten. Verbreitert die Hand, teilt zwei zu brechende Regeln aus und hebt die Verwerfungsschwelle. |
 | `grounded` | Nichts. Fügt einen Weg zu etwas Realem hinzu, ohne das Prinzip zu ändern, und ersetzt die Rubrik-Achse `non_anthropocentrism` durch `translation_integrity`. |
 
-**Die Voreinstellung ist `alien-physics` bei Anker 1, und `nonhuman` gehört nicht mehr dazu.** Früher schon. Ein kontrolliertes Experiment — vier Aufträge, je fünf Durchläufe mit einem gewöhnlichen Prompt und fünf mit der Maschine, acht blinde Beurteilende, denen nie gesagt wurde, was geprüft wird — ergab, dass die alte Voreinstellung halbierte, wie gut das Ergebnis zum Auftrag passt (6,45 → 3,27), und dass die Beurteilenden 24 von 24 Ausgaben des gewöhnlichen Prompts annahmen und 0 von 24 der Maschine. Ihre Begründungen waren einhellig: die Maschine hatte den Auftrag aufgelöst, statt ihn zu beantworten. Genau so arbeitet `nonhuman` spezifikationsgemäß — es entfernt den menschlichen Nutzen konstruktionsbedingt — und genau das darf man keinem Auftrag antun, für den es niemand gewählt hat. **Kommt in Ihrem Auftrag ein Mensch vor — eine Spielerin, ein Leser, eine Gemeinde, eine Kundin — fügen Sie `nonhuman` nicht hinzu.** Er wird sie entfernen.
+**Die Voreinstellung ist `alien-physics` bei Anker 1, und `nonhuman` gehört nicht mehr dazu.** Früher schon. Diese Seite behauptete, ein kontrolliertes Experiment habe gemessen, was `nonhuman` kostet: halbierte Passung zum Auftrag und 0 von 24 angenommenen Maschinenausgaben bei blinden Beurteilenden. **Diese kausale Zuschreibung wird zurückgezogen.** Die präregistrierte Wiederholung lief mit `alien-physics` allein, und der gepoolte FIT bewegte sich nur von 3,27 auf 3,33, gegen eine Kontrolle bei 6,35: Der Einbruch der Passung wurde nicht von `nonhuman` verursacht und verschwand auch nicht mit ihm. Der Rest der Warnung trägt sich als Entwurfshinweis selbst — `nonhuman` entfernt den menschlichen Nutzen konstruktionsbedingt, und genau das darf man keinem Auftrag antun, für den es niemand gewählt hat. **Kommt in Ihrem Auftrag ein Mensch vor — eine Spielerin, ein Leser, eine Gemeinde, eine Kundin — fügen Sie `nonhuman` nicht hinzu.** Er wird sie entfernen.
 
 ### Anker · wie erreichbar das Ergebnis bleiben muss
 
@@ -266,13 +291,35 @@ Beachte, was *fehlt*: kein Apparat, kein leuchtendes Gerät, nichts, das ungewö
 
 ## Was gemessen wurde — und was nicht
 
-Diese Fähigkeit wurde im Juli 2026 geprüft: vier Aufträge aus vier zusammenhanglosen Bereichen, je fünf Durchläufe mit gewöhnlichem Prompt und fünf mit der vollen Pipeline, zwanzig überschneidungsfreie ausgeteilte Hände, blind kodiert und beurteilt von Agenten, denen nie gesagt wurde, dass zwei Bedingungen existieren. Beide Hälften des Ergebnisses stehen hier, denn eine Fähigkeit, die ihre eigene Messung verbirgt, verlangt Vertrauen statt Lektüre.
+Es gab zwei Experimente. Beide stehen hier vollständig, denn eine Fähigkeit, die ihre eigene Messung verbirgt, verlangt Vertrauen statt Lektüre.
+
+### Experiment 1 — Juli 2026
+
+Vier Aufträge aus vier zusammenhanglosen Bereichen, je fünf Durchläufe mit gewöhnlichem Prompt und fünf mit der vollen Pipeline, zwanzig überschneidungsfreie ausgeteilte Hände, blind kodiert und beurteilt von Agenten, denen nie gesagt wurde, dass zwei Bedingungen existieren.
 
 **Bestätigt, mit einer Bedingung.** Ein gewöhnlicher Prompt konvergiert tatsächlich — aber nur, wenn der Auftrag eine naheliegende Antwort hat, zu der hin er konvergieren kann. Auf ein Ästuar-Lebewesen hin lieferten fünf unabhängige Durchläufe fünf Fassungen desselben Organismus, ein sechster lieferte ihn erneut. Auf eine Prämisse, die vollständig in einem Gebäude spielt, lieferten fünf Durchläufe fünf zusammenhanglose Ideen. Die Behauptung am Kopf dieser Seite beschreibt, was *manchen* Aufträgen widerfährt; ein Gesetz ist sie nicht.
 
 **Nicht nachgewiesen: dass das Entfernen von Wegen wiederholte Antworten dekorreliert.** Zwanzig Maschinendurchläufe auf zwanzig disjunkten Händen konvergierten auf eine Gestalt — ein körperloser Vorgang statt eines Dings, eine meist als Schuld gefasste Verpflichtung, eine administrative Folge. Zusammengenommen ähnelten sie einander *stärker* als die des gewöhnlichen Prompts, nicht schwächer. Und die Karten waren keine Dekoration: die meisten hinterließen im Wortlaut überhaupt keine Spur, waren also wirklich aufgenommen worden — und die Ausgaben konvergierten trotzdem. Die ehrliche Lesart: das Entfernen des Attraktors erster Ordnung wirkt — diese Antworten ähneln denen eines gewöhnlichen Prompts wirklich nicht — aber das Entfernen verteilt den Rest nicht gleichmäßig. **Es verschiebt nur den Modus.**
 
 Das ist nicht behoben, und diese Seite wird das Gegenteil nicht behaupten. Praktisch folgt daraus: Wer wirklich verschiedene Optionen braucht, gibt verschiedene Aufträge oder verschiedene Modi, statt denselben zweimal laufen zu lassen; und wenn Ihr Ergebnis ein körperloser Vorgang ist, der eine Verpflichtung auferlegt und Papierkram erzeugt, sind Sie dort angekommen, wo die letzten zwanzig Durchläufe ankamen — schicken Sie es zurück.
+
+### Experiment 2 — die präregistrierte Wiederholung, auf dem aktuellen Stand
+
+Experiment 1 hatte zwei Mängel, die sein eigener Bericht benannte: Der Pflichtabschnitt „Was dies nicht ist" erlaubte einem blinden Kodierer, die Trennung der Bedingungen zu rekonstruieren, und ein Kontrollagent fand die installierte Fähigkeit und ließ die Pipeline ungefragt laufen. Die Wiederholung schloss beides: Ein blinder Setzer überführte die Ausgaben beider Arme in ein einziges, identisches Vier-Abschnitt-Format, und jede Kontrollausgabe entstand in einem zustandslosen Aufruf ohne Werkzeuge und ohne Fähigkeiten, in dem es gar keinen Mechanismus zum Laden von irgendetwas gab. Entscheidungsregel, die sechs Aufträge, die Reihenfolge der Aggregation und jede Schwelle wurden schriftlich festgelegt, bevor Daten existierten.
+
+Sechs Aufträge (vier übernommen, zwei vorab benannte Rückhalteaufträge), je fünf Durchläufe der Maschine und fünf der Kontrolle, pro Auftrag fünf blinde Beurteilende und fünf blinde Paarvergleichs-Kodierende. Die Maschine lief in der aktuellen Voreinstellung, `alien-physics` bei Anker 1, mit aus dem Gatter entfernter selbstvergebener Schwelle. Alle 30 Maschinendurchläufe passierten `score_gate.py` innerhalb der Obergrenze, 29 davon im ersten Anlauf — ein Ausführungsfehler war das also nicht.
+
+| Maschine − Kontrolle, Median der Beurteilenden, gleiches Gewicht je Auftrag | WANT | FIT | CRAFT |
+|---|---|---|---|
+| Mittelwert | **−2,83** | **−3,03** | **−1,67** |
+
+Alle sechs Aufträge sind auf allen drei Maßen negativ, die Rückhalteaufträge genau wie die übernommenen. Über 300 Bewertungen zusammengefasst: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23. Die Kontrolle liegt in **30 von 30** Zellen Auftrag × Beurteilende vorn und nimmt **90 von 90** Plätzen in den ersten drei. Die Maschine kostete **das 48-Fache der Kontrolle pro Ausgabe** und das Zwölffache an Laufzeit.
+
+Bei der Konvergenz — dem Grund, aus dem es diese Fähigkeit gibt — lag `g_CORE` bei +0,10 und `g_SKELETON` bei −0,22; positiv hieße, die Maschine konvergiert weniger, und die Regel verlangte +0,30. Krippendorffs ordinales α über die fünf Kodierenden betrug 0,786 für CORE und 0,673 für SKELETON, beide unter der präregistrierten Untergrenze von 0,80. Die Kodierenden wandten also kein einheitliches Konstrukt an, und **das Konvergenzergebnis ist unentschieden, nicht günstig**. Nachträgliches Neukodieren, Nachschärfen der Kriterien oder Schlichtung waren nicht zulässig und fanden nicht statt.
+
+Fünfzehn der siebzehn Bedingungen der Entscheidungsregel sind verletzt, darunter das CRAFT-Veto, das das Ergebnis schon allein versenkt. Die Regel verlangte alle siebzehn und ergibt **FAIL**. Auch ihre Folge stand vorab fest: Die Kontrolle mit gewöhnlichem Prompt wird zur empfohlenen Voreinstellung, und ein neuer Prüfstand wird entworfen.
+
+**Was das nicht erlaubt.** Es sagt nichts über `nonhuman` oder irgendeine andere nicht voreingestellte Konfiguration; die lagen außerhalb des Rahmens. Und da die Arme nicht rechenleistungsgleich sind, kann es auch nicht sagen, *welcher* Teil der Pipeline — die Bannliste, die ausgeteilten Karten, der starre Ausgabevertrag — den Verlust erzeugt hat. Was es sagt: `nonhuman` aus der Voreinstellung zu nehmen hat das gemessene Problem nicht behoben. Der gepoolte FIT ging von 3,27 auf 3,33, gegen eine Kontrolle bei 6,35.
 
 ## Unter der Haube
 

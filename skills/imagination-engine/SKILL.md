@@ -5,6 +5,58 @@ description: "Radical idea generation that blocks the obvious answer instead of 
 
 # Imagination Engine
 
+> [!CAUTION]
+> ## Tested twice under blind judging. It lost both times.
+>
+> This skill's central claim - that removing the paths to the obvious answer
+> produces better ideas than plain prompting - has now been measured twice
+> against a plain-prompt control, and lost decisively on both occasions. The
+> second test was pre-registered in full before any data existed, and it ran on
+> this build, at the documented default (`alien-physics` alone, anchor 1), with
+> the self-scored gate threshold already removed. Neither change recovered the
+> gap.
+>
+> Six briefs, five engine runs and five control runs on each, five blind judges
+> per brief who were never told that two conditions existed. Engine minus
+> control, median across judges, 1-7 scales, equal-weight mean over the six
+> briefs:
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | engine minus control | -2.83 | -3.03 | -1.67 |
+>
+> Every brief was negative on every measure. The control ranked above the engine
+> in 30 of 30 brief x judge cells and took 90 of 90 top-three slots. Pooled, WANT
+> went 5.76 -> 2.98, FIT 6.35 -> 3.33, CRAFT 5.88 -> 4.23.
+>
+> Convergence - the problem this skill was built to reduce - was not measurably
+> reduced: `g_CORE` +0.10 and `g_SKELETON` -0.22 against the +0.30 the rule
+> required, and the coders' ordinal Krippendorff's alpha came in at 0.786 and
+> 0.673, below the pre-registered .80 floor. That measure is therefore
+> inconclusive rather than favourable, and earns the skill no credit in either
+> direction.
+>
+> The engine cost 48x the control per output.
+>
+> The pre-registered rule returns FAIL, and it registered "underpowered",
+> "almost passed", "the margin was tight" and "it won on the holdouts" as FAIL
+> in advance, precisely so that nobody could reach for them afterwards. Under
+> that rule the plain-prompt control is the recommended default and a new
+> harness is designed.
+>
+> **A causal claim these files used to make is withdrawn.** They said the
+> `nonhuman` mode caused the fit collapse. It did not: removing `nonhuman` from
+> the default moved pooled FIT from 3.27 to 3.33, against a control at 6.35. The
+> collapse survived its removal almost untouched. The mode's own warning - that
+> it dissolves any brief with a person in it - stands as design guidance, but it
+> was not the cause of the measured loss.
+>
+> **Separate, and still supported.** The first experiment's finding that an
+> unaided model genuinely collapses on a brief with an obvious answer is a real
+> result: six independent plain-prompt runs on the estuary-creature brief
+> produced the same organism. The problem this skill was built for is real. What
+> is refuted is that this pipeline solves it.
+
 An idea pipeline built on one observation: a model asked to "be creative" samples
 from the most probable continuations of the word *creative*, which is why the
 results converge on briefs that have an obvious answer to converge on.
@@ -90,17 +142,21 @@ every mode has a brief it is wrong for.** Read the third column before choosing.
 | Mode | What it removes | Suits / destroys |
 |---|---|---|
 | `baby` | Learned function, correct names, and the order of cause and effect. Infant logic, adult execution - a cute result is a failed one. | **Suits** origins, first contact, a rite whose reason was forgotten. **Destroys** anything with a specification: a tool, a workflow, a mechanic that has to resolve. It discards learned function, so it discards the requirement with it. |
-| `nonhuman` | Human benefit. Nothing here is for anyone; if the result is a product, it is disqualified. | **Suits** a creature, a world rule, a form of life - subjects where nobody has to want the result. The strongest mode in the deck at what it does. **Destroys any brief with a person in it.** It dissolves the asker out of the answer by construction: asked for a ritual a community performs, it returns a process observed by nobody. If the brief names a user, player, reader, congregation, customer or patient, this mode removes them and the result will not answer the question. |
+| `nonhuman` | Human benefit. Nothing here is for anyone; if the result is a product, it is disqualified. | **Suits** a creature, a world rule, a form of life - subjects where nobody has to want the result. The strongest mode in the deck at what it does. **Destroys any brief with a person in it.** It dissolves the asker out of the answer by construction: asked for a ritual a community performs, it returns a process observed by nobody. If the brief names a user, player, reader, congregation, customer or patient, this mode removes them and the result will not answer the question. This is design guidance, not a measurement: no experiment has isolated this mode's effect, and the fit collapse once blamed on it survived its removal. |
 | `alien-physics` | Appearance as the site of novelty. Physics, time, or selfhood changes instead. | **Suits** almost everything: it changes what is possible rather than what is visible, so the subject and its audience survive. **Weakest** where the brief is about a feeling rather than a rule - pair it with `affect` there. |
 | `affect` | The five senses and the named emotions. Requires an invented sense with all four fields answered. | **Suits** interior states, senses, relationships, grief, etiquette. **Expensive**: the four required fields spend a large part of the result on one card, and on a brief that is really about a mechanism they crowd the mechanism out. |
 | `extremal` | Every safe candidate. Widens the hand, deals two rules to break, and raises the discard bar - it does not raise a score bar, because there is no score bar. | **Suits** the third attempt, after two rounds the user has rejected. **Wrong on a first attempt**: it spends the widest material in the deck before the ordinary hand has been tried, and there is nothing wider to escalate to afterwards. |
 | `grounded` | Nothing. Adds one `operational_path` section without editing the principle, and substitutes the rubric axis `translation_integrity` for `non_anthropocentrism`. Cannot stack with `nonhuman`. | **Suits** anything that has to exist afterwards, with anchor 2-3. **Not a rescue**: choosing it mid-run re-seeds the deal and throws away the hand and everything written against it. Choose it at stage 3, not at stage 8. |
 
 **Default when the user does not choose: `alien-physics` at anchor 1.** The
-default used to be `nonhuman,alien-physics`, and a controlled experiment
-measured what that cost - see *What this is measured to do* below. `nonhuman`
-is still here and still worth choosing; it is no longer applied to briefs
-nobody chose it for.
+default used to be `nonhuman,alien-physics`, and this file used to say that a
+controlled experiment had measured what `nonhuman` cost. **That attribution is
+withdrawn.** The second, pre-registered experiment ran `alien-physics` alone and
+pooled FIT moved only from 3.27 to 3.33, against a control at 6.35: the fit
+collapse was not caused by `nonhuman` and did not go away when `nonhuman` did.
+`nonhuman` is still here and its per-brief warning below still stands as design
+guidance; it is no longer applied to briefs nobody chose it for. See *What this
+is measured to do* below for what the two experiments did and did not establish.
 
 **Anchors** set how far the result must stay reachable: 0 unbound, 1 legible in
 three sentences without analogy, 2 stageable as a concrete scene or artifact,
@@ -401,6 +457,12 @@ it is known.
 
 ## What this is measured to do, and what it is not
 
+Two controlled experiments have been run on this skill. The first is below; the
+second, pre-registered and run on this build, is after it and is the one that
+decides whether to use the skill at all.
+
+### Experiment 1, July 2026
+
 A controlled experiment was run on this skill in July 2026: four briefs in four
 unrelated domains, five plain-prompt control runs and five full-pipeline engine
 runs each, twenty disjoint dealt hands, coded blind by agents who were never
@@ -440,6 +502,58 @@ This is not fixed. Do not claim it is. What follows from it in practice:
   process that levies an obligation and produces paperwork, you have arrived
   where the last twenty runs arrived, and the self-interrogation list should
   send it back to stage 4.
+
+### Experiment 2, the pre-registered rerun on this build
+
+Experiment 1 had two design flaws its own report named: the engine's mandatory
+"What this is not" section let a blind coder reconstruct the split, and one
+control agent found the installed skill and ran the pipeline unprompted. The
+rerun closed both - both arms rendered into one identical four-section schema by
+a blind typesetter, and control outputs generated by tool-less, skill-less,
+stateless calls with no mechanism to load anything. The decision rule, the six
+briefs, the aggregation order and every threshold were written down before any
+data existed.
+
+Six briefs (four carried over, two holdouts fixed in advance), five engine and
+five control runs on each, five blind judges and five blind pairwise coders per
+brief. The engine arm ran the documented default, `alien-physics` at anchor 1,
+with the self-scored gate threshold already removed; all 30 engine runs cleared
+`score_gate.py` within cap and 29 of 30 cleared on the first attempt, so this is
+not an execution failure.
+
+| engine minus control, median over judges, equal-weight over briefs | WANT | FIT | CRAFT |
+|---|---|---|---|
+| mean | -2.83 | -3.03 | -1.67 |
+
+Every one of the six briefs was negative on every one of the three measures, on
+the holdouts exactly as on the carried-over briefs. Pooled over 300 ratings:
+WANT 5.76 -> 2.98, FIT 6.35 -> 3.33, CRAFT 5.88 -> 4.23. The control ranked
+above the engine in 30 of 30 brief x judge cells, and took 90 of 90 top-three
+slots. The engine cost 48x the control per output, and 12x the wall clock.
+
+On convergence, the thing this skill exists to reduce: `g_CORE` +0.10 and
+`g_SKELETON` -0.22, where positive means the engine is less converged and the
+rule required +0.30. Ordinal Krippendorff's alpha across the five coders was
+0.786 on CORE and 0.673 on SKELETON, both below the pre-registered .80 floor, so
+the coders were not applying one construct and **the convergence result is
+inconclusive rather than favourable** - it is not evidence for the skill and it
+is not counted against it either. No re-coding or adjudication was permitted
+after the fact and none was done.
+
+Fifteen of the seventeen decision-rule conditions were violated, including the
+CRAFT veto, which sinks the result on its own. The rule required all seventeen.
+It returns **FAIL**, and it registered "underpowered", "almost passed", "the
+margin was tight" and "it won on the holdouts" as FAIL in advance so that they
+could not be reached for afterwards. Its consequence, also fixed in advance:
+the plain-prompt control becomes the recommended default and a new harness is
+designed.
+
+**Two things this does not license.** It says nothing about `nonhuman` or any
+other non-default configuration, which was out of scope. And because the arms
+are not compute-matched, it cannot say *which* part of the pipeline - the ban
+list, the dealt cards, the fixed output contract - produced the loss. What it
+does say is that dropping `nonhuman` from the default did not fix the measured
+problem: pooled FIT moved 3.27 -> 3.33 against a control at 6.35.
 
 **What the gate establishes.** That the required work is present and that the
 four artefacts are bound to each other: the hand was dealt by the decks and not

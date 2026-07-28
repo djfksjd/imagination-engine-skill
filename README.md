@@ -18,6 +18,31 @@ An agent skill that makes an AI produce genuinely strange ideas — by *removing
 
 ---
 
+> [!CAUTION]
+> ## Tested twice under blind judging. It lost both times.
+>
+> This skill's central claim — that removing the paths to the obvious answer produces better ideas than plain prompting — has now been measured twice against a plain-prompt control, and lost decisively on both occasions. The second test was pre-registered in full before any data existed, and it ran on the current build, at the current default (`alien-physics` alone, anchor 1) and with the self-scored gate threshold removed. Neither change recovered the gap.
+>
+> Six briefs, five engine runs and five control runs on each, five blind judges per brief who were never told two conditions existed. Engine minus control, median across judges, 1–7 scales, equal-weight mean over the six briefs:
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | engine minus control | **−2.83** | **−3.03** | **−1.67** |
+>
+> Every brief was negative on every measure. The control ranked above the engine in **30 of 30** brief × judge cells and took **90 of 90** top-three slots. Pooled: WANT 5.76 → 2.98, FIT 6.35 → 3.33, CRAFT 5.88 → 4.23.
+>
+> Convergence — the problem this skill was built to reduce — was not measurably reduced: `g_CORE` +0.10 and `g_SKELETON` −0.22 against the +0.30 the rule required. The coders' ordinal Krippendorff's α came in at 0.786 and 0.673, below the pre-registered .80 floor, so **that measure is inconclusive rather than favourable** — it is not evidence for the skill, and it is not counted against it either.
+>
+> The engine cost **48× the control per output**.
+>
+> The pre-registered rule returns **FAIL**, and it registered "underpowered", "almost passed", "the margin was tight" and "it won on the holdouts" as FAIL in advance, precisely so nobody could reach for them afterwards. Under that rule the plain-prompt control is the recommended default and a new harness is designed.
+>
+> **A causal claim this page used to make is withdrawn.** It said the `nonhuman` mode caused the fit collapse. It did not: removing `nonhuman` from the default moved pooled FIT from 3.27 to 3.33, against a control at 6.35. The collapse survived its removal almost untouched. The mode's warning — that it dissolves any brief with a person in it — stands as design guidance, but it was not the cause of the measured loss.
+>
+> **Separate, and still supported.** The first experiment's finding that an unaided model genuinely collapses on a brief with an obvious answer is a real result: six independent plain-prompt runs on the estuary-creature brief produced the same organism. The problem this skill was built for is real. What is refuted is that this pipeline solves it.
+
+---
+
 > Telling a model to "be creative" makes it sample from the most likely continuations of the word *creative*. That is why the results converge: the same fungal networks, the same rain-soaked neon city, the same machine that turns out to have feelings.
 >
 > **Instructing harder does not move the distribution. Removing options does.**
@@ -90,7 +115,7 @@ Extremal mode, anchor 2 — I have to be able to actually build it.
 | `extremal` | Every safe candidate. Widens the hand, deals two rules to break, and raises the discard bar. |
 | `grounded` | Nothing. Adds one path to something real without editing the principle, and substitutes the rubric axis `translation_integrity` for `non_anthropocentrism`. Cannot be stacked with `nonhuman` — it substitutes the axis that mode exists to enforce. |
 
-**The default is `alien-physics` at anchor 1**, and `nonhuman` is not in it. It used to be. A controlled experiment — four briefs, five plain-prompt runs and five engine runs each, eight blind judges who were never told what was being tested — found that the old default halved how well the result fitted the brief (6.45 → 3.27) and that the judges accepted 24 of 24 plain-prompt outputs and 0 of 24 engine ones. Their reasons were consistent: the engine had dissolved the brief instead of answering it. That is `nonhuman` working exactly as specified — it removes human usefulness by design — and it is the wrong thing to apply to a brief nobody chose it for. **If your brief has a person in it — a player, a reader, a congregation, a customer — do not add `nonhuman`.** It will remove them.
+**The default is `alien-physics` at anchor 1**, and `nonhuman` is not in it. It used to be. This page used to say that a controlled experiment had measured what `nonhuman` cost — that it halved fit to the brief and took 0 of 24 accepts from blind judges. **That causal attribution is withdrawn.** The pre-registered rerun ran `alien-physics` alone and pooled FIT moved only from 3.27 to 3.33, against a control at 6.35: the fit collapse was not caused by `nonhuman` and did not leave with it. The rest of the warning is design guidance and it stands on its own terms — `nonhuman` removes human usefulness by construction, which is the wrong thing to apply to a brief nobody chose it for. **If your brief has a person in it — a player, a reader, a congregation, a customer — do not add `nonhuman`.** It will remove them.
 
 ### Anchors · how reachable the result must stay
 
@@ -265,13 +290,35 @@ Note what is *not* there: no apparatus, no glowing device, nothing that looks un
 
 ## What it is measured to do — and what it is not
 
-This skill was tested in July 2026: four briefs in four unrelated domains, five plain-prompt runs and five full-pipeline runs each, twenty disjoint dealt hands, coded and judged blind by agents that were never told two conditions existed. Both halves of the result are here because a skill that hides its own measurement is asking to be trusted rather than read.
+Two experiments have been run. Both are here in full, because a skill that hides its own measurement is asking to be trusted rather than read.
+
+### Experiment 1 — July 2026
+
+Four briefs in four unrelated domains, five plain-prompt runs and five full-pipeline runs each, twenty disjoint dealt hands, coded and judged blind by agents that were never told two conditions existed.
 
 **Confirmed, with a condition attached.** A plain prompt really does converge — but only when the brief has an obvious answer to converge on. Asked for an estuary creature, five independent plain-prompt runs produced five versions of one organism, and a sixth produced it again. Asked for a premise set inside one building, five runs produced five unrelated ideas. The claim at the top of this page is a description of what happens to *some* briefs, not a law.
 
 **Not demonstrated: that removing paths decorrelates repeated answers.** Twenty engine runs on twenty disjoint hands converged on one recurring shape — a bodiless process rather than a thing, an obligation usually framed as a debt, an administrative consequence. Pooled, they were *more* alike than the plain-prompt runs, not less. And the cards were not decoration: most left no trace in the wording at all, so they had genuinely been absorbed, and the outputs converged anyway. The honest reading is that removing the first-order attractor works — these answers really are unlike a plain prompt's — but removal does not spread what is left evenly. **It relocates the mode.**
 
 That is not fixed and this page will not claim it is. What follows from it, practically: if you need genuinely different options, give the skill different briefs or different modes rather than running the same one twice, and if your result is a bodiless process that levies an obligation and generates paperwork, you have arrived where the last twenty runs arrived — send it back.
+
+### Experiment 2 — the pre-registered rerun, on the current build
+
+Experiment 1 had two flaws its own report named: the engine's mandatory "What this is not" section let a blind coder reconstruct the split, and one control agent found the installed skill and ran the pipeline unprompted. The rerun closed both — both arms were rendered into one identical four-section schema by a blind typesetter, and every control output came from a tool-less, skill-less, stateless call with no mechanism to load anything. The decision rule, the six briefs, the aggregation order and every threshold were fixed in writing before any data existed.
+
+Six briefs (four carried over, two holdouts named in advance), five engine and five control runs each, five blind judges and five blind pairwise coders per brief. The engine ran the current default, `alien-physics` at anchor 1, with the self-scored gate threshold removed. All 30 engine runs cleared `score_gate.py` within cap, 29 of them first time, so this was not an execution failure.
+
+| engine minus control, median over judges, equal-weight over briefs | WANT | FIT | CRAFT |
+|---|---|---|---|
+| mean | **−2.83** | **−3.03** | **−1.67** |
+
+Every one of the six briefs was negative on every one of the three measures, holdouts exactly like the carried-over briefs. Pooled over 300 ratings: WANT 5.76 → 2.98, FIT 6.35 → 3.33, CRAFT 5.88 → 4.23. The control ranked above the engine in **30 of 30** brief × judge cells and took **90 of 90** top-three slots. The engine cost **48× the control per output**, and 12× the wall clock.
+
+On convergence — the thing this skill exists to reduce — `g_CORE` was +0.10 and `g_SKELETON` −0.22, where positive means the engine is less converged and the rule required +0.30. Ordinal Krippendorff's α across the five coders was 0.786 on CORE and 0.673 on SKELETON, both under the pre-registered .80 floor, so the coders were not applying one construct and **the convergence result is inconclusive rather than favourable**. No re-coding, rubric clarification or adjudication was permitted after the fact, and none was done.
+
+Fifteen of the seventeen decision-rule conditions were violated, including the CRAFT veto, which sinks the result on its own. The rule required all seventeen and returns **FAIL**. Its consequence was fixed in advance too: the plain-prompt control becomes the recommended default and a new harness is designed.
+
+**What this does not license.** It says nothing about `nonhuman` or any other non-default configuration, which was out of scope. And because the arms are not compute-matched, it cannot say *which* part of the pipeline — the ban list, the dealt cards, the fixed output contract — produced the loss. What it does say is that dropping `nonhuman` from the default did not fix the measured problem: pooled FIT moved 3.27 → 3.33 against a control at 6.35.
 
 ## Under the hood
 

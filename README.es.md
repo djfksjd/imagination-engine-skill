@@ -18,6 +18,31 @@ Una skill de agente que hace que una IA produzca ideas realmente extrañas: no p
 
 ---
 
+> [!CAUTION]
+> ## Se midió dos veces con jueces a ciegas. Perdió las dos.
+>
+> La afirmación central de esta habilidad — que quitar los caminos hacia la respuesta obvia produce mejores ideas que un prompt normal — se ha medido ya dos veces contra un control con prompt normal, y las dos veces perdió con claridad. La segunda prueba se preregistró por entero antes de que existiera un solo dato, y se corrió sobre la compilación actual, con el valor por defecto actual (`alien-physics` solo, ancla 1) y con el umbral autopuntuado ya retirado de la verja. Ninguno de los dos cambios recuperó la diferencia.
+>
+> Seis encargos, cinco tiradas del motor y cinco del control en cada uno, cinco jueces ciegos por encargo a quienes nunca se les dijo que existían dos condiciones. Motor menos control, mediana de los cinco jueces, escalas de 1 a 7, media de igual peso sobre los seis encargos:
+>
+> | | WANT | FIT | CRAFT |
+> |---|---|---|---|
+> | motor − control | **−2,83** | **−3,03** | **−1,67** |
+>
+> Todos los encargos salieron negativos en todas las medidas. El control quedó por encima del motor en **30 de 30** celdas encargo × juez y se llevó **90 de 90** puestos entre los tres primeros. Agregado: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23.
+>
+> La convergencia — el problema para el que se construyó esta habilidad — no se redujo de forma medible: `g_CORE` +0,10 y `g_SKELETON` −0,22, frente al +0,30 que exigía la regla. La α ordinal de Krippendorff entre los codificadores quedó en 0,786 y 0,673, por debajo del suelo preregistrado de 0,80, de modo que **esa medida es no concluyente, no favorable**: no es prueba a favor de la habilidad, y tampoco cuenta en su contra.
+>
+> El motor costó **48× el control por salida**.
+>
+> La regla preregistrada devuelve **FAIL**, y dejó registrados de antemano "poca potencia", "casi pasa", "el margen fue estrecho" y "ganó en los encargos de reserva" como FAIL, precisamente para que después nadie pudiera recurrir a ellos. Según esa regla, el control con prompt normal pasa a ser el valor por defecto recomendado y se diseña un banco de pruebas nuevo.
+>
+> **Se retira una afirmación causal que esta página hacía.** Decía que el modo `nonhuman` había provocado el desplome de la adecuación. No fue así: sacar `nonhuman` del valor por defecto movió el FIT agregado de 3,27 a 3,33, frente a un control en 6,35. El desplome sobrevivió a su retirada casi intacto. La advertencia de ese modo — que disuelve cualquier encargo con una persona dentro — sigue en pie como criterio de diseño, pero no fue la causa de la pérdida medida.
+>
+> **Aparte, y todavía sostenido.** El hallazgo del primer experimento — que un modelo sin ayuda sí se colapsa cuando el encargo tiene una respuesta obvia — es un resultado real: en el encargo del ser de estuario, seis tiradas independientes con prompt normal produjeron el mismo organismo. El problema para el que se hizo esta habilidad existe. Lo refutado es que esta tubería lo resuelva.
+
+---
+
 > Pedirle a un modelo que "sea creativo" hace que muestree las continuaciones más probables de la palabra *creativo*. Por eso los resultados convergen: otra vez las redes de micelio, otra vez la ciudad de neón bajo la lluvia, otra vez la máquina que resulta tener sentimientos.
 >
 > **Insistir más no mueve la distribución. Quitar opciones sí.**
@@ -90,7 +115,7 @@ Modo extremal, ancla 2: tengo que poder construirla de verdad.
 | `extremal` | Todo candidato seguro. Ensancha la mano, reparte dos reglas que romper y sube el listón del descarte. |
 | `grounded` | Nada. Añade una vía hacia algo real sin tocar el principio y sustituye el eje `non_anthropocentrism` por `translation_integrity`. |
 
-**El valor por defecto es `alien-physics` con ancla 1, y `nonhuman` ya no está dentro.** Antes sí lo estaba. Un experimento controlado — cuatro encargos, cinco tiradas con un prompt normal y cinco con el motor en cada uno, ocho jueces ciegos a los que nunca se les dijo qué se estaba probando — encontró que el antiguo valor por defecto reducía a la mitad lo bien que el resultado respondía al encargo (6,45 → 3,27), y que los jueces aceptaron 24 de 24 salidas del prompt normal y 0 de 24 del motor. Sus razones eran consistentes: el motor había disuelto el encargo en vez de responderlo. Eso es `nonhuman` funcionando exactamente como está especificado — elimina la utilidad humana por diseño — y es lo que no hay que aplicar a un encargo para el que nadie lo eligió. **Si tu encargo tiene una persona dentro — un jugador, un lector, una congregación, un cliente — no añadas `nonhuman`.** Se la llevará por delante.
+**El valor por defecto es `alien-physics` con ancla 1, y `nonhuman` ya no está dentro.** Antes sí lo estaba. Esta página venía diciendo que un experimento controlado había medido lo que costaba `nonhuman`: que reducía a la mitad la adecuación al encargo y que los jueces ciegos aceptaron 0 de 24 salidas del motor. **Esa atribución causal queda retirada.** La repetición preregistrada corrió `alien-physics` solo y el FIT agregado se movió apenas de 3,27 a 3,33, frente a un control en 6,35: el desplome de la adecuación no lo causó `nonhuman` y tampoco se fue con él. El resto de la advertencia se sostiene por sí solo como criterio de diseño — `nonhuman` elimina la utilidad humana por construcción, y eso no hay que aplicárselo a un encargo para el que nadie lo eligió. **Si tu encargo tiene una persona dentro — un jugador, un lector, una congregación, un cliente — no añadas `nonhuman`.** Se la llevará por delante.
 
 ### Anclas · cuánto debe seguir siendo alcanzable el resultado
 
@@ -265,13 +290,35 @@ Fíjate en lo que *no* hay: ningún aparato, ningún dispositivo luminoso, nada 
 
 ## Qué se ha medido que hace, y qué no
 
-Esta habilidad se puso a prueba en julio de 2026: cuatro encargos de cuatro dominios sin relación entre sí, cinco tiradas con un prompt normal y cinco con la tubería completa en cada uno, veinte manos repartidas sin solapamiento, codificadas y juzgadas a ciegas por agentes a los que nunca se les dijo que existían dos condiciones. Las dos mitades del resultado están aquí, porque una habilidad que esconde su propia medición está pidiendo que se le crea en vez de que se la lea.
+Se han hecho dos experimentos. Los dos están aquí enteros, porque una habilidad que esconde su propia medición está pidiendo que se le crea en vez de que se la lea.
+
+### Experimento 1 — julio de 2026
+
+Cuatro encargos de cuatro dominios sin relación entre sí, cinco tiradas con un prompt normal y cinco con la tubería completa en cada uno, veinte manos repartidas sin solapamiento, codificadas y juzgadas a ciegas por agentes a los que nunca se les dijo que existían dos condiciones.
 
 **Confirmado, con una condición.** Un prompt normal converge de verdad, pero solo cuando el encargo tiene una respuesta obvia hacia la que converger. Pedido un ser de estuario, cinco tiradas independientes produjeron cinco versiones del mismo organismo, y una sexta lo produjo otra vez. Pedida una premisa que transcurra entera dentro de un edificio, cinco tiradas produjeron cinco ideas sin relación. La afirmación del principio de esta página describe lo que le pasa a *algunos* encargos; no es una ley.
 
 **No demostrado: que quitar caminos descorrelacione respuestas repetidas.** Veinte tiradas del motor sobre veinte manos disjuntas convergieron en una sola forma: un proceso sin cuerpo en vez de una cosa, una obligación normalmente formulada como deuda, una consecuencia administrativa. Agregadas, se parecían *más* entre sí que las del prompt normal, no menos. Y las cartas no eran adorno: la mayoría no dejó rastro alguno en la redacción, o sea que sí habían sido absorbidas, y aun así las salidas convergieron. La lectura honesta es que quitar el atractor de primer orden funciona — estas respuestas de verdad no se parecen a las del prompt normal — pero quitarlo no reparte lo que queda de forma uniforme. **Solo cambia de sitio la moda.**
 
 Eso no está arreglado y esta página no dirá que lo está. Lo que se sigue en la práctica: si necesitas opciones realmente distintas, dale encargos distintos o modos distintos en vez de correr el mismo dos veces; y si tu resultado es un proceso sin cuerpo que impone una obligación y genera papeleo, has llegado adonde llegaron las últimas veinte tiradas: devuélvelo.
+
+### Experimento 2 — la repetición preregistrada, sobre la compilación actual
+
+El experimento 1 tenía dos fallos de diseño que su propio informe nombró: la sección obligatoria del motor «lo que esto no es» permitió a un codificador ciego reconstruir la separación entre condiciones, y un agente de control encontró la habilidad instalada y corrió la tubería sin que nadie se lo pidiera. La repetición cerró los dos: un tipógrafo ciego volcó las salidas de ambos brazos en un mismo formato de cuatro secciones, y cada salida de control se generó con llamadas sin estado, sin herramientas y sin habilidades, de modo que no existía mecanismo alguno para cargar nada. La regla de decisión, los seis encargos, el orden de agregación y todos los umbrales quedaron fijados por escrito antes de que existiera un solo dato.
+
+Seis encargos (cuatro heredados, dos de reserva nombrados de antemano), cinco tiradas del motor y cinco del control en cada uno, cinco jueces ciegos y cinco codificadores ciegos por pares en cada encargo. El motor corrió el valor por defecto actual, `alien-physics` con ancla 1, y con el umbral autopuntuado retirado de la verja. Las 30 tiradas del motor pasaron `score_gate.py` dentro del tope, 29 de ellas a la primera: esto no fue un fallo de ejecución.
+
+| motor − control, mediana de jueces, igual peso por encargo | WANT | FIT | CRAFT |
+|---|---|---|---|
+| media | **−2,83** | **−3,03** | **−1,67** |
+
+Los seis encargos salieron negativos en las tres medidas, y los de reserva se comportaron igual que los heredados. Agregando las 300 puntuaciones: WANT 5,76 → 2,98; FIT 6,35 → 3,33; CRAFT 5,88 → 4,23. El control quedó por encima del motor en **30 de 30** celdas encargo × juez y se llevó **90 de 90** puestos entre los tres primeros. El motor costó **48× el control por salida** y 12× el tiempo de reloj.
+
+En la convergencia — aquello para lo que existe esta habilidad — `g_CORE` fue +0,10 y `g_SKELETON` −0,22, donde un valor positivo significa que el motor converge menos y la regla exigía +0,30. La α ordinal de Krippendorff entre los cinco codificadores fue 0,786 en CORE y 0,673 en SKELETON, ambas por debajo del suelo preregistrado de 0,80: los codificadores no estaban aplicando un mismo constructo, así que **el resultado de convergencia es no concluyente, no favorable**. No se permitió recodificar, aclarar la rúbrica ni arbitrar después de los hechos, y no se hizo.
+
+Quince de las diecisiete condiciones de la regla de decisión quedaron violadas, incluido el veto de CRAFT, que por sí solo hunde el resultado. La regla las exigía las diecisiete y devuelve **FAIL**. Su consecuencia también estaba fijada de antemano: el control con prompt normal pasa a ser el valor por defecto recomendado y se diseña un banco de pruebas nuevo.
+
+**Lo que esto no autoriza a decir.** No dice nada sobre `nonhuman` ni sobre ninguna otra configuración distinta de la predeterminada, que quedó fuera de alcance. Y como los brazos no están igualados en cómputo, tampoco puede decir *qué* parte de la tubería — la lista de prohibiciones, las cartas repartidas, el contrato de salida fijo — produjo la pérdida. Lo que sí dice es que sacar `nonhuman` del valor por defecto no arregló el problema medido: el FIT agregado pasó de 3,27 a 3,33 frente a un control en 6,35.
 
 ## Por dentro
 

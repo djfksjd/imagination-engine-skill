@@ -84,11 +84,13 @@ Modo extremal, âncora 2 — eu preciso conseguir construir de verdade.
 | Modo | O que remove |
 |---|---|
 | `baby` | A função aprendida, os nomes corretos e a ordem de causa e efeito. Lógica de bebê, execução adulta — um resultado fofo é um fracasso. |
-| `nonhuman` | A utilidade para pessoas. Aqui nada existe para ninguém; se o resultado for um produto, está desclassificado. |
+| `nonhuman` | A utilidade para pessoas. Aqui nada existe para ninguém; se o resultado for um produto, está desclassificado. **Destrói qualquer briefing que tenha uma pessoa dentro** — veja o aviso abaixo. |
 | `alien-physics` | A aparência como lugar da novidade. Mudam a física, o tempo ou o self. |
 | `affect` | Os cinco sentidos e as emoções nomeadas. Exige um sentido inventado e totalmente especificado — incluindo a nova injustiça que ele cria. |
-| `extremal` | Todo candidato seguro. Os limiares sobem para média 9,0, nenhum eixo abaixo de 8. |
-| `grounded` | Nada. Acrescenta um caminho até algo real sem editar o princípio. |
+| `extremal` | Todo candidato seguro. Alarga a mão, distribui duas regras a quebrar e eleva a régua do descarte. |
+| `grounded` | Nada. Acrescenta um caminho até algo real sem editar o princípio e substitui o eixo `non_anthropocentrism` por `translation_integrity`. |
+
+**O padrão é `alien-physics` na âncora 1, e `nonhuman` não está mais nele.** Já esteve. Um experimento controlado — quatro briefings, cinco rodadas com um prompt comum e cinco com o motor em cada um, oito juízes cegos a quem nunca se disse o que estava sendo testado — mediu que o padrão antigo cortava pela metade o quanto o resultado atendia ao briefing (6,45 → 3,27), e que os juízes aceitaram 24 de 24 saídas do prompt comum e 0 de 24 do motor. As razões foram consistentes: o motor havia dissolvido o briefing em vez de respondê-lo. Isso é `nonhuman` funcionando exatamente como especificado — ele remove a utilidade humana por construção — e é o que não se deve aplicar a um briefing para o qual ninguém o escolheu. **Se o seu briefing tem uma pessoa dentro — um jogador, um leitor, uma congregação, um cliente — não acrescente `nonhuman`.** Ele vai removê-la.
 
 ### Âncoras · quão alcançável o resultado precisa continuar
 
@@ -173,6 +175,13 @@ Duas das cinco entradas não saem de nenhum script: você as escreve. O reposit�
 cp references/example-obvious.txt /tmp/work/obvious.txt   # ou escreva a sua
 python3 scripts/banlist.py --topic "um patamar entre dois andares" \
     --obvious /tmp/work/obvious.txt --extra "sem fantasmas,sem estetica liminar" --out /tmp/work
+#     Passe suas próprias proibições em --extra do jeito que você as diria, mesmo
+#     que o baralho embutido já nomeie alguma: o arquivo as registra e o portão
+#     as repete, de modo que "sem dragões" promove um aviso do baralho a
+#     proibição. O código 2 significa que o despejo está curto, ou que é uma só
+#     linha com o número trocado — doze variantes de um molde são um instinto
+#     escrito doze vezes. banlist.py também aceita --allow <id de clichê> para
+#     liberar uma expressão do baralho; leia antes o limite honesto abaixo.
 
 # 2 · distribua a mão (semeada pelo pedido, então reproduz exatamente)
 python3 scripts/draw.py --topic "um patamar entre dois andares" \
@@ -184,6 +193,11 @@ python3 scripts/draw.py --topic "um patamar entre dois andares" \
 #     senão o portão recusa o rascunho.
 #       estrutura → references/candidate.schema.json, references/output-template.md
 #       exemplo   → references/example-candidate.json, references/example-draft.md
+#     candidate.json também pede manual_checks_cleared: um OBJETO INDEXADO PELO
+#     ID DA VERIFICAÇÃO — {"obvious-01": "...", "obvious-02": "..."} — com uma
+#     resposta escrita para cada verificação manual da lista. Um briefing de
+#     história, mundo, rito ou mecânica costuma produzir doze delas; um de
+#     produto, nenhuma — por isso o exemplo embutido resolve só uma.
 
 # 4 · passe o linter no meio da escrita (é diagnóstico; passar não é liberação)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
@@ -203,18 +217,20 @@ Para ver tudo passar antes de rodar o seu, aponte o passo 5 para os quatro artef
 |---|---|---|
 | `0` | passou | — |
 | `1` | uso, arquivo ausente ou baralho malformado | é erro de digitação, não julgamento |
-| `2` | **o portão reprovou** — seção faltando ou magra, um eixo abaixo do piso, uma carta distribuída virou enfeite | reescreva a ideia. Arredondar uma nota para cima é a única jogada que a habilidade proíbe |
+| `2` | **o portão reprovou** — seção faltando ou magra, uma carta distribuída virou enfeite, um artefato não pertence aos outros | reescreva a ideia. Não há nota para arredondar: nenhum número deste portão decide coisa alguma |
 | `3` | **há material proibido** no rascunho | reescreva o pensamento, não a palavra. Apagar a expressão apontada e manter a frase não é conserto |
 
-Se o mesmo eixo falha duas vezes, o material é que está errado, não a redação: redistribua com `--run <n+1>` em vez de editar.
+Se a mesma verificação falha duas vezes, o material é que está errado, não a redação: redistribua com `--run <n+1>` em vez de editar.
 
 Um `2` não é dos scripts: `No such file or directory` também deixa `2`, porque o Python sai antes de o script começar. É o diretório de trabalho errado — volte para `cd skills/imagination-engine`. Dentro dos scripts, erro de uso é sempre `1`, de modo que um engano nunca é relatado como veredito.
 
 > [!IMPORTANT]
-> **Um único comando pode dizer "passou", e ele recebe tudo.** `score_gate.py` redistribui a mão a partir dos baralhos embutidos para conferir, amarra o candidato carta por carta, pontua com o perfil que a *rodada* implica, exige resposta escrita para cada proibição longa demais para casar automaticamente, e verifica se o rascunho prestes a ser mostrado é o que foi pontuado. Não existe `--extremal`, `--grounded`, `--min-mean`, `--min-axis` nem `--rubric`: um limiar afirmado na hora do veredicto é afirmado pela parte de que o veredicto trata. `cliche_lint.py` é um apoio de redação; passar nele não é liberação.
+> **Um único comando pode dizer "passou", e ele recebe tudo.** `score_gate.py` redistribui a mão a partir dos baralhos embutidos para conferir, amarra o candidato carta por carta, exige que todo eixo da rubrica seja pontuado e argumentado, exige resposta escrita para cada proibição longa demais para casar automaticamente, e verifica se o rascunho prestes a ser mostrado é o que foi pontuado. Não existe `--extremal`, `--grounded`, `--min-mean`, `--min-axis` nem `--rubric`: um limiar afirmado na hora do veredicto é afirmado pela parte de que o veredicto trata. **E também não existe limiar de nota.** Vinte rodadas medidas se autopontuaram todas dentro de uma faixa de um quarto de ponto, logo acima da antiga régua de 8,0, incluindo rodadas que juízes cegos colocaram em último lugar; um número sem variância não separa nada, então aqui ele não decide mais nada. Os eixos ficam porque respondê-los muda o trabalho. `cliche_lint.py` é um apoio de redação; passar nele não é liberação.
+
+**`--allow` é honrado em um lugar e não no outro, de propósito.** `cliche_lint.py --allow <id>` libera uma expressão do baralho enquanto você redige. `score_gate.py` não tem essa opção e ignora a liberação registrada na lista de proibições, porque esse arquivo é um dos artefatos que ele está conferindo: honrá-la ali deixaria uma rodada liberar as próprias proibições na hora do veredicto. Se uma expressão embutida realmente não cabe no seu trabalho, o caminho previsto é bifurcar o repositório e editar `references/decks/cliches.json`.
 
 > [!NOTE]
-> Os portões são pisos, não juízes. Provam que certas jogadas familiares estão *ausentes* e que o trabalho exigido foi *feito*. Não conseguem dizer que a ideia é boa, e a nota de aprovação é autoatribuída. Leia o resultado você mesmo.
+> O portão é um piso, não um juiz. Uma aprovação estabelece que o trabalho exigido está presente e que os quatro artefatos pertencem uns aos outros: a mão foi distribuída pelos baralhos e não foi editada depois, toda carta foi usada, a lista de proibições é a que o próprio despejo desta rodada implica, cada instinto longo tem resposta escrita, e o rascunho prestes a ser mostrado é o texto que foi conferido. Não pode dizer que a ideia é boa, e já não finge que algum número possa. Leia o resultado você mesmo.
 
 ## O que sai
 
@@ -243,6 +259,16 @@ Repare no que *não* está ali: nenhum aparelho, nenhum dispositivo luminoso, na
 > - **Fingir que passar no linter significa boa ideia.** O linter prova que certos movimentos conhecidos estão *ausentes*; não prova a presença de nada. A rubrica é autoavaliada e a skill diz isso. O que os dois portões realmente impõem é que o trabalho não foi pulado.
 > - **Encolher seu pedido em silêncio.** Se você precisa de algo construível, sobe-se a âncora em vez de amolecer a premissa. E quando a resposta convencional é a correta, a skill deve dizer isso e responder normalmente.
 
+## O que foi medido que ela faz — e o que não
+
+Esta habilidade foi testada em julho de 2026: quatro briefings de quatro domínios sem relação entre si, cinco rodadas com prompt comum e cinco com o pipeline completo em cada um, vinte mãos distribuídas sem sobreposição, codificadas e julgadas às cegas por agentes a quem nunca se disse que existiam duas condições. As duas metades do resultado estão aqui, porque uma habilidade que esconde a própria medição está pedindo para ser acreditada em vez de lida.
+
+**Confirmado, com uma condição.** Um prompt comum converge mesmo — mas só quando o briefing tem uma resposta óbvia para a qual convergir. Pedida uma criatura de estuário, cinco rodadas independentes produziram cinco versões do mesmo organismo, e uma sexta o produziu de novo. Pedida uma premissa passada inteiramente dentro de um prédio, cinco rodadas produziram cinco ideias sem relação. A afirmação no topo desta página descreve o que acontece com *alguns* briefings; não é uma lei.
+
+**Não demonstrado: que remover caminhos descorrelacione respostas repetidas.** Vinte rodadas do motor sobre vinte mãos disjuntas convergiram para uma única forma — um processo sem corpo em vez de uma coisa, uma obrigação em geral formulada como dívida, uma consequência administrativa. Agregadas, pareciam-se *mais* entre si do que as do prompt comum, não menos. E as cartas não eram enfeite: a maioria não deixou rastro algum na redação, ou seja, foram de fato absorvidas — e ainda assim as saídas convergiram. A leitura honesta é que remover o atrator de primeira ordem funciona — estas respostas realmente não se parecem com as de um prompt comum — mas remover não espalha uniformemente o que sobra. **Só muda a moda de lugar.**
+
+Isso não foi consertado e esta página não vai dizer que foi. O que se segue na prática: se você precisa de opções realmente diferentes, dê briefings diferentes ou modos diferentes em vez de rodar o mesmo duas vezes; e se o seu resultado for um processo sem corpo que impõe uma obrigação e gera papelada, você chegou aonde as últimas vinte rodadas chegaram — devolva.
+
 ## Por dentro
 
 | Script | Papel | Saída ≠ 0 |
@@ -260,7 +286,7 @@ skills/imagination-engine/
 ├── references/
 │   ├── output-template.md      # o contrato das seções entregues
 │   ├── worked-example.md       # uma execução completa, com as etapas ocultas
-│   ├── rubric.json             # oito eixos · limiares · mínimos por seção
+│   ├── rubric.json             # os oito eixos e os mínimos por seção (sem limiares)
 │   ├── candidate.schema.json   # o que score_gate.py valida
 │   ├── example-obvious.txt     # ─┐ uma execução inteira, já no repositório: os
 │   ├── example-banlist.json    #  │ doze primeiros instintos, a lista feita a

@@ -249,3 +249,50 @@ def test_output_template_bind_blocks_satisfy_the_gates_required_sections(
         "a draft built strictly from output-template.md's own bind-block structure "
         f"is missing required binds the gate demands: {missing_binds}"
     )
+
+
+DEFAULT_MODE_MARKER = {
+    "README.md": "**The default is `alien-physics` at anchor 1**",
+    "README.ko.md": "**기본값은 앵커 1의 `alien-physics` 하나이고, `nonhuman`은 빠져 있다.**",
+    "README.ja.md": "**既定はアンカー 1 の `alien-physics` 一つで、`nonhuman` は入っていません。**",
+    "README.zh-CN.md": "**默认是锚点 1 上的 `alien-physics` 一项，`nonhuman` 不在其中。**",
+    "README.es.md": "**El valor por defecto es `alien-physics` con ancla 1, y `nonhuman` ya no está dentro.**",
+    "README.fr.md": "**Le réglage par défaut est `alien-physics` à l'ancrage 1, et `nonhuman` n'en fait plus partie.**",
+    "README.de.md": "**Die Voreinstellung ist `alien-physics` bei Anker 1, und `nonhuman` gehört nicht mehr dazu.**",
+    "README.pt-BR.md": "**O padrão é `alien-physics` na âncora 1, e `nonhuman` não está mais nele.**",
+}
+
+MEASURED_LIMIT_MARKER = {
+    "README.md": "It relocates the mode.",
+    "README.ko.md": "최빈값이 이동할 뿐이다.",
+    "README.ja.md": "最頻値が移動するだけです。",
+    "README.zh-CN.md": "它只是让众数搬了个家。",
+    "README.es.md": "Solo cambia de sitio la moda.",
+    "README.fr.md": "Il déplace le mode.",
+    "README.de.md": "Es verschiebt nur den Modus.",
+    "README.pt-BR.md": "Só muda a moda de lugar.",
+}
+
+
+@pytest.mark.parametrize("filename", sorted(LANGUAGES))
+def test_every_readme_states_the_default_modes(repo, filename):
+    """The default changed from nonhuman,alien-physics to alien-physics alone
+    after a controlled experiment found the old one halved fit to the brief and
+    took 0 of 24 accepts from blind judges. A reader of any one translation has
+    to be able to learn that, and to learn that nonhuman dissolves a brief with
+    a person in it."""
+    text = (repo / filename).read_text(encoding="utf-8")
+    assert DEFAULT_MODE_MARKER[filename] in text, f"{filename} does not state the default modes"
+    assert "nonhuman,alien-physics" not in text.replace("--modes nonhuman,alien-physics", ""), (
+        f"{filename} still presents the old default as the default")
+
+
+@pytest.mark.parametrize("filename", sorted(LANGUAGES))
+def test_every_readme_carries_the_measured_limit(repo, filename):
+    """The experiment found that removing paths did not decorrelate the engine's
+    own runs - it relocated the mode. A page that reports only the half of its
+    own measurement that flatters it is asking to be believed rather than read,
+    so the finding is in all eight languages or it is in none."""
+    text = (repo / filename).read_text(encoding="utf-8")
+    assert MEASURED_LIMIT_MARKER[filename] in text, (
+        f"{filename} does not carry the measured convergence finding")

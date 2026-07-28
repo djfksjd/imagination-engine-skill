@@ -79,9 +79,6 @@ Entwirf für mein Spiel ein Wesen, das nichts im Genre ähnelt.
 Extremal-Modus, Anker 2 — ich muss es tatsächlich bauen können.
 ```
 
-> [!TIP]
-> Das Wertvollste, was du beisteuern kannst, ist **deine eigene Verbotsliste**. „Nicht schon wieder ein X" wiegt mehr als jedes Adjektiv — und wenn du keine lieferst, fragt der Skill danach.
-
 ### Modi · bis zu drei kombinierbar
 
 | Modus | Was er entfernt |
@@ -101,6 +98,98 @@ Extremal-Modus, Anker 2 — ich muss es tatsächlich bauen können.
 | `1` | **Erklärbar** | In drei Sätzen erklärbar, ohne Analogie zu einem bekannten Werk |
 | `2` | **Inszenierbar** | Eine konkrete Szene oder ein Objekt, das ein Team produzieren könnte |
 | `3` | **Betreibbar** | Ein realer Weg zum Prototyp, mit benannten Verlusten dieser Übersetzung |
+
+### Eine Sitzung führen
+
+Die Stufen fährt die Fähigkeit, nicht Sie. Was Sie steuern, sind die vier Dinge unten — und jedes davon verändert das Ergebnis stärker als jedes Adjektiv.
+
+| Was Sie sagen | Was sich ändert |
+|---|---|
+| **das Thema** | der Startwert des ganzen Zugs: die Hand ergibt sich aus seinem Hash, eine Umformulierung teilt also andere Karten aus |
+| **wofür es ist** | Erzählung · Welt · Spielmechanik · Objekt · Concept-Art-Briefing · nichts. „Nichts" ist eine echte Antwort und liefert meist die fremdesten Ergebnisse |
+| **Modi und Anker** | welche Wege entfernt werden und wie erreichbar das Ergebnis bleiben muss |
+| **Ihre eigene Verbotsliste** | die wertvollste verfügbare Eingabe. Siehe unten |
+
+**Geben Sie ihr Ihre Verbotsliste.** Die Fähigkeit verbrennt ihre eigenen zwölf ersten Reflexe, bevor sie irgendetwas erzeugt — aber sie kann nicht wissen, was *Sie* nicht mehr sehen können. Ein Satz — *„kein Myzelnetzwerk mehr, und nichts, das sich am Ende als lebendig herausstellt"* — entfernt mehr Wahrscheinlichkeitsmasse als ein Absatz Ermutigung. Bieten Sie keine an, fragt die Fähigkeit vor dem Austeilen danach.
+
+**Modi wählen:**
+
+| Wenn Sie wollen | Versuchen Sie |
+|---|---|
+| ein Wesen, das kein Genre-Mobiliar ist | `nonhuman, alien-physics` · Anker 1 |
+| eine Weltregel statt eines Monsters | `alien-physics` · Anker 0 |
+| etwas, das ein Team wirklich inszenieren oder drehen kann | `alien-physics, grounded` · Anker 2 |
+| eine Mechanik, die diesen Monat prototypisierbar ist | `grounded` · Anker 3 |
+| einen Sinn, ein Gefühl, einen inneren Zustand | `affect` · Anker 1 |
+| Logik vor der erlernten Funktion | `baby, nonhuman` · Anker 0 |
+| Sie haben schon zwei Runden abgelehnt | `extremal` ergänzen |
+
+Anker und Modi sind unabhängig. `grounded` mit Anker 0 ist zulässig und ergibt etwas Baubares, das niemand um Verständlichkeit gebeten hat; `extremal` mit Anker 3 ist die härteste Einstellung der Fähigkeit. `grounded` lässt sich nicht mit `nonhuman` stapeln: Die Achse, die es ersetzt, ist genau die, die jener Modus durchsetzen soll — das Gatter verweigert die Kombination.
+
+### Das Gespräch in der Praxis
+
+**Anfangen.** Sagen Sie in beliebiger Sprache, was Sie wollen. Die Fähigkeit antwortet in Ihrer Sprache und denkt intern auf Englisch.
+
+```text
+Nutze die Imagination Engine für: was auf einem Treppenabsatz zwischen zwei Etagen geschieht.
+Modi nonhuman und alien-physics, Anker 1. Keine Geistergeschichte, keine Liminal-Space-Ästhetik.
+```
+
+**Wenn es zu brav zurückkommt.** Sagen Sie nicht „mach es seltsamer" — genau diese Anweisung versagt. Die Fähigkeit hat stattdessen eine definierte Antwort:
+
+```text
+Immer noch brav. Regeneriere.
+```
+
+Sie teilt aus einem neuen Zug neu aus, nimmt *jedes Element der vorigen Antwort* in die Verbotsliste auf und löscht eine weitere der Prämissen, die sie bis dahin geschützt hat — und sagt Ihnen, welche. Diese letzte Zeile ist meist das Interessante am ganzen Austausch. Im dritten Durchgang schaltet sie auf `extremal`.
+
+**Wenn es unbrauchbar zurückkommt.** Heben Sie den Anker, statt die Anfrage aufzuweichen:
+
+```text
+Anker 3 — ich brauche einen realen Weg, den ich bauen kann, und will wissen, was das Prinzip unterwegs verliert.
+```
+
+**Wenn Sie die Arbeit sehen wollen.** Die inneren Stufen sind absichtlich verborgen. Fragen Sie, und sie öffnen sich:
+
+```text
+Zeig mir die zwölf verbrannten Reflexe und die Hand, die du gezogen hast.
+```
+
+### Die Pipeline von Hand fahren
+
+Außer Python 3.11 und dem Repository ist nichts zu installieren. Die Skripte liegen in `skills/imagination-engine/scripts/`; schreiben Sie Arbeitsdateien in ein Scratch-Verzeichnis, nie in den Ordner der Fähigkeit.
+
+```bash
+# 1 · die Hand austeilen (aus dem Thema geseedet, also exakt wiederholbar)
+python3 scripts/draw.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 2 · die naheliegenden Antworten in eine prüfbare Verbotsliste verbrennen
+python3 scripts/banlist.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
+    --obvious /tmp/work/obvious.txt --extra "keine Geister,keine liminale Aesthetik" --out /tmp/work
+
+# 3 · einen Entwurf gegen diese Liste linten
+python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
+
+# 4 · den fertigen Kandidaten durchs Gatter schicken
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # --extremal oder --grounded ergänzen
+```
+
+`draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen. `--extremal` und `--grounded` sind kein Beleg: `candidate.json` muss dieselben Modi deklarieren, sonst weist das Gatter sie ab.
+
+### Exit-Codes und was jeweils zu tun ist
+
+| Code | Bedeutung | Der Fix |
+|---|---|---|
+| `0` | bestanden | — |
+| `1` | Aufruf, fehlende Datei oder fehlerhaftes Deck | ein Tippfehler, kein Urteil |
+| `2` | **Gatter gescheitert** — Abschnitt fehlt oder ist dünn, eine Achse unter dem Boden, eine gezogene Karte blieb Dekoration | schreiben Sie die Idee neu. Eine Note aufzurunden ist der einzige Zug, den die Fähigkeit verbietet |
+| `3` | **verbotenes Material** im Entwurf | schreiben Sie den Gedanken neu, nicht das Wort. Die markierte Wendung zu löschen und den Satz zu behalten ist kein Fix |
+
+Scheitert dieselbe Achse zweimal, ist das Material falsch und nicht die Formulierung: neu austeilen mit `--run <n+1>`, statt zu redigieren.
+
+> [!NOTE]
+> Gatter sind Böden, keine Richter. Sie belegen, dass bestimmte vertraute Züge *fehlen* und dass die verlangte Arbeit *getan* wurde. Ob die Idee gut ist, können sie nicht sagen, und die bestandene Note ist selbst vergeben. Lesen Sie das Ergebnis selbst.
 
 ## Was herauskommt
 

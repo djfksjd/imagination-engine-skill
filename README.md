@@ -88,7 +88,7 @@ Extremal mode, anchor 2 — I have to be able to actually build it.
 | `alien-physics` | Appearance as the site of novelty. Physics, time, or selfhood changes instead. |
 | `affect` | The five senses and the named emotions. Requires an invented sense, fully specified — including the new injustice it creates. |
 | `extremal` | Every safe candidate. Thresholds rise to a mean of 9.0 with no axis below 8. |
-| `grounded` | Nothing. Adds one path to something real without editing the principle. |
+| `grounded` | Nothing. Adds one path to something real without editing the principle. Cannot be stacked with `nonhuman` — it substitutes the axis that mode exists to enforce. |
 
 ### Anchors · how reachable the result must stay
 

@@ -79,9 +79,6 @@ Projete uma criatura para o meu jogo que não se pareça com nada do gênero.
 Modo extremal, âncora 2 — eu preciso conseguir construir de verdade.
 ```
 
-> [!TIP]
-> A coisa mais valiosa que você pode acrescentar é **a sua própria lista de vetos**. "Outro X não" vale mais do que qualquer adjetivo — e se você não der uma, a skill vai pedir.
-
 ### Modos · até três empilhados
 
 | Modo | O que remove |
@@ -101,6 +98,98 @@ Modo extremal, âncora 2 — eu preciso conseguir construir de verdade.
 | `1` | **Legível** | Explicável em três frases sem analogia a uma obra conhecida |
 | `2` | **Encenável** | Uma cena ou objeto concreto que uma equipe conseguiria produzir |
 | `3` | **Operável** | Um caminho real até um protótipo, com as perdas dessa tradução declaradas |
+
+### Como conduzir uma sessão
+
+Quem executa as etapas é a habilidade. O que você controla são as quatro coisas abaixo, e cada uma muda o resultado mais do que qualquer adjetivo.
+
+| O que você diz | O que muda |
+|---|---|
+| **o tema** | a semente de toda a distribuição: a mão vem do hash dele, então reformular o tema entrega outras cartas |
+| **para que serve** | história · mundo · mecânica de jogo · objeto · briefing de concept art · nada. "Nada" é uma resposta legítima e costuma dar os resultados mais estranhos |
+| **modos e âncora** | quais caminhos são removidos e quão alcançável o resultado precisa continuar |
+| **sua própria lista de proibições** | a entrada mais valiosa disponível. Veja abaixo |
+
+**Dê a ela a sua lista de proibições.** A habilidade queima os próprios doze primeiros impulsos antes de gerar qualquer coisa, mas não tem como saber do que *você* está cansado. Uma frase — *"chega de rede de micélio, chega de coisa que no fim se revela viva"* — remove mais massa de probabilidade do que um parágrafo de incentivo. Se você não oferecer, a habilidade pede antes de distribuir.
+
+**Escolhendo modos:**
+
+| Se você quer | Tente |
+|---|---|
+| uma criatura ou entidade que não seja mobília de gênero | `nonhuman, alien-physics` · âncora 1 |
+| uma regra de mundo em vez de um monstro | `alien-physics` · âncora 0 |
+| algo que um time consiga de fato encenar ou filmar | `alien-physics, grounded` · âncora 2 |
+| uma mecânica prototipável este mês | `grounded` · âncora 3 |
+| um sentido, uma emoção, um estado interior | `affect` · âncora 1 |
+| lógica anterior à função aprendida | `baby, nonhuman` · âncora 0 |
+| você já rejeitou duas rodadas | acrescente `extremal` |
+
+Âncora e modos são independentes. `grounded` na âncora 0 é válido e produz algo construível que ninguém pediu para ser legível; `extremal` na âncora 3 é o ajuste mais duro que existe aqui. `grounded` não pode se somar a `nonhuman`: o eixo que ele substitui é justamente o que aquele modo existe para impor, e o portão recusa o par.
+
+### A conversa, na prática
+
+**Começando.** Diga o que quer em qualquer idioma. A habilidade responde no idioma que você usou e raciocina internamente em inglês.
+
+```text
+Use o imagination engine em: o que acontece num patamar entre dois andares.
+Modos nonhuman e alien-physics, âncora 1. Nada de história de fantasma, nada de estética de espaço liminar.
+```
+
+**Quando volta seguro demais.** Não diga "deixa mais estranho" — essa é exatamente a instrução que falha. A habilidade tem uma resposta definida no lugar:
+
+```text
+Ainda seguro. Regenere.
+```
+
+Ela redistribui a partir de uma nova rodada, acrescenta *todos os elementos da resposta anterior* à lista de proibições e apaga mais uma das premissas que vinha protegendo — e diz qual foi. Essa última linha costuma ser o ponto da troca. Na terceira passada ela muda para `extremal`.
+
+**Quando volta inutilizável.** Suba a âncora em vez de amaciar o pedido:
+
+```text
+Âncora 3 — preciso de um caminho real que eu consiga construir, e quero saber o que o princípio perde no caminho.
+```
+
+**Quando quiser ver o trabalho.** As etapas internas são ocultas por design. Peça e elas se abrem:
+
+```text
+Me mostra os doze impulsos que você queimou e a mão que distribuiu.
+```
+
+### Rodando o pipeline à mão
+
+Nada a instalar além de Python 3.11 e do repositório. Os scripts ficam em `skills/imagination-engine/scripts/`; escreva os arquivos de trabalho num diretório temporário, nunca dentro da pasta da habilidade.
+
+```bash
+# 1 · distribua a mão (semeada pelo tema, então reproduz exatamente)
+python3 scripts/draw.py --topic "um patamar entre dois andares" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 2 · queime as respostas óbvias numa lista verificável
+python3 scripts/banlist.py --topic "um patamar entre dois andares" \
+    --obvious /tmp/work/obvious.txt --extra "sem fantasmas,sem estetica liminar" --out /tmp/work
+
+# 3 · passe o linter em qualquer rascunho contra essa lista
+python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
+
+# 4 · leve o candidato pronto ao portão
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # acrescente --extremal ou --grounded
+```
+
+`draw.py --list-modes` imprime os modos. `--run 2` distribui material novo, ainda de categorias disjuntas, para uma regeneração; `--salt` redistribui a mesma rodada sem avançá-la. `--extremal` e `--grounded` não são prova: `candidate.json` precisa declarar os mesmos modos, ou o portão recusa.
+
+### Códigos de saída, e o que fazer com cada um
+
+| Código | Significado | O conserto |
+|---|---|---|
+| `0` | passou | — |
+| `1` | uso, arquivo ausente ou baralho malformado | é erro de digitação, não julgamento |
+| `2` | **o portão reprovou** — seção faltando ou magra, um eixo abaixo do piso, uma carta distribuída virou enfeite | reescreva a ideia. Arredondar uma nota para cima é a única jogada que a habilidade proíbe |
+| `3` | **há material proibido** no rascunho | reescreva o pensamento, não a palavra. Apagar a expressão apontada e manter a frase não é conserto |
+
+Se o mesmo eixo falha duas vezes, o material é que está errado, não a redação: redistribua com `--run <n+1>` em vez de editar.
+
+> [!NOTE]
+> Os portões são pisos, não juízes. Provam que certas jogadas familiares estão *ausentes* e que o trabalho exigido foi *feito*. Não conseguem dizer que a ideia é boa, e a nota de aprovação é autoatribuída. Leia o resultado você mesmo.
 
 ## O que sai
 

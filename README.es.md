@@ -79,9 +79,6 @@ Diseña una criatura para mi juego que no se parezca a nada del género.
 Modo extremal, ancla 2: tengo que poder construirla de verdad.
 ```
 
-> [!TIP]
-> Lo más valioso que puedes añadir es **tu propia lista de prohibiciones**. "Otro X no, por favor" vale más que cualquier adjetivo — y si no la das, la skill te la pedirá.
-
 ### Modos · hasta tres apilados
 
 | Modo | Qué elimina |
@@ -101,6 +98,98 @@ Modo extremal, ancla 2: tengo que poder construirla de verdad.
 | `1` | **Legible** | Explicable en tres frases sin analogías con obras conocidas |
 | `2` | **Escenificable** | Una escena u objeto concreto que un equipo podría producir |
 | `3` | **Operable** | Una vía real hacia un prototipo, indicando qué se pierde en esa traducción |
+
+### Cómo dirigir una sesión
+
+Las etapas las ejecuta la habilidad, no tú. Lo que tú controlas son las cuatro cosas de abajo, y cada una cambia el resultado más que cualquier adjetivo.
+
+| Lo que dices | Qué cambia |
+|---|---|
+| **el tema** | la semilla de todo el reparto: la mano se obtiene de su hash, así que reformular el tema reparte otras cartas |
+| **para qué es** | relato · mundo · mecánica de juego · objeto · brief de concept art · nada. "Nada" es una respuesta legítima y suele dar los resultados más extraños |
+| **modos y ancla** | qué caminos se eliminan y cuánto debe seguir siendo alcanzable el resultado |
+| **tu propia lista de prohibiciones** | la entrada más valiosa disponible. Ver abajo |
+
+**Dale tu lista de prohibiciones.** La habilidad quema sus doce primeros impulsos antes de generar nada, pero no puede saber de qué estás harto *tú*. Una frase — *"nada de redes de micelio, nada que al final resulte estar vivo"* — elimina más masa de probabilidad que un párrafo de ánimos. Si no la ofreces, la habilidad la pide antes de repartir.
+
+**Elegir modos:**
+
+| Si quieres | Prueba |
+|---|---|
+| una criatura o entidad que no sea mobiliario de género | `nonhuman, alien-physics` · ancla 1 |
+| una regla del mundo en vez de un monstruo | `alien-physics` · ancla 0 |
+| algo que un equipo pueda montar o rodar de verdad | `alien-physics, grounded` · ancla 2 |
+| una mecánica prototipable este mes | `grounded` · ancla 3 |
+| un sentido, una emoción, un estado interior | `affect` · ancla 1 |
+| lógica anterior a la función aprendida | `baby, nonhuman` · ancla 0 |
+| ya has rechazado dos rondas | añade `extremal` |
+
+Ancla y modos son independientes. `grounded` con ancla 0 es legal y produce algo construible que nadie pidió que fuera legible; `extremal` con ancla 3 es el ajuste más duro que tiene. `grounded` no puede combinarse con `nonhuman`: el eje que sustituye es justo el que ese modo existe para imponer, y la verja rechaza el par.
+
+### La conversación, en la práctica
+
+**Empezar.** Di lo que quieres en cualquier idioma. La habilidad responde en el idioma que uses y razona internamente en inglés.
+
+```text
+Usa el imagination engine con: lo que ocurre en un rellano entre dos plantas.
+Modos nonhuman y alien-physics, ancla 1. Nada de fantasmas, nada de estética de espacio liminal.
+```
+
+**Cuando vuelve demasiado seguro.** No digas "hazlo más raro": esa es exactamente la instrucción que no funciona. La habilidad tiene una respuesta definida en su lugar:
+
+```text
+Sigue siendo seguro. Regenera.
+```
+
+Repartirá desde una tirada nueva, añadirá *todos los elementos de la respuesta anterior* a la lista de prohibiciones y borrará una premisa más de las que venía protegiendo — y te dirá cuál era. Esa última línea suele ser lo interesante del intercambio. En la tercera pasada cambia a `extremal`.
+
+**Cuando vuelve inservible.** Sube el ancla en lugar de ablandar la petición:
+
+```text
+Ancla 3 — necesito un camino real que yo pueda construir, y quiero saber qué pierde el principio por el camino.
+```
+
+**Cuando quieras ver el trabajo.** Las etapas internas están ocultas por diseño. Pídelas y se abren:
+
+```text
+Enséñame los doce impulsos que quemaste y la mano que repartiste.
+```
+
+### Ejecutar la tubería a mano
+
+No hace falta instalar nada más allá de Python 3.11 y el repositorio. Los scripts están en `skills/imagination-engine/scripts/`; escribe los archivos de trabajo en un directorio temporal, nunca dentro de la carpeta de la habilidad.
+
+```bash
+# 1 · reparte la mano (sembrada desde el tema, así que se reproduce exactamente)
+python3 scripts/draw.py --topic "un rellano entre dos plantas" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 2 · quema las respuestas obvias en una lista comprobable
+python3 scripts/banlist.py --topic "un rellano entre dos plantas" \
+    --obvious /tmp/work/obvious.txt --extra "sin fantasmas,sin estetica liminal" --out /tmp/work
+
+# 3 · pasa el linter a cualquier borrador contra esa lista
+python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
+
+# 4 · haz pasar por la verja el candidato terminado
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # añade --extremal o --grounded
+```
+
+`draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla. `--extremal` y `--grounded` no son pruebas: `candidate.json` tiene que declarar los mismos modos o la verja los rechaza.
+
+### Códigos de salida, y qué hacer con cada uno
+
+| Código | Significado | El arreglo |
+|---|---|---|
+| `0` | pasó | — |
+| `1` | uso, archivo ausente o mazo mal formado | una errata, no un juicio |
+| `2` | **la verja falló** — falta una sección o es delgada, un eje bajo el suelo, una carta repartida quedó de adorno | reescribe la idea. Redondear una nota hacia arriba es la única jugada que la habilidad prohíbe |
+| `3` | **hay material prohibido** en el borrador | reescribe el pensamiento, no la palabra. Borrar la frase señalada y conservar la oración no es un arreglo |
+
+Si falla el mismo eje dos veces, lo que está mal es el material y no la redacción: reparte de nuevo con `--run <n+1>` en vez de editar.
+
+> [!NOTE]
+> Las verjas son suelos, no jueces. Prueban que ciertas jugadas conocidas están *ausentes* y que el trabajo exigido se *hizo*. No pueden decirte que la idea sea buena, y la nota de aprobado es autoasignada. Lee el resultado tú mismo.
 
 ## Qué produce
 

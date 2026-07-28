@@ -157,26 +157,44 @@ nonhuman, alien-physics, 앵커 1. 귀신 이야기 말고, 리미널 스페이�
 
 ### 파이프라인 직접 돌리기
 
-Python 3.11과 저장소 외에 설치할 것은 없다. 스크립트는 `skills/imagination-engine/scripts/`에 있고, 작업 파일은 반드시 스크래치 디렉터리에 쓴다 — 스킬 폴더 안에 쓰지 않는다.
+Python 3.11과 저장소 외에 설치할 것은 없다. **아래 명령은 모두 스킬 디렉터리에서 실행한다.** 작업 파일은 반드시 스크래치 디렉터리에 쓴다 — 스킬 폴더 안에 쓰지 않는다:
 
 ```bash
-# 1 · 패 뽑기 (주제에서 시드를 만들므로 그대로 재현된다)
-python3 scripts/draw.py --topic "두 층 사이의 계단참" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · 뻔한 답을 검사 가능한 금지 목록으로 태우기
+다섯 개의 입력 중 둘은 스크립트가 만들어 주지 않고 직접 쓴다. 저장소에 각각의 완성본이 들어 있으니, 빈 파일에서 시작하지 말고 복사해서 고치면 된다.
+
+```bash
+# 1 · 뻔한 답을 검사 가능한 금지 목록으로 태운다.
+#     obvious.txt는 직접 쓰는 파일이다: 가장 먼저 떠오르는 답 열두 개를 한 줄에 하나씩.
+#     references/example-obvious.txt가 다 채워진 예다.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # 또는 직접 작성
 python3 scripts/banlist.py --topic "두 층 사이의 계단참" \
     --obvious /tmp/work/obvious.txt --extra "귀신 금지,리미널 감성 금지" --out /tmp/work
 
-# 3 · 초안을 그 목록으로 린트
+# 2 · 패를 뽑는다 (요청에서 시드를 만들므로 그대로 재현된다)
+python3 scripts/draw.py --topic "두 층 사이의 계단참" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · 결과를 두 벌로 쓴다: 채점용 candidate.json과 독자용 draft.md.
+#     채점되는 각 섹션은 초안 안에 <!-- bind: sections.<id> --> ... <!-- /bind -->
+#     로 표시하고 후보 쪽 문안과 정확히 일치해야 한다. 아니면 게이트가 초안을 거부한다.
+#       구조    → references/candidate.schema.json, references/output-template.md
+#       실물 예 → references/example-candidate.json, references/example-draft.md
+
+# 4 · 쓰는 도중 초안을 린트한다 (진단일 뿐, 통과해도 승인이 아니다)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · 완성된 후보를 게이트에 통과시키기
+# 5 · 게이트. 네 산출물 전부를 받아 판정 하나를 낸다
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes`로 모드를 출력한다. `--run 2`는 재생성용으로 여전히 서로 겹치지 않는 새 재료를 뽑고, `--salt`는 같은 런을 진행시키지 않은 채 다시 뽑는다. `--extremal`과 `--grounded`는 증거가 아니다 — `candidate.json`이 같은 모드를 선언하지 않으면 게이트가 거부한다.
+자기 것을 돌리기 전에 통과하는 모습을 먼저 보고 싶다면 5번을 저장소에 실린 네 산출물로 겨누면 된다: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes`로 모드를 출력한다. `--run 2`는 재생성용으로 여전히 서로 겹치지 않는 새 재료를 뽑고, `--salt`는 같은 런을 진행시키지 않은 채 다시 뽑는다.
 
 ### 종료 코드와 대응
 
@@ -188,6 +206,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | 초안에 **금지된 재료가 있음** | 단어가 아니라 생각을 고친다. 지적된 표현만 지우고 문장을 남기는 건 수정이 아니다 |
 
 같은 축에서 두 번 실패하면 표현이 아니라 재료가 잘못된 것이다. 고쳐 쓰지 말고 `--run <n+1>`로 다시 뽑는다.
+
+종료 코드 하나는 스크립트가 낸 것이 아니다. `No such file or directory`도 `2`를 남기는데, 스크립트가 시작되기 전에 파이썬이 먼저 끝나기 때문이다. 작업 디렉터리가 틀렸다는 뜻이니 `cd skills/imagination-engine`으로 돌아간다. 스크립트 안에서 사용법 오류는 언제나 `1`이라, 실수가 판정으로 보고되는 일은 없다.
 
 > [!IMPORTANT]
 > **"통과"라고 말할 수 있는 명령은 하나뿐이고, 그 하나가 전부를 받는다.** `score_gate.py`는 뽑기를 번들 덱으로 다시 돌려 대조하고, 후보를 카드 하나하나에 결속시키고, *런*이 함의하는 프로파일로 채점하고, 기계로 매칭할 수 없는 금지 항목마다 서면 답변을 요구하고, 지금 보여줄 초안이 채점된 그 초안인지 확인한다. `--extremal`도 `--grounded`도 `--min-mean`도 `--min-axis`도 `--rubric`도 없다 — 판정 시점에 주장된 임계값은 그 판정의 대상이 주장한 것이다. `cliche_lint.py`는 작성 보조일 뿐이고 통과해도 승인이 아니다.
@@ -241,7 +261,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # 숨은 단계까지 포함한 실행 예 1건
 │   ├── rubric.json             # 8축 · 임계값 · 섹션 최소 분량
 │   ├── candidate.schema.json   # score_gate.py가 검증하는 구조
-│   ├── example-candidate.json  # 두 게이트를 통과하는 후보(테스트 픽스처 겸용)
+│   ├── example-obvious.txt     # ─┐ 실행 예 한 건이 통째로: 열두 개의 첫 본능,
+│   ├── example-banlist.json    #  │ 거기서 만든 금지 목록, 뽑힌 패, 채점된
+│   ├── example-draw.json       #  │ 후보, 보여준 초안. 뒤의 넷이 게이트가 받는
+│   ├── example-candidate.json  #  │ 네 입력이고, 테스트 픽스처이기도 하다
+│   ├── example-draft.md        # ─┘
 │   └── decks/                  # 영역 · 제약 · 감각 · 관점
 │                               # 감정 · 모드 · 클리셰
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

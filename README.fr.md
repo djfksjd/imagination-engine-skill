@@ -157,26 +157,46 @@ Montre-moi les douze réflexes que tu as brûlés et la main que tu as tirée.
 
 ### Exécuter le pipeline à la main
 
-Rien à installer au-delà de Python 3.11 et du dépôt. Les scripts sont dans `skills/imagination-engine/scripts/` ; écrivez les fichiers de travail dans un répertoire temporaire, jamais dans le dossier de la compétence.
+Rien à installer au-delà de Python 3.11 et du dépôt. **Toutes les commandes ci-dessous s'exécutent depuis le répertoire de la compétence**, et les fichiers de travail vont dans un répertoire temporaire, jamais dans le dossier de la compétence :
 
 ```bash
-# 1 · distribuer la main (graine issue du sujet, donc rejouable à l'identique)
-python3 scripts/draw.py --topic "un palier entre deux étages" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · brûler les réponses évidentes en une liste vérifiable
+Deux des cinq entrées ne sont produites par aucun script : c'est vous qui les écrivez. Le dépôt en livre une version terminée pour chacune, de sorte que vous pouvez copier puis modifier plutôt que partir d'un fichier vide.
+
+```bash
+# 1 · brûler les réponses évidentes en une liste vérifiable.
+#     obvious.txt, c'est à vous de l'écrire : les douze réponses que vous
+#     donneriez en premier, une par ligne. references/example-obvious.txt en
+#     est une déjà remplie.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # ou écrivez la vôtre
 python3 scripts/banlist.py --topic "un palier entre deux étages" \
     --obvious /tmp/work/obvious.txt --extra "pas de fantomes,pas d esthetique liminale" --out /tmp/work
 
-# 3 · passer n'importe quel brouillon au linter contre cette liste
+# 2 · distribuer la main (graine issue de la requête, donc rejouable à l'identique)
+python3 scripts/draw.py --topic "un palier entre deux étages" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · écrire le résultat deux fois : candidate.json pour que la barrière le note,
+#     draft.md pour la lecture. Chaque section notée est marquée dans le
+#     brouillon entre <!-- bind: sections.<id> --> ... <!-- /bind -->, au mot
+#     près identique au candidat, sinon la barrière refuse le brouillon.
+#       structure → references/candidate.schema.json, references/output-template.md
+#       exemple   → references/example-candidate.json, references/example-draft.md
+
+# 4 · passer le linter en cours d'écriture (diagnostic ; le passer n'est pas un feu vert)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · faire passer la barrière au candidat terminé
+# 5 · la barrière. Les quatre artefacts, un seul verdict
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` affiche les modes. `--run 2` distribue du matériel neuf, toujours de catégories disjointes, pour une régénération ; `--salt` redistribue le même tirage sans l'avancer. `--extremal` et `--grounded` ne sont pas des preuves : `candidate.json` doit déclarer les mêmes modes, sinon la barrière les refuse.
+Pour voir l'ensemble passer avant de lancer le vôtre, pointez l'étape 5 sur les quatre artefacts livrés : `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` affiche les modes. `--run 2` distribue du matériel neuf, toujours de catégories disjointes, pour une régénération ; `--salt` redistribue le même tirage sans l'avancer.
 
 ### Codes de sortie, et quoi faire de chacun
 
@@ -188,6 +208,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | **du matériel interdit** est présent dans le brouillon | réécrivez la pensée, pas le mot. Supprimer la formule signalée et garder la phrase n'est pas un correctif |
 
 Si le même axe échoue deux fois, c'est le matériel qui est mauvais, pas la formulation : redistribuez avec `--run <n+1>` au lieu d'éditer.
+
+Un `2` n'appartient pas aux scripts : `No such file or directory` en laisse un aussi, parce que Python sort avant que le script démarre. C'est le mauvais répertoire de travail — revenez à `cd skills/imagination-engine`. À l'intérieur des scripts, une erreur d'usage vaut toujours `1`, si bien qu'une faute de frappe ne peut jamais être rapportée comme un verdict.
 
 > [!IMPORTANT]
 > **Une seule commande peut dire « passé », et elle prend tout.** `score_gate.py` redistribue la main à partir des paquets embarqués pour la comparer, lie le candidat carte par carte, le note selon le profil qu'implique le *tirage*, exige une réponse écrite à chaque interdit trop long pour être apparié, et vérifie que le brouillon sur le point d'être montré est celui qui a été noté. Pas de `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric` : un seuil affirmé au moment du verdict est affirmé par la partie que ce verdict concerne. `cliche_lint.py` est une aide à la rédaction ; le passer n'est pas une autorisation.
@@ -241,7 +263,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # une exécution complète, étapes cachées comprises
 │   ├── rubric.json             # huit axes · seuils · minimums par section
 │   ├── candidate.schema.json   # ce que valide score_gate.py
-│   ├── example-candidate.json  # un candidat qui passe les deux contrôles (et sert de fixture)
+│   ├── example-obvious.txt     # ─┐ une exécution complète, livrée : les douze
+│   ├── example-banlist.json    #  │ premiers réflexes, la liste bâtie sur eux,
+│   ├── example-draw.json       #  │ la main, le candidat noté et le brouillon
+│   ├── example-candidate.json  #  │ montré. Les quatre derniers sont les quatre
+│   ├── example-draft.md        # ─┘ entrées de la barrière, et la fixture
 │   └── decks/                  # domaines · contraintes · sens · perspectives
 │                               # affects · modes · clichés
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

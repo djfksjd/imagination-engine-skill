@@ -157,24 +157,43 @@ Show me the twelve instincts you burned and the hand you drew.
 
 ### Running the pipeline by hand
 
-Nothing here needs installing beyond Python 3.11 and the repo. Scripts live in `skills/imagination-engine/scripts/`; write working files to a scratch directory, never into the skill folder.
+Nothing here needs installing beyond Python 3.11 and the repo. **Every command below runs from the skill directory**, and working files go to a scratch directory, never into the skill folder:
 
 ```bash
-# 1 · deal the hand (seeded from the topic, so it replays exactly)
-python3 scripts/draw.py --topic "a stairwell between two floors" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · burn the obvious answers into a checkable ban list
+Two of the five inputs are written by you rather than produced by a script. The repo ships a filled-in version of each, so you can copy one and edit rather than start from an empty file.
+
+```bash
+# 1 · burn the obvious answers into a checkable ban list.
+#     obvious.txt is yours to write: the twelve answers you would give first,
+#     one per line. references/example-obvious.txt is a finished one.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # or write your own
 python3 scripts/banlist.py --topic "a stairwell between two floors" \
     --obvious /tmp/work/obvious.txt --extra "no ghosts,no liminal aesthetic" --out /tmp/work
 
-# 3 · lint any draft against that list
+# 2 · deal the hand (seeded from the request, so it replays exactly)
+python3 scripts/draw.py --topic "a stairwell between two floors" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · write the result twice: candidate.json for the gate to score, draft.md for
+#     the reader. Each scored section is marked in the draft inside
+#     <!-- bind: sections.<id> --> ... <!-- /bind -->, matching the candidate
+#     exactly, or the gate refuses the draft.
+#       structure  → references/candidate.schema.json, references/output-template.md
+#       worked     → references/example-candidate.json, references/example-draft.md
+
+# 4 · lint a draft mid-write (a diagnostic; passing is not clearance)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · gate the finished candidate
+# 5 · the gate. All four artefacts, one verdict
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
+
+To watch the whole thing pass before running your own, point step 5 at the four shipped artefacts: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
 
 `draw.py --list-modes` prints the modes. `--run 2` deals fresh, still-disjoint material for a regeneration; `--salt` redeals the same run without advancing it.
 
@@ -188,6 +207,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | **banned material is present** in the draft | rewrite the thought, not the word. Deleting the flagged phrase and keeping the sentence is not a fix |
 
 If the same axis fails twice, the material is wrong rather than the phrasing: redeal with `--run <n+1>` instead of editing.
+
+One exit code is not the scripts': `No such file or directory` also leaves `2` behind, because Python exits before the script starts. That is the wrong working directory — go back to `cd skills/imagination-engine`. Inside the scripts, a usage error is always `1`, so a mistake is never reportable as a verdict.
 
 > [!IMPORTANT]
 > **One command can say "passed", and it takes everything.** `score_gate.py` replays the draw against the bundled decks, binds the candidate to it card by card, scores it on the profile the *run* implies, requires a written answer to every ban too long to match mechanically, and checks that the draft about to be shown is the one that was scored. There is no `--extremal`, no `--grounded`, no `--min-mean`, no `--min-axis`, no `--rubric` — a threshold asserted at verdict time is asserted by the party the verdict is about. `cliche_lint.py` is a drafting aid; passing it is not clearance.
@@ -241,7 +262,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # one complete run, including the hidden stages
 │   ├── rubric.json             # eight axes, thresholds, section minimums
 │   ├── candidate.schema.json   # what score_gate.py validates
-│   ├── example-candidate.json  # a candidate that passes both gates (also a test fixture)
+│   ├── example-obvious.txt     # ─┐ one complete run, shipped: the twelve
+│   ├── example-banlist.json    #  │ instincts, the ban list built from them,
+│   ├── example-draw.json       #  │ the hand, the scored candidate and the
+│   ├── example-candidate.json  #  │ draft. The last four are the gate's four
+│   ├── example-draft.md        # ─┘ inputs, and the suite's fixture
 │   └── decks/                  # domains · constraints · senses · perspectives
 │                               # affects · modes · clichés
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

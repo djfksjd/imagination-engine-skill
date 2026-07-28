@@ -157,26 +157,45 @@ Me mostra os doze impulsos que você queimou e a mão que distribuiu.
 
 ### Rodando o pipeline à mão
 
-Nada a instalar além de Python 3.11 e do repositório. Os scripts ficam em `skills/imagination-engine/scripts/`; escreva os arquivos de trabalho num diretório temporário, nunca dentro da pasta da habilidade.
+Nada a instalar além de Python 3.11 e do repositório. **Todos os comandos abaixo rodam a partir do diretório da habilidade**, e os arquivos de trabalho vão para um diretório temporário, nunca dentro da pasta da habilidade:
 
 ```bash
-# 1 · distribua a mão (semeada pelo tema, então reproduz exatamente)
-python3 scripts/draw.py --topic "um patamar entre dois andares" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · queime as respostas óbvias numa lista verificável
+Duas das cinco entradas não saem de nenhum script: você as escreve. O repositório traz uma versão pronta de cada uma, então dá para copiar e editar em vez de começar de um arquivo vazio.
+
+```bash
+# 1 · queime as respostas óbvias numa lista verificável.
+#     obvious.txt é você quem escreve: as doze respostas que daria primeiro,
+#     uma por linha. references/example-obvious.txt é uma já preenchida.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # ou escreva a sua
 python3 scripts/banlist.py --topic "um patamar entre dois andares" \
     --obvious /tmp/work/obvious.txt --extra "sem fantasmas,sem estetica liminar" --out /tmp/work
 
-# 3 · passe o linter em qualquer rascunho contra essa lista
+# 2 · distribua a mão (semeada pelo pedido, então reproduz exatamente)
+python3 scripts/draw.py --topic "um patamar entre dois andares" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · escreva o resultado duas vezes: candidate.json para o portão pontuar e
+#     draft.md para quem vai ler. Cada seção pontuada aparece no rascunho entre
+#     <!-- bind: sections.<id> --> ... <!-- /bind -->, igual à do candidato,
+#     senão o portão recusa o rascunho.
+#       estrutura → references/candidate.schema.json, references/output-template.md
+#       exemplo   → references/example-candidate.json, references/example-draft.md
+
+# 4 · passe o linter no meio da escrita (é diagnóstico; passar não é liberação)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · leve o candidato pronto ao portão
+# 5 · o portão. Os quatro artefatos, um veredito
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` imprime os modos. `--run 2` distribui material novo, ainda de categorias disjuntas, para uma regeneração; `--salt` redistribui a mesma rodada sem avançá-la. `--extremal` e `--grounded` não são prova: `candidate.json` precisa declarar os mesmos modos, ou o portão recusa.
+Para ver tudo passar antes de rodar o seu, aponte o passo 5 para os quatro artefatos que vêm no repositório: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` imprime os modos. `--run 2` distribui material novo, ainda de categorias disjuntas, para uma regeneração; `--salt` redistribui a mesma rodada sem avançá-la.
 
 ### Códigos de saída, e o que fazer com cada um
 
@@ -188,6 +207,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | **há material proibido** no rascunho | reescreva o pensamento, não a palavra. Apagar a expressão apontada e manter a frase não é conserto |
 
 Se o mesmo eixo falha duas vezes, o material é que está errado, não a redação: redistribua com `--run <n+1>` em vez de editar.
+
+Um `2` não é dos scripts: `No such file or directory` também deixa `2`, porque o Python sai antes de o script começar. É o diretório de trabalho errado — volte para `cd skills/imagination-engine`. Dentro dos scripts, erro de uso é sempre `1`, de modo que um engano nunca é relatado como veredito.
 
 > [!IMPORTANT]
 > **Um único comando pode dizer "passou", e ele recebe tudo.** `score_gate.py` redistribui a mão a partir dos baralhos embutidos para conferir, amarra o candidato carta por carta, pontua com o perfil que a *rodada* implica, exige resposta escrita para cada proibição longa demais para casar automaticamente, e verifica se o rascunho prestes a ser mostrado é o que foi pontuado. Não existe `--extremal`, `--grounded`, `--min-mean`, `--min-axis` nem `--rubric`: um limiar afirmado na hora do veredicto é afirmado pela parte de que o veredicto trata. `cliche_lint.py` é um apoio de redação; passar nele não é liberação.
@@ -241,7 +262,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # uma execução completa, com as etapas ocultas
 │   ├── rubric.json             # oito eixos · limiares · mínimos por seção
 │   ├── candidate.schema.json   # o que score_gate.py valida
-│   ├── example-candidate.json  # um candidato que passa nos dois portões (e serve de fixture)
+│   ├── example-obvious.txt     # ─┐ uma execução inteira, já no repositório: os
+│   ├── example-banlist.json    #  │ doze primeiros instintos, a lista feita a
+│   ├── example-draw.json       #  │ partir deles, a mão, o candidato pontuado e
+│   ├── example-candidate.json  #  │ o rascunho. Os quatro últimos são as quatro
+│   ├── example-draft.md        # ─┘ entradas do portão, e a fixture dos testes
 │   └── decks/                  # domínios · restrições · sentidos · perspectivas
 │                               # afetos · modos · clichês
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

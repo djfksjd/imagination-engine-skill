@@ -157,26 +157,44 @@ nonhuman 与 alien-physics，锚点 1。不要鬼故事，也不要阈限空间�
 
 ### 自己跑这条流水线
 
-除了 Python 3.11 和本仓库，不需要安装任何东西。脚本在 `skills/imagination-engine/scripts/`。工作文件一律写进临时目录，绝不要写进技能文件夹。
+除了 Python 3.11 和本仓库，不需要安装任何东西。**下面每条命令都在技能目录里执行。** 工作文件一律写进临时目录，绝不要写进技能文件夹：
 
 ```bash
-# 1 · 发牌（种子取自主题，因此可以精确重放）
-python3 scripts/draw.py --topic "两层楼之间的楼梯平台" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · 把显而易见的答案烧成可核查的禁用清单
+五个输入里有两个不是脚本产出的，得你自己写。仓库为这两个各带了一份写好的，所以可以复制过来改，而不是从空文件开始。
+
+```bash
+# 1 · 把显而易见的答案烧成可核查的禁用清单。
+#     obvious.txt 由你来写：你最先会给出的十二个答案，一行一个。
+#     references/example-obvious.txt 就是一份写满的。
+cp references/example-obvious.txt /tmp/work/obvious.txt   # 或者自己写
 python3 scripts/banlist.py --topic "两层楼之间的楼梯平台" \
     --obvious /tmp/work/obvious.txt --extra "不要鬼,不要阈限美学" --out /tmp/work
 
-# 3 · 用这份清单检查任何草稿
+# 2 · 发牌（种子取自这次请求，因此可以精确重放）
+python3 scripts/draw.py --topic "两层楼之间的楼梯平台" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · 把结果写两份：给网关评分的 candidate.json，和给人读的 draft.md。
+#     每个被评分的章节都要在草稿里用 <!-- bind: sections.<id> --> ...
+#     <!-- /bind --> 标出，且与候选一字不差，否则网关拒收这份草稿。
+#       结构   → references/candidate.schema.json、references/output-template.md
+#       成品例 → references/example-candidate.json、references/example-draft.md
+
+# 4 · 写作途中检查草稿（只是诊断，通过它不算放行）
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · 让成稿候选过网关
+# 5 · 网关。四份产物一起交，出一个裁定
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` 会列出模式。`--run 2` 为重新生成发一副全新且依然互不相交的材料；`--salt` 在不推进轮次的情况下重发。`--extremal` 与 `--grounded` 不是证据 — `candidate.json` 必须声明相同的模式，否则网关拒绝。
+想在跑自己的之前先看一次通过的样子，就把第 5 步指向仓库自带的四份产物：`--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`。
+
+`draw.py --list-modes` 会列出模式。`--run 2` 为重新生成发一副全新且依然互不相交的材料；`--salt` 在不推进轮次的情况下重发。
 
 ### 退出码与对应处理
 
@@ -188,6 +206,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | 草稿中**存在被禁材料** | 改的是念头，不是词。删掉被标出的短语而留下那句话，不算修改 |
 
 同一条轴连续两次失败，说明错的是材料而不是措辞：别改写，用 `--run <n+1>` 重新发牌。
+
+有一个 `2` 不是脚本给的：`No such file or directory` 同样会留下 `2`，因为脚本还没开始，Python 就退出了。那是工作目录不对——回到 `cd skills/imagination-engine`。在脚本内部，用法错误一律是 `1`，所以打错字永远不会被当成裁定报出来。
 
 > [!IMPORTANT]
 > **能说"通过"的命令只有一条，而这一条要拿全部东西。** `score_gate.py` 会用内置牌堆重新发一次牌来核对，把候选逐张绑到牌上，按*这一轮*所隐含的档位评分，对每条无法机械匹配的禁令要求书面回答，并检查即将展示的草稿就是被评分的那一份。没有 `--extremal`、`--grounded`、`--min-mean`、`--min-axis`、`--rubric` —— 在裁定时刻声明的阈值，是由被裁定的一方声明的。`cliche_lint.py` 只是起草辅助，通过它不算放行。
@@ -241,7 +261,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # 一次完整运行，含隐藏阶段
 │   ├── rubric.json             # 八个轴 · 阈值 · 小节最小篇幅
 │   ├── candidate.schema.json   # score_gate.py 校验的结构
-│   ├── example-candidate.json  # 通过两道闸的候选（同时是测试夹具）
+│   ├── example-obvious.txt     # ─┐ 完整的一次运行：十二个第一反应、由它们
+│   ├── example-banlist.json    #  │ 烧成的禁用清单、发出的牌、评过分的候选、
+│   ├── example-draw.json       #  │ 展示出去的草稿。后四份就是网关的四个输入，
+│   ├── example-candidate.json  #  │ 同时是测试夹具
+│   ├── example-draft.md        # ─┘
 │   └── decks/                  # 领域 · 约束 · 感官 · 视角
 │                               # 情绪 · 模式 · 陈词滥调
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

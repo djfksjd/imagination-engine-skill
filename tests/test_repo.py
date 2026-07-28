@@ -103,6 +103,45 @@ def test_readmes_reference_only_supported_hosts(repo, filename):
     assert "claude code" in text and "codex" in text
 
 
+@pytest.mark.parametrize("filename", sorted(set(LANGUAGES) - {"README.md"}))
+def test_translations_name_the_same_flags_as_the_english(repo, filename):
+    """All seven kept a sentence about --extremal/--grounded that the English
+    had deleted, and that contradicted their own page eleven lines later."""
+    def flags(name):
+        return set(re.findall(r"--[a-z-]+", (repo / name).read_text(encoding="utf-8")))
+    english = flags("README.md")
+    theirs = flags(filename)
+    assert theirs - english == set(), f"{filename} names flags the English does not"
+    assert english - theirs == set(), f"{filename} is missing flags the English names"
+
+    # The stale sentence lived in the --list-modes paragraph, where it told the
+    # reader to pass flags that the same page says a few lines later do not exist.
+    for text in ((repo / filename).read_text(encoding="utf-8"),):
+        for para in text.split("\n\n"):
+            if "--list-modes" not in para:
+                continue
+            assert "--extremal" not in para and "--grounded" not in para, (
+                f"{filename} still tells the reader about deleted gate flags")
+
+
+@pytest.mark.parametrize("filename", sorted(LANGUAGES))
+def test_the_manual_pipeline_is_runnable_in_every_language(repo, filename):
+    """It said the scripts live under skills/imagination-engine/scripts/ and then
+    invoked python3 scripts/draw.py, which from the repo root exits 2 - the same
+    code the page's own table defines as the gate failing. Three of its inputs
+    appeared from nowhere while the repo shipped a finished version of each."""
+    text = (repo / filename).read_text(encoding="utf-8")
+    assert "cd skills/imagination-engine" in text, "no working directory is stated"
+    for name in ("example-obvious.txt", "example-banlist.json", "example-draw.json",
+                 "example-candidate.json", "example-draft.md"):
+        assert name in text, f"{filename} never says where {name} fits"
+    blocks = [b for b in re.findall(r"```bash\n(.*?)```", text, re.S) if "score_gate.py" in b]
+    assert blocks, "the pipeline never reaches the gate"
+    for block in blocks:
+        for flag in ("--candidate", "--draw", "--banlist", "--markdown"):
+            assert flag in block, f"{filename} invokes the gate without {flag}"
+
+
 def test_install_script_targets_both_hosts(repo):
     text = (repo / "install.sh").read_text(encoding="utf-8")
     assert "claude plugin install imagination-engine@djfksjd" in text

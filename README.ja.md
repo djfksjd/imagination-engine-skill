@@ -157,26 +157,44 @@ nonhuman と alien-physics、アンカー 1。幽霊譚は不可、リミナル�
 
 ### パイプラインを自分で回す
 
-Python 3.11 とこのリポジトリ以外に必要なものはありません。スクリプトは `skills/imagination-engine/scripts/` にあります。作業ファイルは必ずスクラッチディレクトリへ — スキルフォルダの中には書かないでください。
+Python 3.11 とこのリポジトリ以外に必要なものはありません。**以下のコマンドはすべてスキルディレクトリで実行します。** 作業ファイルは必ずスクラッチディレクトリへ — スキルフォルダの中には書かないでください。
 
 ```bash
-# 1 · 手札を引く（主題からシードを作るので完全に再現できる）
-python3 scripts/draw.py --topic "二つの階のあいだの踊り場" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · ありきたりな答えを検査可能な禁止リストに焼く
+五つの入力のうち二つはスクリプトが作るものではなく、自分で書くものです。それぞれ書き上がった版がリポジトリに入っているので、空のファイルから始めずにコピーして直せます。
+
+```bash
+# 1 · ありきたりな答えを検査可能な禁止リストに焼く。
+#     obvious.txt は自分で書くファイル。まっさきに出てくる答え十二個を一行ずつ。
+#     references/example-obvious.txt が書き上がった例です。
+cp references/example-obvious.txt /tmp/work/obvious.txt   # または自分で書く
 python3 scripts/banlist.py --topic "二つの階のあいだの踊り場" \
     --obvious /tmp/work/obvious.txt --extra "幽霊なし,リミナル美学なし" --out /tmp/work
 
-# 3 · 草稿をそのリストで lint
+# 2 · 手札を引く（リクエストからシードを作るので完全に再現できる）
+python3 scripts/draw.py --topic "二つの階のあいだの踊り場" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · 結果を二通り書く。採点用の candidate.json と、読者に見せる draft.md。
+#     採点される各セクションは草稿の中で <!-- bind: sections.<id> --> ...
+#     <!-- /bind --> で囲み、候補側と完全に一致させる。ずれればゲートが拒否する。
+#       構造     → references/candidate.schema.json, references/output-template.md
+#       実物の例 → references/example-candidate.json, references/example-draft.md
+
+# 4 · 執筆中の草稿を lint する（診断であり、通ってもクリアランスではない）
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · 完成した候補をゲートに通す
+# 5 · ゲート。四つの成果物すべてを受け取り、判定は一つ
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` でモード一覧が出ます。`--run 2` は再生成用に、やはり互いに重ならない新しい素材を配ります。`--salt` はランを進めずに引き直します。`--extremal` と `--grounded` は証拠ではありません — `candidate.json` が同じモードを宣言していなければゲートが拒否します。
+自分の run を回す前に通る様子を見たいなら、5 番を同梱の四つの成果物に向けてください: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`。
+
+`draw.py --list-modes` でモード一覧が出ます。`--run 2` は再生成用に、やはり互いに重ならない新しい素材を配ります。`--salt` はランを進めずに引き直します。
 
 ### 終了コードと対処
 
@@ -188,6 +206,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | 草稿に**禁止された素材がある** | 語ではなく思考を書き直す。指摘された表現だけ消して文を残すのは修正ではない |
 
 同じ軸で二度落ちたら、表現ではなく素材が間違っています。直すのではなく `--run <n+1>` で引き直してください。
+
+ひとつだけ、スクリプトのものではない `2` があります。`No such file or directory` も `2` を残す — スクリプトが始まる前に Python が終了するからです。作業ディレクトリが違うということなので、`cd skills/imagination-engine` に戻ってください。スクリプトの中では使い方の誤りはつねに `1` で、打ち間違いが判定として報告されることはありません。
 
 > [!IMPORTANT]
 > **「通過」と言えるコマンドは一つだけで、その一つがすべてを受け取ります。** `score_gate.py` は引きを同梱デッキで引き直して照合し、候補をカード一枚ずつに結び付け、*ラン*が含意するプロファイルで採点し、機械照合できない禁止項目ごとに書面の回答を求め、これから見せる草稿が採点されたその草稿かを確認します。`--extremal` も `--grounded` も `--min-mean` も `--min-axis` も `--rubric` もありません — 判定時に主張された閾値は、その判定の対象が主張したものです。`cliche_lint.py` は下書き用の補助であり、通ってもクリアランスではありません。
@@ -241,7 +261,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # 隠れた工程を含む実行例 1 件
 │   ├── rubric.json             # 8 軸 · 閾値 · セクション最小量
 │   ├── candidate.schema.json   # score_gate.py が検証する構造
-│   ├── example-candidate.json  # 両ゲートを通る候補（テスト用フィクスチャ兼用）
+│   ├── example-obvious.txt     # ─┐ 一回分の実行がまるごと: 十二の第一感、
+│   ├── example-banlist.json    #  │ そこから作った禁止リスト、引いた手札、
+│   ├── example-draw.json       #  │ 採点された候補、見せた草稿。後ろの四つが
+│   ├── example-candidate.json  #  │ ゲートの四入力であり、テスト用フィクスチャ
+│   ├── example-draft.md        # ─┘ でもある
 │   └── decks/                  # 領域 · 制約 · 感覚 · 視点
 │                               # 感情 · モード · クリシェ
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

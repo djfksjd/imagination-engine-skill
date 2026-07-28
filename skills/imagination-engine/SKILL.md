@@ -253,6 +253,10 @@ they were unknowingly protecting.
 - `references/worked-example.md` - one complete run including the hidden stages
 - `references/rubric.json` - the eight axes, thresholds, and section minimums
 - `references/candidate.schema.json` - the structure `score_gate.py` validates
-- `references/example-candidate.json` - a candidate that passes both gates
+- `references/example-obvious.txt` - the twelve instincts that run burned
+- `references/example-banlist.json` - the ban list built from them
+- `references/example-draw.json` - the hand that run was dealt
+- `references/example-candidate.json` - the candidate that passed the gate
+- `references/example-draft.md` - the draft that was shown, with its bindings
 - `references/decks/` - domains, constraints, senses, perspectives, affects,
   modes, cliches

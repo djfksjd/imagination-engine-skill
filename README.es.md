@@ -157,26 +157,45 @@ Enséñame los doce impulsos que quemaste y la mano que repartiste.
 
 ### Ejecutar la tubería a mano
 
-No hace falta instalar nada más allá de Python 3.11 y el repositorio. Los scripts están en `skills/imagination-engine/scripts/`; escribe los archivos de trabajo en un directorio temporal, nunca dentro de la carpeta de la habilidad.
+No hace falta instalar nada más allá de Python 3.11 y el repositorio. **Todos los comandos de abajo se ejecutan desde el directorio de la habilidad**, y los archivos de trabajo van a un directorio temporal, nunca dentro de la carpeta de la habilidad:
 
 ```bash
-# 1 · reparte la mano (sembrada desde el tema, así que se reproduce exactamente)
-python3 scripts/draw.py --topic "un rellano entre dos plantas" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · quema las respuestas obvias en una lista comprobable
+Dos de las cinco entradas las escribes tú, no las produce ningún script. El repositorio trae una versión terminada de cada una, así que puedes copiarla y editarla en vez de partir de un archivo vacío.
+
+```bash
+# 1 · quema las respuestas obvias en una lista comprobable.
+#     obvious.txt lo escribes tú: las doce respuestas que darías primero,
+#     una por línea. references/example-obvious.txt es una ya terminada.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # o escribe la tuya
 python3 scripts/banlist.py --topic "un rellano entre dos plantas" \
     --obvious /tmp/work/obvious.txt --extra "sin fantasmas,sin estetica liminal" --out /tmp/work
 
-# 3 · pasa el linter a cualquier borrador contra esa lista
+# 2 · reparte la mano (sembrada desde la petición, así que se reproduce exactamente)
+python3 scripts/draw.py --topic "un rellano entre dos plantas" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · escribe el resultado dos veces: candidate.json para que la verja lo puntúe
+#     y draft.md para quien lo lea. Cada sección puntuada va marcada en el
+#     borrador entre <!-- bind: sections.<id> --> ... <!-- /bind -->, idéntica a
+#     la del candidato, o la verja rechaza el borrador.
+#       estructura → references/candidate.schema.json, references/output-template.md
+#       ejemplo    → references/example-candidate.json, references/example-draft.md
+
+# 4 · pasa el linter a mitad de escritura (es un diagnóstico; pasarlo no es aprobación)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · haz pasar por la verja el candidato terminado
+# 5 · la verja. Los cuatro artefactos, un solo veredicto
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla. `--extremal` y `--grounded` no son pruebas: `candidate.json` tiene que declarar los mismos modos o la verja los rechaza.
+Para ver la tubería entera pasar antes de correr la tuya, apunta el paso 5 a los cuatro artefactos que trae el repositorio: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla.
 
 ### Códigos de salida, y qué hacer con cada uno
 
@@ -188,6 +207,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | **hay material prohibido** en el borrador | reescribe el pensamiento, no la palabra. Borrar la frase señalada y conservar la oración no es un arreglo |
 
 Si falla el mismo eje dos veces, lo que está mal es el material y no la redacción: reparte de nuevo con `--run <n+1>` en vez de editar.
+
+Hay un `2` que no es de los scripts: `No such file or directory` también deja `2`, porque Python sale antes de que el script arranque. Eso es el directorio de trabajo equivocado — vuelve a `cd skills/imagination-engine`. Dentro de los scripts un error de uso siempre es `1`, así que una errata nunca puede presentarse como un veredicto.
 
 > [!IMPORTANT]
 > **Un solo comando puede decir "pasó", y ese toma todo.** `score_gate.py` vuelve a repartir la mano contra los mazos incluidos para cotejarla, ata el candidato carta por carta, lo puntúa con el perfil que implica la *tirada*, exige una respuesta escrita a cada prohibición demasiado larga para cotejar, y comprueba que el borrador a punto de mostrarse es el que se puntuó. No hay `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric`: un umbral afirmado en el momento del veredicto lo afirma la parte sobre la que trata el veredicto. `cliche_lint.py` es una ayuda de redacción; superarlo no es una autorización.
@@ -241,7 +262,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # una ejecución completa, con las etapas ocultas
 │   ├── rubric.json             # ocho ejes · umbrales · mínimos por sección
 │   ├── candidate.schema.json   # lo que valida score_gate.py
-│   ├── example-candidate.json  # un candidato que pasa ambos controles (y sirve de fixture)
+│   ├── example-obvious.txt     # ─┐ una ejecución completa, incluida: los doce
+│   ├── example-banlist.json    #  │ primeros instintos, la lista hecha con
+│   ├── example-draw.json       #  │ ellos, la mano, el candidato puntuado y el
+│   ├── example-candidate.json  #  │ borrador. Los cuatro últimos son las cuatro
+│   ├── example-draft.md        # ─┘ entradas de la verja, y el fixture del test
 │   └── decks/                  # dominios · restricciones · sentidos · perspectivas
 │                               # afectos · modos · clichés
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

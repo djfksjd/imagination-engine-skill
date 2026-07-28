@@ -157,26 +157,45 @@ Zeig mir die zwölf verbrannten Reflexe und die Hand, die du gezogen hast.
 
 ### Die Pipeline von Hand fahren
 
-Außer Python 3.11 und dem Repository ist nichts zu installieren. Die Skripte liegen in `skills/imagination-engine/scripts/`; schreiben Sie Arbeitsdateien in ein Scratch-Verzeichnis, nie in den Ordner der Fähigkeit.
+Außer Python 3.11 und dem Repository ist nichts zu installieren. **Alle Befehle unten laufen aus dem Verzeichnis der Fähigkeit**, und Arbeitsdateien gehen in ein Scratch-Verzeichnis, nie in den Ordner der Fähigkeit:
 
 ```bash
-# 1 · die Hand austeilen (aus dem Thema geseedet, also exakt wiederholbar)
-python3 scripts/draw.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
-    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
 
-# 2 · die naheliegenden Antworten in eine prüfbare Verbotsliste verbrennen
+Zwei der fünf Eingaben erzeugt kein Skript, die schreiben Sie selbst. Von beiden liegt eine ausgefüllte Fassung im Repository, Sie können sie also kopieren und ändern, statt vor einer leeren Datei zu sitzen.
+
+```bash
+# 1 · die naheliegenden Antworten in eine prüfbare Verbotsliste verbrennen.
+#     obvious.txt schreiben Sie: die zwölf Antworten, die Ihnen zuerst
+#     einfallen, eine pro Zeile. references/example-obvious.txt ist eine fertige.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # oder selbst schreiben
 python3 scripts/banlist.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
     --obvious /tmp/work/obvious.txt --extra "keine Geister,keine liminale Aesthetik" --out /tmp/work
 
-# 3 · einen Entwurf gegen diese Liste linten
+# 2 · die Hand austeilen (aus der Anfrage geseedet, also exakt wiederholbar)
+python3 scripts/draw.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 3 · das Ergebnis zweimal schreiben: candidate.json, damit das Gatter es
+#     bewertet, und draft.md zum Lesen. Jeder bewertete Abschnitt steht im
+#     Entwurf zwischen <!-- bind: sections.<id> --> ... <!-- /bind -->, wörtlich
+#     wie im Kandidaten, sonst weist das Gatter den Entwurf ab.
+#       Struktur → references/candidate.schema.json, references/output-template.md
+#       Beispiel → references/example-candidate.json, references/example-draft.md
+
+# 4 · beim Schreiben linten (Diagnose; bestanden heißt nicht freigegeben)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · den fertigen Kandidaten durchs Gatter schicken
+# 5 · das Gatter. Alle vier Artefakte, ein Urteil
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen. `--extremal` und `--grounded` sind kein Beleg: `candidate.json` muss dieselben Modi deklarieren, sonst weist das Gatter sie ab.
+Wer das Ganze erst einmal bestehen sehen will, richtet Schritt 5 auf die vier mitgelieferten Artefakte: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen.
 
 ### Exit-Codes und was jeweils zu tun ist
 
@@ -188,6 +207,8 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 | `3` | **verbotenes Material** im Entwurf | schreiben Sie den Gedanken neu, nicht das Wort. Die markierte Wendung zu löschen und den Satz zu behalten ist kein Fix |
 
 Scheitert dieselbe Achse zweimal, ist das Material falsch und nicht die Formulierung: neu austeilen mit `--run <n+1>`, statt zu redigieren.
+
+Eine `2` stammt nicht von den Skripten: `No such file or directory` hinterlässt ebenfalls `2`, weil Python beendet, bevor das Skript startet. Das ist das falsche Arbeitsverzeichnis — zurück zu `cd skills/imagination-engine`. In den Skripten selbst ist ein Bedienfehler immer `1`, ein Tippfehler kann also nie als Urteil gemeldet werden.
 
 > [!IMPORTANT]
 > **Nur ein Befehl kann „bestanden" sagen, und der nimmt alles.** `score_gate.py` teilt die Hand aus den mitgelieferten Decks neu aus und vergleicht, bindet den Kandidaten Karte für Karte daran, bewertet ihn nach dem Profil, das der *Zug* impliziert, verlangt zu jedem nicht maschinell prüfbaren Verbot eine schriftliche Antwort und prüft, ob der gleich gezeigte Entwurf der bewertete ist. Es gibt kein `--extremal`, `--grounded`, `--min-mean`, `--min-axis`, `--rubric`: Eine zur Urteilszeit behauptete Schwelle behauptet die Partei, um die es im Urteil geht. `cliche_lint.py` ist eine Schreibhilfe; sie zu bestehen ist keine Freigabe.
@@ -241,7 +262,11 @@ skills/imagination-engine/
 │   ├── worked-example.md       # ein kompletter Durchlauf samt verborgener Stufen
 │   ├── rubric.json             # acht Achsen · Schwellen · Mindestlängen
 │   ├── candidate.schema.json   # was score_gate.py validiert
-│   ├── example-candidate.json  # ein Kandidat, der beide Gates besteht (zugleich Fixture)
+│   ├── example-obvious.txt     # ─┐ ein kompletter Durchlauf, mitgeliefert: die
+│   ├── example-banlist.json    #  │ zwölf ersten Reflexe, die daraus gebaute
+│   ├── example-draw.json       #  │ Verbotsliste, die Hand, der bewertete
+│   ├── example-candidate.json  #  │ Kandidat, der gezeigte Entwurf. Die letzten
+│   ├── example-draft.md        # ─┘ vier sind die Eingaben des Gatters
 │   └── decks/                  # Domänen · Einschränkungen · Sinne · Perspektiven
 │                               # Affekte · Modi · Klischees
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

@@ -557,10 +557,10 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
         # does, and parse_obvious dedupes, so twelve identical lines arrive here
         # as one and are refused rather than counted.
         failures.append(
-            f"banlist: carries {len(dump)} distinct first instincts, {MIN_OBVIOUS} are required, so "
-            "the contract for this run - the bundled cliche deck plus the instincts burnt before "
-            "writing - cannot be rebuilt from it. Stage 1 is the subtraction this skill is named "
-            f"after: build the list with banlist.py rather than by hand ({exc})")
+            f"banlist: the contract for this run - the bundled cliche deck plus the instincts burnt "
+            f"before writing - cannot be rebuilt from the {len(dump)} distinct first instincts this "
+            f"file carries. Stage 1 is the subtraction this skill is named after: build the list "
+            f"with banlist.py rather than by hand. {exc}")
         return failures, {
             "entries": [e for e in deck_entries(cliches) if e["tier"] in ("ban", "warn")] + supplied_entries,
             "patterns": list(cliches["structural_patterns"]),

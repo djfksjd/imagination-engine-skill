@@ -45,6 +45,48 @@ MIN_OBVIOUS = 12
 MATCHABLE_MAX_WORDS = 6
 BULLET = re.compile(r"^\s*(?:[-*+•]|\d+[.)])\s*")
 
+# Two entries sharing this share of their words are the same line with a number
+# changed. More than this share of the pairs being that way is a template, not a
+# dump. See variant_family_share.
+NEAR_DUPLICATE = 0.5
+MAX_NEAR_DUPLICATE_PAIRS = 0.5
+WORD = re.compile(r"[\w']+", re.UNICODE)
+
+
+def variant_family_share(obvious: list[str]) -> float:
+    """What share of the entry pairs are variants of one another.
+
+    Exact-duplicate detection closed the twelve-copies-of-"zzzzzz" attack, and
+    twelve *distinct* throwaways walked straight through it: `throwaway instinct
+    1` ... `throwaway instinct 12` are twelve different strings, recompute
+    cleanly, and are one line with a number changed. Because they are also all
+    short, they all become matchable bans, `manual_checks` comes out empty, and
+    the obligation to answer the long instincts in writing disappears with them.
+
+    Measured on real dumps - the shipped one, a fiction dump and a product dump
+    from live use - no pair reaches this similarity at all: mean pairwise
+    Jaccard 0.02 to 0.07, maximum 0.29. Every throwaway family tried sits at
+    0.50 or above on *every* pair. The threshold is set at half the pairs
+    because the gap is that wide, not because half is a principled number.
+
+    What this narrows rather than closes: it catches a dump built from one
+    template. It cannot tell twelve genuinely varied lines the model never
+    believed from twelve it did, and nothing here can - the dump is the model's
+    own report of its own instincts. What it removes is the cheapest forgery.
+    """
+    words = [set(WORD.findall(normalize(item))) for item in obvious]
+    pairs = 0
+    near = 0
+    for i in range(len(words)):
+        for j in range(i + 1, len(words)):
+            union = words[i] | words[j]
+            if not union:
+                continue
+            pairs += 1
+            if len(words[i] & words[j]) / len(union) >= NEAR_DUPLICATE:
+                near += 1
+    return near / pairs if pairs else 0.0
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = UsageParser(description="Build a ban list from the obvious-answer dump plus the cliche deck.")
@@ -121,6 +163,17 @@ def compose_banlist(topic: str, obvious: list[str], extra: list[str], allow: set
             f"the obvious dump has {len(obvious)} usable entries but {MIN_OBVIOUS} are required. "
             "Stage 1 exists to burn your high-probability answers before you write; a short dump means "
             "the familiar answers are still available to you.",
+        )
+
+    share = variant_family_share(obvious)
+    if share > MAX_NEAR_DUPLICATE_PAIRS:
+        raise EngineError(
+            f"the obvious dump is one line with a number changed: {share:.0%} of its entry pairs "
+            f"share at least {NEAR_DUPLICATE:.0%} of their words, where real dumps share almost "
+            "none. Twelve variants of a template are one instinct written twelve times, and because "
+            "they are all short they all become matchable bans, which empties the manual checks the "
+            "long instincts would have produced. Write the twelve answers you would actually have "
+            "given.",
         )
 
     known_ids = {p["id"] for p in cliches["phrases"]}

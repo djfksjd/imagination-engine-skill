@@ -737,6 +737,7 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
             "anchor": anchor,
             "modes": sorted(mode_ids),
             "axis_substitution": substitution.get("axis", {}).get("id") if grounded else None,
+            "axis_substitution_replaces": substitution.get("replaces") if grounded else None,
         },
         "scores": values,
         "failures": failures,
@@ -765,7 +766,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(verdict, ensure_ascii=False, indent=2))
     else:
         policy = verdict["policy"]
-        print(f"POLICY LOCKED: {policy['rubric']}/{policy['rubric_version']} {policy['profile']}; "
+        profile_label = policy["profile"]
+        if policy["axis_substitution"]:
+            profile_label += (
+                f" ({policy['axis_substitution']} substituted for "
+                f"{policy['axis_substitution_replaces']})")
+        print(f"POLICY LOCKED: {policy['rubric']}/{policy['rubric_version']} {profile_label}; "
               f"mean >= {policy['thresholds']['min_mean']}; every axis >= {policy['thresholds']['min_axis']}")
         print(f"mean {verdict['mean']}")
         for w in verdict["warnings"]:

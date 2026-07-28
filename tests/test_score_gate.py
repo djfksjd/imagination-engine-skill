@@ -68,6 +68,37 @@ def test_the_profile_comes_from_the_drawn_modes(run, gate):
     assert out.json()["policy"]["thresholds"] == {"min_mean": 9.0, "min_axis": 8}
 
 
+def test_the_printed_verdict_names_the_substituted_axis(run, gate):
+    """A grounded run is judged on translation_integrity, not on the profile
+    named 'default'. The human-readable POLICY LOCKED line used to say
+    'default' regardless, which misnames the policy the run was actually
+    judged under - a reader who never asked for --json would never learn
+    that non_anthropocentrism was swapped out."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "grounded,alien-physics", "--run", "1", "--anchor", "3", "--json")
+    assert res.code == 0, res
+    out = gate(draw=res.json(), json_out=False)
+    verdict_line = out.out.splitlines()[0]
+    assert verdict_line.startswith("POLICY LOCKED:")
+    assert "translation_integrity" in verdict_line
+    assert "non_anthropocentrism" in verdict_line
+    assert "substituted" in verdict_line, (
+        "the line must say the axis was substituted, not just name both axes "
+        "somewhere in the sentence")
+
+
+def test_the_printed_verdict_names_the_extremal_profile(run, gate):
+    """The extremal profile is not silently folded into 'default' either: the
+    raised thresholds are reported under their own profile name."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "baby,nonhuman,extremal", "--run", "1", "--anchor", "1", "--json")
+    assert res.code == 0, res
+    out = gate(draw=res.json(), json_out=False)
+    assert "POLICY LOCKED: imagination-engine/0.4.0 extremal;" in out.out
+    assert "mean >= 9.0" in out.out
+    assert "every axis >= 8" in out.out
+
+
 # ----------------------------------------------------------- the draw replays
 
 

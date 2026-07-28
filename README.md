@@ -218,7 +218,7 @@ One exit code is not the scripts': `No such file or directory` also leaves `2` b
 
 ## What comes out
 
-Eight fixed sections, in your language: the name · a one-line definition that does not lean on a comparison · the law it runs on · a first-encounter scene · its strangest property · the conflicting feelings it produces · what changes in the world because it exists · and, required, **which familiar versions were discarded and what the result is closest to**.
+Eight fixed sections, in your language: the name · a one-line definition that does not lean on a comparison · the law it runs on · a first-encounter scene · its strangest property · the conflicting feelings it produces · what changes in the world because it exists · and, required, **which familiar versions were discarded and what the result is closest to**. A ninth section, **one path to something real**, is added whenever the run is `grounded` or the anchor is `3` — the gate requires it in exactly those two cases and neither of the other seven sections goes away when it appears.
 
 <details open>
 <summary>From the worked example — prompt: <i>"a machine that separates emotion from voice"</i></summary>

@@ -218,7 +218,7 @@ Hay un `2` que no es de los scripts: `No such file or directory` también deja `
 
 ## Qué produce
 
-Ocho secciones fijas, en tu idioma: el nombre · una definición de una línea que no se apoya en comparaciones · la ley por la que existe · una escena de primer encuentro · su propiedad más extraña · los sentimientos en conflicto que provoca · lo que cambia en el mundo por su existencia · y, obligatorio, **qué versiones familiares se descartaron y a qué obra conocida se parece más**.
+Ocho secciones fijas, en tu idioma: el nombre · una definición de una línea que no se apoya en comparaciones · la ley por la que existe · una escena de primer encuentro · su propiedad más extraña · los sentimientos en conflicto que provoca · lo que cambia en el mundo por su existencia · y, obligatorio, **qué versiones familiares se descartaron y a qué obra conocida se parece más**. Se añade una novena sección, **un camino hacia algo real**, siempre que la tirada sea `grounded` o el ancla sea `3` — el gate la exige exactamente en esos dos casos, y ninguna de las otras siete secciones desaparece cuando aparece.
 
 <details open>
 <summary>Del ejemplo completo — tema: <i>"una máquina que separa la emoción de la voz"</i></summary>

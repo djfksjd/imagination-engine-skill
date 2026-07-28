@@ -219,7 +219,7 @@ Un `2` n'appartient pas aux scripts : `No such file or directory` en laisse un a
 
 ## Ce qui en sort
 
-Huit sections fixes, dans votre langue : le nom · une définition en une ligne qui ne s'appuie sur aucune comparaison · la loi qui le fait exister · une scène de première rencontre · sa propriété la plus étrange · les sentiments contradictoires qu'il produit · ce qui change dans le monde du fait de son existence · et, obligatoire, **quelles versions familières ont été écartées et de quelle œuvre connue le résultat est le plus proche**.
+Huit sections fixes, dans votre langue : le nom · une définition en une ligne qui ne s'appuie sur aucune comparaison · la loi qui le fait exister · une scène de première rencontre · sa propriété la plus étrange · les sentiments contradictoires qu'il produit · ce qui change dans le monde du fait de son existence · et, obligatoire, **quelles versions familières ont été écartées et de quelle œuvre connue le résultat est le plus proche**. Une neuvième section, **un chemin vers quelque chose de réel**, s'ajoute dès que le tirage est `grounded` ou que l'ancrage vaut `3` — le gate ne l'exige que dans ces deux cas précis, et aucune des sept autres sections ne disparaît lorsqu'elle apparaît.
 
 <details open>
 <summary>Extrait de l'exemple complet — sujet : <i>« une machine qui sépare l'émotion de la voix »</i></summary>

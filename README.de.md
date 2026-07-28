@@ -218,7 +218,7 @@ Eine `2` stammt nicht von den Skripten: `No such file or directory` hinterlässt
 
 ## Was herauskommt
 
-Acht feste Abschnitte, in deiner Sprache: der Name · eine einzeilige Definition ohne Vergleich · das Gesetz, nach dem es existiert · eine Szene der ersten Begegnung · seine fremdeste Eigenschaft · die widersprüchlichen Gefühle, die es erzeugt · was sich in der Welt durch seine Existenz ändert · und, verpflichtend, **welche vertrauten Fassungen verworfen wurden und welchem bekannten Werk das Ergebnis am nächsten kommt**.
+Acht feste Abschnitte, in deiner Sprache: der Name · eine einzeilige Definition ohne Vergleich · das Gesetz, nach dem es existiert · eine Szene der ersten Begegnung · seine fremdeste Eigenschaft · die widersprüchlichen Gefühle, die es erzeugt · was sich in der Welt durch seine Existenz ändert · und, verpflichtend, **welche vertrauten Fassungen verworfen wurden und welchem bekannten Werk das Ergebnis am nächsten kommt**. Ein neunter Abschnitt, **ein Weg zu etwas Echtem**, kommt hinzu, sobald der Lauf `grounded` ist oder der Anker `3` beträgt — das Gate verlangt ihn genau in diesen beiden Fällen, und keiner der anderen sieben Abschnitte entfällt dadurch.
 
 <details open>
 <summary>Aus dem durchgearbeiteten Beispiel — Thema: <i>„eine Maschine, die Gefühl von Stimme trennt"</i></summary>

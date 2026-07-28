@@ -142,6 +142,32 @@ def test_the_manual_pipeline_is_runnable_in_every_language(repo, filename):
             assert flag in block, f"{filename} invokes the gate without {flag}"
 
 
+NINTH_SECTION_MARKER = {
+    "README.md": "A ninth section, **one path to something real**,",
+    "README.ko.md": "아홉 번째 섹션인 **현실에 닿는 하나의 경로**가 추가된다",
+    "README.ja.md": "九番目のセクションである**現実に届く一つの経路**が加わる",
+    "README.de.md": "Ein neunter Abschnitt, **ein Weg zu etwas Echtem**,",
+    "README.es.md": "Se añade una novena sección, **un camino hacia algo real**,",
+    "README.fr.md": "Une neuvième section, **un chemin vers quelque chose de réel**,",
+    "README.pt-BR.md": "Uma nona seção, **um caminho para algo real**,",
+    "README.zh-CN.md": "就会加上第九个小节：**一条通向现实的路径**",
+}
+
+
+@pytest.mark.parametrize("filename", sorted(LANGUAGES))
+def test_readme_names_the_conditional_ninth_section(repo, filename):
+    """"What comes out" described eight sections and never mentioned
+    operational_path at all, in any language. A user who read only that
+    paragraph and then ran `grounded` or anchor `3` had no way to learn a
+    ninth section existed, wrote a draft without it, and score_gate.py
+    rejected it for a bind block the reader was never told to write."""
+    text = (repo / filename).read_text(encoding="utf-8")
+    assert NINTH_SECTION_MARKER[filename] in text, (
+        f"{filename} does not tell the reader about the conditional ninth "
+        "section (operational_path) that grounded/anchor-3 runs require"
+    )
+
+
 def test_install_script_targets_both_hosts(repo):
     text = (repo / "install.sh").read_text(encoding="utf-8")
     assert "claude plugin install imagination-engine@djfksjd" in text

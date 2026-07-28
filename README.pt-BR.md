@@ -218,7 +218,7 @@ Um `2` não é dos scripts: `No such file or directory` também deixa `2`, porqu
 
 ## O que sai
 
-Oito seções fixas, no seu idioma: o nome · uma definição de uma linha que não se apoia em comparações · a lei pela qual existe · uma cena de primeiro encontro · sua propriedade mais estranha · os sentimentos conflitantes que provoca · o que muda no mundo por ele existir · e, obrigatório, **quais versões familiares foram descartadas e de qual obra conhecida o resultado é mais próximo**.
+Oito seções fixas, no seu idioma: o nome · uma definição de uma linha que não se apoia em comparações · a lei pela qual existe · uma cena de primeiro encontro · sua propriedade mais estranha · os sentimentos conflitantes que provoca · o que muda no mundo por ele existir · e, obrigatório, **quais versões familiares foram descartadas e de qual obra conhecida o resultado é mais próximo**. Uma nona seção, **um caminho para algo real**, é acrescentada sempre que a rodada é `grounded` ou a âncora é `3` — o gate só a exige exatamente nesses dois casos, e nenhuma das outras sete seções desaparece quando ela aparece.
 
 <details open>
 <summary>Do exemplo completo — tema: <i>"uma máquina que separa emoção da voz"</i></summary>

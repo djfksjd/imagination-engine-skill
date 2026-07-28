@@ -96,6 +96,87 @@ def test_a_draw_without_a_request_block_is_a_usage_error(gate, example_draw):
     assert "no request block" in res.err
 
 
+def test_an_edited_anchor_does_not_survive_the_replay(run, gate):
+    """Rewriting request.anchor from 3 to 1 used to delete the operational_path
+    requirement and pass: the anchor reached the verdict but never the deal."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "baby,nonhuman,affect", "--run", "1", "--anchor", "3", "--json")
+    assert res.code == 0, res
+    d = res.json()
+    d["request"]["anchor"] = 1
+    out = gate(draw=d)
+    assert out.code == 2
+    assert "does not follow from its own request" in failures(out)
+
+
+def test_a_draw_that_shows_one_anchor_and_requests_another_is_caught(gate, example_draw):
+    """The half of draw.json the user reads must describe the run the gate reads."""
+    d = deepcopy(example_draw)
+    d["anchor"] = {"level": 3, "label": "Operable", "rule": "x"}
+    res = gate(draw=d)
+    assert res.code == 2
+    assert "draw.anchor.level" in failures(res)
+
+
+# ---------------------------------------------- the ban list belongs to the run
+
+
+def test_an_empty_ban_list_is_refused(gate):
+    """`--banlist` accepted any JSON object: a file containing {} passed the
+    shipped example with exit 0, so stage 1 was unenforced where it counts."""
+    res = gate(banlist={})
+    assert res.code == 2
+    assert "cliche deck" in failures(res)
+    assert "first instincts" in failures(res)
+
+
+def test_a_hand_written_ban_list_is_refused(gate):
+    res = gate(banlist={"topic": "a machine that separates emotion from voice",
+                        "entries": [{"id": "x", "phrase": "zzzqqq", "tier": "ban"}],
+                        "manual_checks": [], "counts": {"obvious_supplied": 12}})
+    assert res.code == 2
+    assert "build the list with banlist.py" in failures(res)
+
+
+def test_a_ban_list_from_another_run_is_refused(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["topic"] = "a bridge that refuses traffic"
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "banlist.topic" in failures(res)
+
+
+def test_the_burnt_instincts_must_still_be_there_at_the_gate(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["entries"] = [e for e in b["entries"] if e.get("group") != "first-instinct"]
+    b["manual_checks"] = []
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "first instincts" in failures(res)
+
+
+def test_the_bundled_deck_cannot_be_trimmed_out_of_the_ban_list(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["entries"] = [e for e in b["entries"] if e.get("source") != "deck"]
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "cliche deck" in failures(res)
+
+
+def test_dropping_the_structural_patterns_does_not_shrink_the_lint(gate, references, example_markdown):
+    """Removing them used to disable the pitch-shaped-sentence check entirely."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = []
+    res = gate(banlist=b, markdown=example_markdown + "\n\nIt is grief meets architecture.\n")
+    assert res.code == 2
+    assert "banlist.structural_patterns" in failures(res)
+    assert "banned material" in failures(res)
+
+
 # ------------------------------------------------ the candidate is bound to it
 
 
@@ -205,6 +286,35 @@ def test_a_placeholder_name_is_refused_however_long(gate, example_candidate, exa
     c["sections"]["name"] = "TBD"
     res = gate(candidate=c, markdown=rename(example_markdown, "TBD"))
     assert res.code == 2
+    assert "placeholder" in failures(res)
+
+
+def test_padding_does_not_clear_a_length_floor(gate, example_candidate):
+    """Every floor here used to be a character count and nothing else, so forty
+    repeated letters was a written answer."""
+    c = deepcopy(example_candidate)
+    c["manual_checks_cleared"]["obvious-12"] = "a" * 40
+    c["weakest_fix"] = "b" * 60
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "repeated filler" in failures(res)
+
+
+def test_a_repeated_word_does_not_argue_a_score(gate, example_candidate):
+    c = deepcopy(example_candidate)
+    c["scores"]["imageability"]["justification"] = "filler " * 12
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "scores.imageability.justification" in failures(res)
+
+
+def test_a_placeholder_in_resembles_is_refused(gate, example_candidate):
+    """The field that carries the no-novelty-claims rule was satisfied by a hyphen."""
+    c = deepcopy(example_candidate)
+    c["resembles"][0]["work"] = "-"
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "resembles[0].work" in failures(res)
     assert "placeholder" in failures(res)
 
 

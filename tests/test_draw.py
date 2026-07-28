@@ -105,6 +105,28 @@ def test_the_draw_records_the_request_that_produced_it(run, tmp_path):
     }
 
 
+def test_the_anchor_is_seed_material(run):
+    """--anchor used only to be copied into the payload, so rewriting it in
+    draw.json replayed clean and deleted the operational_path requirement."""
+    a1 = draw(run, "--modes", "baby,nonhuman,affect", "--anchor", "1")
+    a3 = draw(run, "--modes", "baby,nonhuman,affect", "--anchor", "3")
+    assert a1["draw"] != a3["draw"]
+
+
+def test_grounded_is_seed_material(run):
+    """grounded substitutes a rubric axis and requires a section, so removing it
+    afterwards is the same relaxation the anchor edit was."""
+    plain = draw(run, "--modes", "affect")
+    grounded = draw(run, "--modes", "affect,grounded")
+    assert plain["draw"] != grounded["draw"]
+
+
+def test_the_requested_domain_count_is_seed_material(run):
+    wide = draw(run, "--domains", "4")
+    normal = draw(run, "--domains", "3")
+    assert {d["id"] for d in normal["draw"]["domains"]} - {d["id"] for d in wide["draw"]["domains"]}
+
+
 def test_a_narrower_hand_than_three_is_refused(run):
     res = run("draw.py", "--topic", "x", "--domains", "2", "--json")
     assert res.code == 1

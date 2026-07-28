@@ -142,13 +142,19 @@ def build_banlist(args: argparse.Namespace, cliches: dict[str, Any]) -> dict[str
             "source": "--extra",
         })
 
+    # Deduplicate by phrase, but never let a deck entry displace a first
+    # instinct: an instinct that happens to already be a cliche is still one of
+    # the twelve, and the gate counts them to check that stage 1 happened.
     deduped: list[dict[str, Any]] = []
-    seen: set[str] = set()
+    seen: dict[str, int] = {}
     for e in entries:
         key = normalize(e["phrase"])
         if key in seen:
+            existing = deduped[seen[key]]
+            if existing["source"] == "deck" and e["source"] != "deck":
+                deduped[seen[key]] = e
             continue
-        seen.add(key)
+        seen[key] = len(deduped)
         deduped.append(e)
 
     return {

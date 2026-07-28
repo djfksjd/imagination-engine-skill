@@ -1,5 +1,5 @@
 {
-  "engine_version": "0.3.0",
+  "engine_version": "0.4.0",
   "draw_schema_version": 2,
   "request": {
     "topic": "a machine that separates emotion from voice",

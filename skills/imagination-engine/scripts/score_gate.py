@@ -37,16 +37,20 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, SKILL_DIR, UsageParser, die, is_placeholder, load_all_decks, text_units,
+        VERSION, EngineError, SKILL_DIR, UsageParser, die, distinct_ratio, is_placeholder,
+        load_all_decks, normalize, text_units,
     )
+    from banlist import MIN_OBVIOUS  # type: ignore
     from cliche_lint import deck_entries, lint  # type: ignore
     from draw import DRAW_SCHEMA_VERSION, build_draw  # type: ignore
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, SKILL_DIR, UsageParser, die, is_placeholder, load_all_decks, text_units,
+        VERSION, EngineError, SKILL_DIR, UsageParser, die, distinct_ratio, is_placeholder,
+        load_all_decks, normalize, text_units,
     )
+    from banlist import MIN_OBVIOUS  # type: ignore
     from cliche_lint import deck_entries, lint  # type: ignore
     from draw import DRAW_SCHEMA_VERSION, build_draw  # type: ignore
 
@@ -57,6 +61,10 @@ MIN_DIFFERENCE = 40
 MIN_IMPOSSIBLE = 30
 MIN_FIX = 40
 MIN_MANUAL_ANSWER = 30
+# Below this share of distinct tokens a field is filler that happens to be long
+# enough. Ordinary prose in any language scores far above it; forty repeated
+# letters scores zero.
+MIN_DISTINCT_RATIO = 0.35
 
 BIND = re.compile(r"<!--\s*bind:\s*([A-Za-z0-9_.\[\]]+)\s*-->(.*?)<!--\s*/bind\s*-->", re.S)
 
@@ -110,6 +118,34 @@ def text_of(value: Any) -> str:
 
 def section_minimum(spec: dict[str, Any]) -> int:
     return int(spec.get("min_units", spec.get("min_chars", 0)))
+
+
+def check_text(label: str, value: Any, minimum: int = 0, note: str = "") -> list[str]:
+    """The one place a written field is judged.
+
+    Every floor in this gate used to be a length comparison and nothing else,
+    which made all of them satisfiable by one repeated letter, and left the
+    fields with no length floor - `sections.name` aside - satisfiable by a
+    hyphen. So each field is asked the same three questions here: is there
+    anything, is it a stand-in, and is it argument rather than filler.
+    """
+    failures: list[str] = []
+    body = text_of(value)
+    tail = f" - {note}" if note else ""
+    if not body:
+        failures.append(f"{label}: missing{tail}")
+        return failures
+    if is_placeholder(body):
+        failures.append(f"{label}: '{body[:40]}' is a placeholder, not content{tail}")
+        return failures
+    if minimum and text_units(body) < minimum:
+        failures.append(f"{label}: {text_units(body)} units, needs {minimum}{tail}")
+    ratio = distinct_ratio(body)
+    if ratio < MIN_DISTINCT_RATIO:
+        failures.append(
+            f"{label}: repeated filler rather than content ({ratio:.2f} distinct) - a length floor "
+            "asks for an amount of argument, not an amount of typing")
+    return failures
 
 
 def canonical(text: str) -> str:
@@ -171,6 +207,27 @@ def replay_draw(draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
             failures.append(
                 f"draw.{label}: does not follow from its own request - the file says {sorted(got)} "
                 f"but that request deals {sorted(want)}. The hand was edited after it was dealt")
+
+    # The rest of the file is derived from the same request, and the human-
+    # readable half is what the user was shown. If it disagrees with the request
+    # the gate reads, one of the two was rewritten afterwards.
+    def mode_ids(node: Any) -> list[str]:
+        return [m.get("id") for m in node if isinstance(m, dict)] if isinstance(node, list) else []
+
+    anchor_level = draw.get("anchor", {}).get("level") if isinstance(draw.get("anchor"), dict) else None
+    for label, got, want in (
+        ("topic", draw.get("topic"), expected["topic"]),
+        ("run", draw.get("run"), expected["run"]),
+        ("salt", draw.get("salt"), expected["salt"]),
+        ("anchor.level", anchor_level, expected["anchor"]["level"]),
+        ("modes", mode_ids(draw.get("modes")), mode_ids(expected["modes"])),
+        ("requirements.thresholds",
+         (draw.get("requirements") or {}).get("thresholds"), expected["requirements"]["thresholds"]),
+    ):
+        if got != want:
+            failures.append(
+                f"draw.{label}: says {got!r} while the request it carries produces {want!r}. The file "
+                "and the request no longer describe the same run")
     return failures
 
 
@@ -250,26 +307,17 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
     for spec in rubric["required_sections"]:
         if spec["id"] == grounded_section and not needs_path:
             continue
-        body = text_of(sections.get(spec["id"]))
-        if not body:
-            failures.append(f"sections.{spec['id']}: missing - {spec['note']}")
-        elif spec["id"] == "name":
-            if is_placeholder(body):
-                failures.append(f"sections.name: '{body}' is a placeholder, not a name - {spec['note']}")
-        elif text_units(body) < section_minimum(spec):
-            failures.append(
-                f"sections.{spec['id']}: {text_units(body)} units, needs {section_minimum(spec)} - {spec['note']}")
+        failures += check_text(
+            f"sections.{spec['id']}", sections.get(spec["id"]), section_minimum(spec), spec["note"])
 
     broken = candidate.get("broken_rule")
     if not isinstance(broken, dict):
         failures.append("broken_rule: missing - state which law was deleted and what replaced it")
     else:
-        if text_units(text_of(broken.get("new_law"))) < MIN_IMPOSSIBLE:
-            failures.append(f"broken_rule.new_law: needs at least {MIN_IMPOSSIBLE} units")
-        if text_units(text_of(broken.get("now_impossible"))) < MIN_IMPOSSIBLE:
-            failures.append(
-                f"broken_rule.now_impossible: needs at least {MIN_IMPOSSIBLE} units - a world where "
-                "the rule is merely gone is empty, not strange")
+        failures += check_text("broken_rule.new_law", broken.get("new_law"), MIN_IMPOSSIBLE)
+        failures += check_text(
+            "broken_rule.now_impossible", broken.get("now_impossible"), MIN_IMPOSSIBLE,
+            "a world where the rule is merely gone is empty, not strange")
 
     domains = candidate.get("domains_used")
     if isinstance(domains, list):
@@ -277,10 +325,10 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
             if not isinstance(d, dict):
                 failures.append(f"domains_used[{i}]: not an object")
                 continue
-            if text_units(text_of(d.get("answer_to_probe"))) < MIN_PROBE_ANSWER:
-                failures.append(
-                    f"domains_used[{i}] ({d.get('id') or '?'}).answer_to_probe: too thin - a domain that "
-                    "answers nothing is a decoration; cut it or make it load-bearing")
+            failures += check_text(
+                f"domains_used[{i}] ({d.get('id') or '?'}).answer_to_probe", d.get("answer_to_probe"),
+                MIN_PROBE_ANSWER,
+                "a domain that answers nothing is a decoration; cut it or make it load-bearing")
     else:
         failures.append("domains_used: missing")
 
@@ -294,14 +342,14 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
             if not isinstance(r, dict):
                 failures.append(f"resembles[{i}]: not an object")
                 continue
-            if not text_of(r.get("work")):
-                failures.append(f"resembles[{i}].work: missing")
-            if text_units(text_of(r.get("how_it_differs"))) < MIN_DIFFERENCE:
-                failures.append(f"resembles[{i}].how_it_differs: needs at least {MIN_DIFFERENCE} units")
+            failures += check_text(
+                f"resembles[{i}].work", r.get("work"), 0,
+                "name the work, or state what you searched and found nothing close to")
+            failures += check_text(f"resembles[{i}].how_it_differs", r.get("how_it_differs"), MIN_DIFFERENCE)
 
-    if text_units(text_of(candidate.get("weakest_fix"))) < MIN_FIX:
-        failures.append(
-            f"weakest_fix: needs at least {MIN_FIX} units - name the weakest axis and what a rewrite would change")
+    failures += check_text(
+        "weakest_fix", candidate.get("weakest_fix"), MIN_FIX,
+        "name the weakest axis and what a rewrite would change")
 
     axis_ids = [a["id"] for a in rubric["axes"]]
     if grounded and substitution:
@@ -330,8 +378,9 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
                 failures.append(f"scores.{axis}.score: must be an integer 1-10")
                 continue
             values[axis] = raw
-            if text_units(text_of(entry.get("justification"))) < MIN_JUSTIFICATION:
-                failures.append(f"scores.{axis}.justification: needs at least {MIN_JUSTIFICATION} units of argument")
+            failures += check_text(
+                f"scores.{axis}.justification", entry.get("justification"), MIN_JUSTIFICATION,
+                "argue the score")
 
     mean = round(sum(values.values()) / len(values), 2) if values else 0.0
     if values and len(values) == len(axis_ids):
@@ -351,6 +400,92 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any], min_mean:
 # -------------------------------------- the ban list and what will be shown
 
 
+def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
+    """Require the ban list to be a contract this run produced, not a file named like one.
+
+    The draw is replayed card by card so a tampered hand cannot pass, and the
+    ban list - the artefact carrying the claim the whole skill is named after -
+    used to get no equivalent treatment at all: `--banlist` accepted any JSON
+    object, so a file containing `{}` passed the shipped example with exit 0 and
+    stage 1 was optional in practice.
+
+    Three structural facts are checked, none of which a hand-written file has:
+
+      it belongs to this run   - the topic is the topic that was drawn;
+      it carries the deck      - every bundled cliche phrase is in it, minus
+                                 only the ids the list itself records releasing;
+      stage 1 actually happened - the twelve burnt instincts are present as
+                                 entries and manual checks, so the floor
+                                 banlist.py enforces still holds at verdict time.
+
+    Containment rather than equality: a later round may add bans (--extra, the
+    regeneration protocol) and adding bans cannot weaken a verdict. Removing
+    them can, and that is what this refuses.
+    """
+    failures: list[str] = []
+
+    drawn_topic = str(draw["request"]["topic"])
+    topic = text_of(banlist.get("topic"))
+    if not topic:
+        failures.append(
+            "banlist.topic: missing - this is not a contract built by banlist.py for a run")
+    elif normalize(canonical(topic)) != normalize(canonical(drawn_topic)):
+        failures.append(
+            f"banlist.topic: the ban list was built for {topic!r} but the hand was dealt for "
+            f"{drawn_topic!r} - a ban list from another run bans another run's answers")
+
+    entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
+    supplied = {normalize(str(e.get("phrase", ""))) for e in entries}
+    allowed = banlist.get("allowed", [])
+    if not isinstance(allowed, list) or any(not isinstance(i, str) for i in allowed):
+        failures.append("banlist.allowed: must be the list of cliche ids released when the list was built")
+        allowed = []
+    cliches = decks["cliches"]
+    known_ids = {p["id"] for p in cliches["phrases"]}
+    unknown = sorted(set(allowed) - known_ids)
+    if unknown:
+        failures.append(f"banlist.allowed: releases id(s) that are not in the cliche deck: {', '.join(unknown)}")
+
+    expected = [p["phrase"] for p in cliches["phrases"] if p["id"] not in set(allowed)]
+    expected += list(cliches["hollow_adjectives"]["ban"]) + list(cliches["hollow_adjectives"]["warn"])
+    missing = [p for p in expected if normalize(p) not in supplied]
+    if missing:
+        failures.append(
+            f"banlist.entries: missing {len(missing)} phrase(s) of the bundled cliche deck "
+            f"({', '.join(missing[:3])}...) - build the list with banlist.py rather than by hand")
+
+    patterns = banlist.get("structural_patterns")
+    patterns = patterns if isinstance(patterns, list) else []
+    have = {p.get("id") for p in patterns if isinstance(p, dict)}
+    missing_patterns = [p["id"] for p in cliches["structural_patterns"] if p["id"] not in have]
+    if missing_patterns:
+        failures.append(
+            f"banlist.structural_patterns: missing {', '.join(missing_patterns)} - these are what "
+            "catch the pitch-shaped sentence, and a list without them lints for nothing")
+
+    manual = [m for m in (banlist.get("manual_checks") or []) if isinstance(m, dict)]
+    instincts = [
+        str(e.get("phrase", "")) for e in entries
+        if e.get("group") == "first-instinct" and not is_placeholder(str(e.get("phrase", "")))
+    ]
+    long_instincts = [
+        str(m.get("statement", "")) for m in manual if not is_placeholder(str(m.get("statement", "")))
+    ]
+    burned = len(instincts) + len(long_instincts)
+    if burned < MIN_OBVIOUS:
+        failures.append(
+            f"banlist: carries {burned} first instincts, {MIN_OBVIOUS} are required - stage 1 is the "
+            "subtraction this skill is named after, and banlist.py refuses a shorter dump. A list that "
+            "arrives at the gate without them was not built from one")
+    counts = banlist.get("counts")
+    declared = counts.get("obvious_supplied") if isinstance(counts, dict) else None
+    if declared != burned:
+        failures.append(
+            f"banlist.counts.obvious_supplied says {declared!r} but the file carries {burned} - the "
+            "count and the contents disagree, so one of them was edited")
+    return failures
+
+
 def check_banlist(candidate: dict[str, Any], banlist: dict[str, Any]) -> list[str]:
     """Manual entries used to be printed and then forgotten. Now they are answered."""
     failures: list[str] = []
@@ -362,13 +497,10 @@ def check_banlist(candidate: dict[str, Any], banlist: dict[str, Any]) -> list[st
         if not isinstance(entry, dict) or "id" not in entry:
             failures.append("banlist.manual_checks: an entry has no id")
             continue
-        answer = text_of(cleared.get(entry["id"]))
-        if text_units(answer) < MIN_MANUAL_ANSWER:
-            statement = str(entry.get("statement", ""))[:60]
-            failures.append(
-                f"manual_checks_cleared[{entry['id']}]: needs a written answer of at least "
-                f"{MIN_MANUAL_ANSWER} units saying how the result avoids \"{statement}\" - "
-                "a check that is only printed is not a check")
+        statement = str(entry.get("statement", ""))[:60]
+        failures += check_text(
+            f"manual_checks_cleared[{entry['id']}]", cleared.get(entry["id"]), MIN_MANUAL_ANSWER,
+            f"say how the result avoids \"{statement}\" - a check that is only printed is not a check")
     return failures
 
 
@@ -417,7 +549,12 @@ def check_markdown(candidate: dict[str, Any], markdown: str, rubric: dict[str, A
 
     entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
     entries += [e for e in deck_entries(decks["cliches"]) if e["tier"] in ("ban", "warn")]
+    # The deck's patterns are re-added the way its phrases are, so that the worst
+    # a trimmed file can do is fail the replay above rather than quietly shrink
+    # the lint to what its author chose to leave in.
     patterns = [p for p in (banlist.get("structural_patterns") or []) if isinstance(p, dict)]
+    have = {p.get("id") for p in patterns}
+    patterns += [p for p in decks["cliches"]["structural_patterns"] if p["id"] not in have]
     for f in lint(markdown, entries, patterns, allow=set()):
         if f["tier"] != "ban":
             continue
@@ -434,6 +571,7 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
          markdown: str, rubric: dict[str, Any], decks: dict[str, Any]) -> dict[str, Any]:
     failures = replay_draw(draw, decks)
     failures += bind_candidate_to_draw(candidate, draw)
+    failures += replay_banlist(banlist, draw, decks)
 
     # The profile is read off the validated run. There is no --extremal and no
     # --grounded: a flag is a claim made at verdict time, by the same party the

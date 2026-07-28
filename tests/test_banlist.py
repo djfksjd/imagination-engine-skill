@@ -37,6 +37,20 @@ def test_bullets_and_numbering_are_stripped(run, tmp_path, obvious_file):
     assert "black market for emotions" in phrases
 
 
+def test_an_instinct_that_is_already_a_cliche_stays_a_first_instinct(run, tmp_path, obvious_file):
+    """Dedup used to let the deck copy win, which lost one of the twelve. The
+    gate counts them, so a lost instinct would fail an honest run."""
+    dump = tmp_path / "collides.txt"
+    dump.write_text(obvious_file.read_text(encoding="utf-8").replace(
+        "headset that strips feeling", "cyberpunk"), encoding="utf-8")
+    res = run("banlist.py", "--topic", "voice", "--obvious", str(dump), "--out", str(tmp_path))
+    assert res.code == 0, res
+    payload = load(tmp_path / "banlist.json")
+    instincts = [e for e in payload["entries"] if e["group"] == "first-instinct"]
+    assert len(instincts) + payload["counts"]["manual"] == payload["counts"]["obvious_supplied"]
+    assert any(e["phrase"] == "cyberpunk" for e in instincts)
+
+
 def test_long_entries_become_manual_checks(run, tmp_path, obvious_file):
     run("banlist.py", "--topic", "voice", "--obvious", str(obvious_file), "--out", str(tmp_path))
     payload = load(tmp_path / "banlist.json")

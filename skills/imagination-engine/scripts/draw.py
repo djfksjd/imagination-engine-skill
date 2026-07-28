@@ -40,6 +40,45 @@ MIN_DOMAINS = 3
 MAX_STACKED_MODES = 3
 DRAW_SCHEMA_VERSION = 2
 
+# The request fields the gate reads when it decides what it will require. See
+# policy_seed below for why they have to reach the deal.
+DEFAULT_ANCHOR = 1
+POLICY_MODES = ("extremal", "grounded")
+
+
+def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> str:
+    """Fold everything the gate reads off the request into the seed.
+
+    A request field the gate consults but the deal ignores can be rewritten
+    afterwards and still replay clean, because the hand never depended on it.
+    --anchor was exactly that: editing 3 to 1 in draw.json deleted the
+    operational_path requirement and the replay saw nothing, which is a
+    threshold set at verdict time by the party the verdict is about. Same
+    property for `grounded`, which substitutes a rubric axis and requires a
+    section, and for the requested domain count, which the extremal cap can
+    swallow. So those fields seed the shuffle: an edit no longer relaxes the
+    verdict, it deals a different hand, and the work already written stops
+    belonging to the request.
+
+    A field at its documented default contributes nothing, so the plain request
+    deals the baseline hand. Each field carries its own prefix, so two requests
+    that differ anywhere here get different seeds - including a change away from
+    a default.
+
+    What this still cannot do is distinguish a downgraded run from an honest one
+    that was dealt at the lower setting from the start. Redealing is always
+    available; what it costs is the hand, and therefore the work.
+    """
+    parts: list[str] = []
+    if anchor != DEFAULT_ANCHOR:
+        parts.append(f"anchor={anchor}")
+    for mode in POLICY_MODES:
+        if mode in mode_ids:
+            parts.append(f"mode={mode}")
+    if domains != DEFAULT_DOMAINS:
+        parts.append(f"domains={domains}")
+    return "|".join(parts)
+
 # grounded substitutes the axis that nonhuman mode exists to enforce. Allowing
 # the pair means one mode silently cancels the other, so it is refused here
 # rather than at the gate - the draw is where the run is defined.
@@ -173,13 +212,17 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
     # Extremal doubles the draw, but never past the point where two domains would
     # have to share a category - the distance guarantee outranks the width.
     domain_count = min(args.domains * 2, category_count) if extremal else args.domains
-    domains, wrapped_d = draw_domains(decks, args.topic, args.salt, args.run, domain_count, forced_categories)
+    # Not args.salt: the seed carries the policy-bearing request fields too, so
+    # that none of them can be rewritten afterwards without changing the hand.
+    policy = policy_seed(mode_ids, args.anchor, args.domains)
+    seed = f"{args.salt}\x1f{policy}" if policy else args.salt
+    domains, wrapped_d = draw_domains(decks, args.topic, seed, args.run, domain_count, forced_categories)
 
     constraint_count = 2 if extremal else 1
-    constraints, wrapped_c = draw_one(decks, "constraints", "constraints", args.topic, args.salt, args.run, constraint_count)
-    perspectives, wrapped_p = draw_one(decks, "perspectives", "perspectives", args.topic, args.salt, args.run)
-    senses, wrapped_s = draw_one(decks, "senses", "senses", args.topic, args.salt, args.run)
-    affects, wrapped_a = draw_one(decks, "affects", "pairs", args.topic, args.salt, args.run)
+    constraints, wrapped_c = draw_one(decks, "constraints", "constraints", args.topic, seed, args.run, constraint_count)
+    perspectives, wrapped_p = draw_one(decks, "perspectives", "perspectives", args.topic, seed, args.run)
+    senses, wrapped_s = draw_one(decks, "senses", "senses", args.topic, seed, args.run)
+    affects, wrapped_a = draw_one(decks, "affects", "pairs", args.topic, seed, args.run)
 
     cliches = decks["cliches"]
     banned_phrases = [p for p in cliches["phrases"] if p["tier"] == "ban"]

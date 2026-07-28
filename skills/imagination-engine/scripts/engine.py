@@ -119,12 +119,44 @@ def text_units(text: str) -> int:
     return total
 
 
+def distinct_ratio(text: str) -> float:
+    """Share of distinct tokens in a text.
+
+    Every minimum in this skill asks for an amount of argument, and a length
+    floor cannot tell argument from filler: forty repeated letters is forty
+    units. Padding scores near zero here, ordinary prose scores well above the
+    floor the gate applies.
+    """
+    tokens = re.findall(r"[\w']+", normalize(text), flags=re.UNICODE)
+    if not tokens:
+        return 0.0
+    if len(tokens) == 1:
+        # One long token: measure repetition at character level, because
+        # "abcabcabc..." has three distinct characters and is still padding.
+        word = tokens[0]
+        if len(word) < 4:
+            return 1.0
+        bigrams = [word[i:i + 2] for i in range(len(word) - 1)]
+        return len(set(bigrams)) / len(bigrams)
+    ratio = len(set(tokens)) / len(tokens)
+    # A repeated multi-word phrase scores well on token variety; compare the
+    # first half of the text with the second to catch it.
+    if len(tokens) >= 8:
+        half = len(tokens) // 2
+        if normalize(" ".join(tokens[:half])) == normalize(" ".join(tokens[half:half * 2])):
+            return 0.0
+    return ratio
+
+
 def is_placeholder(text: str) -> bool:
-    """Whether a name is a stand-in rather than a name.
+    """Whether a field holds a stand-in rather than content.
 
     A length floor cannot answer this: it rejects a complete two-character name
     and accepts 'TBD - fill this in later'. So the check asks what it actually
-    wants to know - is there a name here at all.
+    wants to know - is there anything here at all. Applied to every field where
+    a stand-in would defeat the field's purpose, not only to the name: a
+    `resembles[].work` of "-" used to satisfy the one requirement that carries
+    this skill's honesty guarantee.
     """
     stripped = normalize(text).strip(" .-_·")
     if not stripped:

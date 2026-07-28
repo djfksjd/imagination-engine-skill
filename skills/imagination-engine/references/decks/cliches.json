@@ -59,7 +59,7 @@
     { "id": "empath", "phrase": "empath", "group": "affect-shortcut", "tier": "warn" },
     { "id": "blade-runner", "phrase": "Blade Runner", "group": "named-work", "tier": "ban" },
     { "id": "black-mirror", "phrase": "Black Mirror", "group": "named-work", "tier": "ban" },
-    { "id": "the-matrix", "phrase": "the Matrix", "group": "named-work", "tier": "ban" },
+    { "id": "the-matrix", "phrase": "the Matrix", "group": "named-work", "tier": "warn", "why": "Warn, not ban: phrase matching is case-insensitive by design, and capitalisation is the only thing that separates the film from 'the matrix of obligations between the four households'. A ban on a common noun phrase is the same over-reach the x-meets-y rule had." },
     { "id": "ghost-in-the-shell", "phrase": "Ghost in the Shell", "group": "named-work", "tier": "ban" },
     { "id": "black-hole", "phrase": "black hole", "group": "physics-default", "tier": "warn" },
     { "id": "wormhole", "phrase": "wormhole", "group": "physics-default", "tier": "ban" },
@@ -68,10 +68,10 @@
     { "id": "quantum-entanglement", "phrase": "quantum entanglement", "group": "physics-default", "tier": "warn" }
   ],
   "structural_patterns": [
-    { "id": "x-meets-y", "regex": "\\b[A-Za-z]+\\s+meets\\s+[A-Za-z]+\\b", "tier": "ban", "why": "The pitch reduces to two known things joined by a verb. If the idea survives this sentence, it is a combination, not an invention." },
-    { "id": "cross-between", "regex": "\\bcross between\\b", "tier": "ban", "why": "Same failure as X meets Y, stated more honestly." },
-    { "id": "mix-of-a-and-b", "regex": "\\b(a )?(mix|blend|fusion|mashup) of\\b", "tier": "ban", "why": "Announces assembly. The parts should have stopped being separable." },
-    { "id": "but-with-ai", "regex": "\\bbut with (AI|robots|magic|aliens|blockchain)\\b", "tier": "ban", "why": "An ordinary thing with a topical noun attached." },
+    { "id": "x-meets-y", "regex": "\\b(?:it'?s|it is|this is|basically|essentially|think of it as|kind of)\\s+(?:like\\s+)?[A-Za-z]+\\s+meets\\s+[A-Za-z]+\\b", "tier": "ban", "why": "The pitch reduces to two known things joined by a verb. If the idea survives this sentence, it is a combination, not an invention. Narrowed to the pitch frame on purpose: 'meets' is an ordinary English verb, and this skill advertises story seeds, rituals and mechanics, where 'the committee meets each Tuesday' and 'where fresh water meets salt water' are sentences and not pitches. Unanchored, this rule banned all of them at ban tier and told the author to rewrite a thought that was not there." },
+    { "id": "cross-between", "regex": "\\ba cross between\\b", "tier": "ban", "why": "The same failure as X meets Y, stated more honestly. Anchored on the article for the same reason: 'the children cross between the courtyards' is a verb, 'a cross between' is a pitch." },
+    { "id": "mix-of-a-and-b", "regex": "\\b(?:a )?(?:mix|blend|fusion|mashup|combination) of\\b", "tier": "warn", "why": "Announces assembly. The parts should have stopped being separable. Warn rather than ban, because 'a mix of fear and relief' is how an affect is ordinarily described and this skill requires a section about conflicting feelings - banning the phrase there punished the section the contract demands. A warn still reports it, which is what a drafting aid is for." },
+    { "id": "but-with-ai", "regex": "\\bbut (?:with|for) (?:AI|robots|blockchain|crypto)\\b", "tier": "ban", "why": "An ordinary thing with a topical noun attached. 'magic' and 'aliens' were removed from the list: in a fiction brief 'the same procession, but with magic' is a description of a variant, not a positioning." },
     { "id": "ai-powered", "regex": "\\b(AI|smart|quantum|holographic|nano|cyber|neuro)[- ]powered\\b", "tier": "ban", "why": "A prefix is doing the work the idea should do." },
     { "id": "it-is-like", "regex": "\\bit'?s (basically |essentially |kind of )?like\\b", "tier": "warn", "why": "The description is leaning on a reference instead of on its own principle." },
     { "id": "in-the-future", "regex": "\\bin the (near |far |distant )?future\\b", "tier": "warn", "why": "Setting the clock forward is not a premise change." },

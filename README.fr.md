@@ -84,11 +84,13 @@ Mode extremal, ancrage 2 — je dois pouvoir la fabriquer réellement.
 | Mode | Ce qu'il retire |
 |---|---|
 | `baby` | La fonction apprise, les noms corrects, l'ordre de la cause et de l'effet. Logique de nourrisson, exécution adulte — un résultat mignon est un échec. |
-| `nonhuman` | L'utilité pour l'humain. Ici rien n'existe pour personne ; si le résultat est un produit, il est disqualifié. |
+| `nonhuman` | L'utilité pour l'humain. Ici rien n'existe pour personne ; si le résultat est un produit, il est disqualifié. **Détruit toute commande où figure une personne** — voir l'avertissement plus bas. |
 | `alien-physics` | L'apparence comme lieu de la nouveauté. Ce sont la physique, le temps ou le soi qui changent. |
 | `affect` | Les cinq sens et les émotions nommées. Exige d'inventer un sens entièrement spécifié — y compris la nouvelle injustice qu'il crée. |
-| `extremal` | Tout candidat sûr. Les seuils montent à une moyenne de 9,0, aucun axe sous 8. |
-| `grounded` | Rien. Ajoute une voie vers quelque chose de réel sans modifier le principe. |
+| `extremal` | Tout candidat sûr. Élargit la main, distribue deux règles à briser et relève la barre du rebut. |
+| `grounded` | Rien. Ajoute une voie vers quelque chose de réel sans modifier le principe, et remplace l'axe `non_anthropocentrism` par `translation_integrity`. |
+
+**Le réglage par défaut est `alien-physics` à l'ancrage 1, et `nonhuman` n'en fait plus partie.** Il en faisait partie. Une expérience contrôlée — quatre commandes, cinq tirages avec une invite ordinaire et cinq avec le moteur pour chacune, huit juges en aveugle à qui l'on n'a jamais dit ce qui était testé — a mesuré que l'ancien défaut divisait par deux l'adéquation du résultat à la commande (6,45 → 3,27), et que les juges ont retenu 24 sorties sur 24 côté invite ordinaire, et 0 sur 24 côté moteur. Leurs raisons étaient constantes : le moteur avait dissous la commande au lieu d'y répondre. C'est `nonhuman` fonctionnant exactement comme spécifié — il retire l'utilité humaine par construction — et c'est ce qu'il ne faut pas appliquer à une commande pour laquelle personne ne l'a choisi. **Si votre commande contient une personne — un joueur, un lecteur, une assemblée, un client — n'ajoutez pas `nonhuman`.** Il l'effacera.
 
 ### Ancrages · à quel point le résultat doit rester atteignable
 
@@ -157,26 +159,59 @@ Montre-moi les douze réflexes que tu as brûlés et la main que tu as tirée.
 
 ### Exécuter le pipeline à la main
 
-Rien à installer au-delà de Python 3.11 et du dépôt. Les scripts sont dans `skills/imagination-engine/scripts/` ; écrivez les fichiers de travail dans un répertoire temporaire, jamais dans le dossier de la compétence.
+Rien à installer au-delà de Python 3.11 et du dépôt. **Toutes les commandes ci-dessous s'exécutent depuis le répertoire de la compétence**, et les fichiers de travail vont dans un répertoire temporaire, jamais dans le dossier de la compétence :
 
 ```bash
-# 1 · distribuer la main (graine issue du sujet, donc rejouable à l'identique)
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
+
+Deux des cinq entrées ne sont produites par aucun script : c'est vous qui les écrivez. Le dépôt en livre une version terminée pour chacune, de sorte que vous pouvez copier puis modifier plutôt que partir d'un fichier vide.
+
+```bash
+# 1 · brûler les réponses évidentes en une liste vérifiable.
+#     obvious.txt, c'est à vous de l'écrire : les douze réponses que vous
+#     donneriez en premier, une par ligne. references/example-obvious.txt en
+#     est une déjà remplie.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # ou écrivez la vôtre
+python3 scripts/banlist.py --topic "un palier entre deux étages" \
+    --obvious /tmp/work/obvious.txt --extra "pas de fantomes,pas d esthetique liminale" --out /tmp/work
+#     Passez vos propres interdits à --extra tels que vous les diriez, même si le
+#     paquet embarqué en nomme déjà un : le fichier les enregistre et la barrière
+#     les rejoue, si bien que « pas de dragons » promeut un avertissement du
+#     paquet en interdiction. Le code 2 signifie que le relevé est trop court, ou
+#     qu'il est une seule ligne dont on a changé le chiffre : douze variantes
+#     d'un gabarit, c'est un instinct écrit douze fois. banlist.py accepte aussi
+#     --allow <id de cliché> pour libérer une formule du paquet ; lisez d'abord
+#     la limite honnête indiquée plus bas.
+
+# 2 · distribuer la main (graine issue de la requête, donc rejouable à l'identique)
 python3 scripts/draw.py --topic "un palier entre deux étages" \
     --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
 
-# 2 · brûler les réponses évidentes en une liste vérifiable
-python3 scripts/banlist.py --topic "un palier entre deux étages" \
-    --obvious /tmp/work/obvious.txt --extra "pas de fantomes,pas d esthetique liminale" --out /tmp/work
+# 3 · écrire le résultat deux fois : candidate.json pour que la barrière le note,
+#     draft.md pour la lecture. Chaque section notée est marquée dans le
+#     brouillon entre <!-- bind: sections.<id> --> ... <!-- /bind -->, au mot
+#     près identique au candidat, sinon la barrière refuse le brouillon.
+#       structure → references/candidate.schema.json, references/output-template.md
+#       exemple   → references/example-candidate.json, references/example-draft.md
+#     candidate.json demande aussi manual_checks_cleared : un OBJET INDEXÉ PAR ID
+#     DE CONTRÔLE — {"obvious-01": "...", "obvious-02": "..."} — avec une réponse
+#     écrite pour chaque contrôle manuel de la liste. Une commande de récit, de
+#     monde, de rite ou de mécanique en produit d'ordinaire douze ; une commande
+#     de produit, aucune, et c'est pourquoi l'exemple livré n'en solde qu'un.
 
-# 3 · passer n'importe quel brouillon au linter contre cette liste
+# 4 · passer le linter en cours d'écriture (diagnostic ; le passer n'est pas un feu vert)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · faire passer la barrière au candidat terminé
+# 5 · la barrière. Les quatre artefacts, un seul verdict
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` affiche les modes. `--run 2` distribue du matériel neuf, toujours de catégories disjointes, pour une régénération ; `--salt` redistribue le même tirage sans l'avancer. `--extremal` et `--grounded` ne sont pas des preuves : `candidate.json` doit déclarer les mêmes modes, sinon la barrière les refuse.
+Pour voir l'ensemble passer avant de lancer le vôtre, pointez l'étape 5 sur les quatre artefacts livrés : `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` affiche les modes. `--run 2` distribue du matériel neuf, toujours de catégories disjointes, pour une régénération ; `--salt` redistribue le même tirage sans l'avancer.
 
 ### Codes de sortie, et quoi faire de chacun
 
@@ -184,20 +219,28 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 |---|---|---|
 | `0` | passé | — |
 | `1` | usage, fichier manquant ou paquet mal formé | une coquille, pas un jugement |
-| `2` | **la barrière a refusé** — section absente ou trop mince, axe sous le plancher, carte tirée restée décorative | réécrivez l'idée. Arrondir une note vers le haut est le seul geste que la compétence interdit |
+| `2` | **la barrière a refusé** — section absente ou trop mince, carte tirée restée décorative, artefact qui n'appartient pas aux autres | réécrivez l'idée. Il n'y a aucune note à arrondir : aucun nombre de cette barrière ne tranche quoi que ce soit |
 | `3` | **du matériel interdit** est présent dans le brouillon | réécrivez la pensée, pas le mot. Supprimer la formule signalée et garder la phrase n'est pas un correctif |
 
-Si le même axe échoue deux fois, c'est le matériel qui est mauvais, pas la formulation : redistribuez avec `--run <n+1>` au lieu d'éditer.
+Si le même contrôle échoue deux fois, c'est le matériel qui est mauvais, pas la formulation : redistribuez avec `--run <n+1>` au lieu d'éditer.
+
+Un `2` n'appartient pas aux scripts : `No such file or directory` en laisse un aussi, parce que Python sort avant que le script démarre. C'est le mauvais répertoire de travail — revenez à `cd skills/imagination-engine`. À l'intérieur des scripts, une erreur d'usage vaut toujours `1`, si bien qu'une faute de frappe ne peut jamais être rapportée comme un verdict.
 
 > [!IMPORTANT]
-> **Une seule commande peut dire « passé », et elle prend tout.** `score_gate.py` redistribue la main à partir des paquets embarqués pour la comparer, lie le candidat carte par carte, le note selon le profil qu'implique le *tirage*, exige une réponse écrite à chaque interdit trop long pour être apparié, et vérifie que le brouillon sur le point d'être montré est celui qui a été noté. Pas de `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric` : un seuil affirmé au moment du verdict est affirmé par la partie que ce verdict concerne. `cliche_lint.py` est une aide à la rédaction ; le passer n'est pas une autorisation.
+> **Une seule commande peut dire « passé », et elle prend tout.** `score_gate.py` redistribue la main à partir des paquets embarqués pour la comparer, lie le candidat carte par carte, exige que chaque axe de la grille soit noté et argumenté, exige une réponse écrite à chaque interdit trop long pour être apparié, et vérifie que le brouillon sur le point d'être montré est celui qui a été noté. Pas de `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric` : un seuil affirmé au moment du verdict est affirmé par la partie que ce verdict concerne. **Et il n'y a pas non plus de seuil de note.** Vingt tirages mesurés se sont tous auto-notés dans une bande large d'un quart de point, juste au-dessus de l'ancienne barre de 8,0, y compris ceux que des juges en aveugle ont classés derniers ; un nombre sans variance ne sépare rien, il ne tranche donc plus rien ici. Les axes restent parce qu'y répondre change le travail. `cliche_lint.py` est une aide à la rédaction ; le passer n'est pas une autorisation.
+
+**`--allow` est honoré d'un côté et pas de l'autre, exprès.** `cliche_lint.py --allow <id>` libère une formule du paquet pendant que vous rédigez. `score_gate.py` n'a pas cette option et ignore la libération enregistrée dans la liste d'interdits, parce que ce fichier est l'un des artefacts qu'il contrôle : l'honorer là reviendrait à laisser un tirage lever ses propres interdits au moment du verdict. Si une formule embarquée n'a vraiment pas sa place dans votre travail, la voie prévue est de forker le dépôt et de modifier `references/decks/cliches.json`.
+
+**La liste d'interdits s'applique par son contenu, pas par la façon dont le fichier la classe.** Cinq modifications distinctes de `banlist.json` laissaient une formule protégée bien visible tout en l'empêchant de se déclencher : vider `extra` en gardant la ligne qui en était issue, rétrograder cette ligne en `warn`, la réétiqueter avec un id de cliché du deck, retaper le groupe d'un instinct brûlé en `deck`, ou ajouter un motif structurel dont la regex ne se termine jamais. `score_gate.py` prend désormais l'union de tous les endroits où un instinct brûlé ou l'une de vos exclusions `--extra` est consignée, et passe le brouillon au crible de ces énoncés comme interdits, sans lire ni id, ni niveau, ni groupe, ni libération ; seuls les motifs du deck sont compilés, un motif fourni est donc ignoré plutôt qu'exécuté. La limite, dite exactement : un énoncé supprimé de *toutes* les lignes qui le consignent est perdu. Supprimer une seule ligne laisse `counts` en désaccord avec le contenu, ce qui attrape la modification bâclée et non la modification soigneuse — la porte ne détient aucune copie de la liste que le run n'a pas écrite.
+
+**Rien de ce que la porte lit n'est écarté en silence.** Un motif ajouté à `structural_patterns` est refusé *nommément* — ni compilé, ni ignoré : la première version de ce correctif l'ignorait, et `{"id": "mine", "regex": "\bcheese\b"}` avec « cheese » dans le brouillon affichait `PASSED`, c'est-à-dire l'échec même que la correction du blocage devait éviter, sous un visage plus aimable. Mets-le dans un `references/decks/cliches.json` forké et il sera compilé comme les autres. Une libération inscrite dans `allowed` est signalée par un avertissement nommant les ids, y compris sur le chemin du succès ; une liste `forbidden_moves` différente de celle du deck est signalée comme de la prose que rien n'applique. Tirer `affect` exige désormais `invented_sense` avec ses quatre champs, comme `SKILL.md` le disait déjà, et chaque champ de `draw.json` est recalculé — `notes` et les décomptes auto-déclarés compris. **`imagination-brainstorming` tranche ce champ dans l'autre sens** : il accepte les motifs fournis derrière un scan structurel et un minuteur. La différence est délibérée — cette porte refuse partout ailleurs la politique fournie par le run (`--rubric`, `--min-mean`, un `--allow` honoré), et un minuteur fait dépendre ce qui a été vérifié de la vitesse de ta machine.
 
 > [!NOTE]
-> Les barrières sont des planchers, pas des juges. Elles prouvent que certains gestes familiers sont *absents* et que le travail exigé a *été fait*. Elles ne peuvent pas vous dire que l'idée est bonne, et la note de passage est auto-attribuée. Lisez le résultat vous-même.
+> La barrière est un plancher, pas un juge. Un passage établit que le travail exigé est présent et que les quatre artefacts s'appartiennent : la main a été distribuée par les paquets et n'a pas été retouchée ensuite, toutes les cartes ont servi, la liste d'interdits est celle qu'implique le propre relevé de ce tirage, chaque instinct long a une réponse écrite, et le brouillon sur le point d'être montré est le texte qui a été contrôlé. Elle ne peut pas vous dire que l'idée est bonne, et elle ne prétend plus qu'un nombre le puisse. Lisez le résultat vous-même.
 
 ## Ce qui en sort
 
-Huit sections fixes, dans votre langue : le nom · une définition en une ligne qui ne s'appuie sur aucune comparaison · la loi qui le fait exister · une scène de première rencontre · sa propriété la plus étrange · les sentiments contradictoires qu'il produit · ce qui change dans le monde du fait de son existence · et, obligatoire, **quelles versions familières ont été écartées et de quelle œuvre connue le résultat est le plus proche**.
+Huit sections fixes, dans votre langue : le nom · une définition en une ligne qui ne s'appuie sur aucune comparaison · la loi qui le fait exister · une scène de première rencontre · sa propriété la plus étrange · les sentiments contradictoires qu'il produit · ce qui change dans le monde du fait de son existence · et, obligatoire, **quelles versions familières ont été écartées et de quelle œuvre connue le résultat est le plus proche**. Une neuvième section, **un chemin vers quelque chose de réel**, s'ajoute dès que le tirage est `grounded` ou que l'ancrage vaut `3` — le gate ne l'exige que dans ces deux cas précis, et aucune des sept autres sections ne disparaît lorsqu'elle apparaît.
 
 <details open>
 <summary>Extrait de l'exemple complet — sujet : <i>« une machine qui sépare l'émotion de la voix »</i></summary>
@@ -222,6 +265,16 @@ Notez ce qui *n'y est pas* : aucun appareil, aucun dispositif lumineux, rien d'�
 > - **Faire croire qu'un linter validé signifie une bonne idée.** Le linter prouve que certains gestes connus sont *absents* ; il ne prouve la présence de rien. La grille est auto-notée et la compétence le dit. Ce que les deux contrôles imposent vraiment, c'est que le travail n'a pas été sauté.
 > - **Rétrécir votre demande en silence.** S'il vous faut du réalisable, on monte l'ancrage plutôt que d'adoucir la prémisse. Et quand la réponse conventionnelle est la bonne, la compétence doit vous le dire et répondre normalement.
 
+## Ce qu'elle est mesurée faire — et ce qu'elle ne fait pas
+
+Cette compétence a été testée en juillet 2026 : quatre commandes dans quatre domaines sans rapport, cinq tirages avec une invite ordinaire et cinq avec le pipeline complet pour chacune, vingt mains distribuées sans recouvrement, codées et jugées en aveugle par des agents à qui l'on n'a jamais dit que deux conditions existaient. Les deux moitiés du résultat figurent ici, parce qu'une compétence qui cache sa propre mesure demande qu'on lui fasse confiance plutôt qu'on la lise.
+
+**Confirmé, sous condition.** Une invite ordinaire converge vraiment — mais seulement quand la commande a une réponse évidente vers laquelle converger. Sur une créature d'estuaire, cinq tirages indépendants ont produit cinq versions du même organisme, et un sixième l'a produit encore. Sur une prémisse se déroulant entièrement dans un immeuble, cinq tirages ont produit cinq idées sans rapport. L'affirmation en tête de page décrit ce qui arrive à *certaines* commandes ; ce n'est pas une loi.
+
+**Non démontré : que retirer des chemins décorrèle les réponses répétées.** Vingt tirages du moteur sur vingt mains disjointes ont convergé vers une seule forme — un processus sans corps plutôt qu'une chose, une obligation le plus souvent formulée comme une dette, une conséquence administrative. Agrégés, ils se ressemblaient *davantage* que ceux de l'invite ordinaire, pas moins. Et les cartes n'étaient pas décoratives : la plupart n'ont laissé aucune trace dans la formulation, donc elles avaient bien été absorbées, et les sorties ont convergé malgré tout. La lecture honnête : retirer l'attracteur de premier ordre marche — ces réponses ne ressemblent effectivement pas à celles d'une invite ordinaire — mais le retrait ne répartit pas uniformément ce qui reste. **Il déplace le mode.**
+
+Ce n'est pas corrigé et cette page ne prétendra pas le contraire. Ce qui en découle en pratique : s'il vous faut des options réellement différentes, donnez-lui des commandes ou des modes différents plutôt que de relancer deux fois la même ; et si votre résultat est un processus sans corps qui impose une obligation et engendre de la paperasse, vous êtes arrivé là où les vingt derniers tirages sont arrivés — renvoyez-le.
+
 ## Sous le capot
 
 | Script | Rôle | Sortie non nulle |
@@ -239,9 +292,13 @@ skills/imagination-engine/
 ├── references/
 │   ├── output-template.md      # le contrat des sections livrées
 │   ├── worked-example.md       # une exécution complète, étapes cachées comprises
-│   ├── rubric.json             # huit axes · seuils · minimums par section
+│   ├── rubric.json             # les huit axes et les minimums par section (sans seuils)
 │   ├── candidate.schema.json   # ce que valide score_gate.py
-│   ├── example-candidate.json  # un candidat qui passe les deux contrôles (et sert de fixture)
+│   ├── example-obvious.txt     # ─┐ une exécution complète, livrée : les douze
+│   ├── example-banlist.json    #  │ premiers réflexes, la liste bâtie sur eux,
+│   ├── example-draw.json       #  │ la main, le candidat noté et le brouillon
+│   ├── example-candidate.json  #  │ montré. Les quatre derniers sont les quatre
+│   ├── example-draft.md        # ─┘ entrées de la barrière, et la fixture
 │   └── decks/                  # domaines · contraintes · sens · perspectives
 │                               # affects · modes · clichés
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

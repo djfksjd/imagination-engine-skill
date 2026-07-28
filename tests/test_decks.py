@@ -71,6 +71,23 @@ def test_mode_forces_reference_real_decks(decks):
         assert mode["directives"] and mode["guard"]
 
 
+def test_every_mode_says_which_briefs_it_suits_and_which_it_destroys(decks):
+    """A mode that removes something has a brief it is wrong for, and the deck
+    used to say only what each one removes. nonhuman was the documented default
+    and dissolves any brief with a person in it, which nothing said anywhere."""
+    for m in decks["modes"]["modes"]:
+        assert len(m.get("suits", "")) > 60, f"{m['id']} does not say which briefs it suits"
+        assert len(m.get("destroys", "")) > 60, f"{m['id']} does not say which briefs it destroys"
+    nonhuman = next(m for m in decks["modes"]["modes"] if m["id"] == "nonhuman")
+    assert "person in it" in nonhuman["destroys"], (
+        "nonhuman must warn that it dissolves any brief with a person in it")
+
+
+def test_the_default_is_alien_physics_alone(decks):
+    assert decks["modes"]["default_modes"] == ["alien-physics"]
+    assert decks["modes"].get("default_modes_note"), "the change of default must be explained"
+
+
 def test_default_modes_exist(decks):
     ids = {m["id"] for m in decks["modes"]["modes"]}
     assert set(decks["modes"]["default_modes"]) <= ids
@@ -117,7 +134,13 @@ def test_rubric_matches_schema(references):
         # code points, and a plain minLength has no way to express that.
         assert prop["minLength"] <= spec["min_units"] / 2 + 1, (
             f"{spec['id']}: schema minLength would reject CJK text the gate accepts")
-    assert rubric["extremal_thresholds"]["min_mean"] > rubric["default_thresholds"]["min_mean"]
+    # No thresholds, in either profile. The rubric is a self-interrogation aid:
+    # twenty measured runs all self-scored into a 0.25-wide band just above the
+    # old bar, so the number decided nothing and let the graded party grade
+    # itself. What replaced it is nothing - the structural checks stand alone.
+    assert "default_thresholds" not in rubric
+    assert "extremal_thresholds" not in rubric
+    assert "why_the_axes_stay" in rubric, "the rubric must say why the axes remain"
 
 
 def test_grounded_substitution_is_coherent(references):

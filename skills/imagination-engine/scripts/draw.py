@@ -24,21 +24,78 @@ from typing import Any
 
 try:
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, pack_fields, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 except ImportError:  # executed from another cwd via absolute path
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from engine import (  # type: ignore
-        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, round_robin,
+        VERSION, EngineError, UsageParser, csv_list, die, load_all_decks, pack_fields, round_robin,
         slice_by_run, stable_shuffle, write_json,
     )
 
 DEFAULT_DOMAINS = 3
 MIN_DOMAINS = 3
 MAX_STACKED_MODES = 3
-DRAW_SCHEMA_VERSION = 2
+DRAW_SCHEMA_VERSION = 3
+
+# The request fields the gate reads when it decides what it will require. See
+# policy_seed below for why they have to reach the deal.
+DEFAULT_ANCHOR = 1
+POLICY_MODES = ("extremal", "grounded")
+
+
+def policy_seed(mode_ids: list[str], anchor: int, domains: int) -> list[str]:
+    """Fold everything the gate reads off the request into the seed.
+
+    A request field the gate consults but the deal ignores can be rewritten
+    afterwards and still replay clean, because the hand never depended on it.
+    --anchor was exactly that: editing 3 to 1 in draw.json deleted the
+    operational_path requirement and the replay saw nothing, which is a
+    threshold set at verdict time by the party the verdict is about. Same
+    property for `grounded`, which substitutes a rubric axis and requires a
+    section, and for the requested domain count, which the extremal cap can
+    swallow. So those fields seed the shuffle: an edit no longer relaxes the
+    verdict, it deals a different hand, and the work already written stops
+    belonging to the request.
+
+    A field at its documented default contributes nothing, so the plain request
+    deals the baseline hand. Each field carries its own prefix, so two requests
+    that differ anywhere here get different seeds - including a change away from
+    a default. The parts are returned separately and packed with `pack_fields`
+    alongside the salt, because joining them into one string with a separator was
+    itself the hole: see `compose_seed` below.
+
+    What this still cannot do is distinguish a downgraded run from an honest one
+    that was dealt at the lower setting from the start. Redealing is always
+    available; what it costs is the hand, and therefore the work.
+    """
+    parts: list[str] = []
+    if anchor != DEFAULT_ANCHOR:
+        parts.append(f"anchor={anchor}")
+    for mode in POLICY_MODES:
+        if mode in mode_ids:
+            parts.append(f"mode={mode}")
+    if domains != DEFAULT_DOMAINS:
+        parts.append(f"domains={domains}")
+    return parts
+
+
+def compose_seed(salt: str, policy_parts: list[str]) -> str:
+    """Combine the caller's salt with the policy fields, unambiguously.
+
+    The first version of this was `f"{salt}\\x1f{policy}"`, which meant the salt
+    could simply *be* the policy: `--anchor 1 --salt $'\\x1fanchor=3'` dealt the
+    identical hand to `--anchor 3 --salt ""`, and the gate then accepted a run
+    that owed no operational path. `pack_fields` length-prefixes each field, so
+    the salt's extent is pinned and no value of it can spell another field.
+
+    Honest limit, unchanged by this: none of it proves the run was not redealt
+    until the hand suited. It costs a redraw and the work already written against
+    the old hand - it is not a forgery barrier.
+    """
+    return pack_fields(salt, *policy_parts)
 
 # grounded substitutes the axis that nonhuman mode exists to enforce. Allowing
 # the pair means one mode silently cancels the other, so it is refused here
@@ -65,10 +122,14 @@ def list_modes(decks: dict[str, Any]) -> None:
     print("modes:")
     for m in modes["modes"]:
         print(f"  {m['id']:<14} {m['label']}")
+        print(f"      suits:    {m['suits']}")
+        print(f"      destroys: {m['destroys']}")
     print("\nanchors:")
     for a in modes["anchors"]:
         print(f"  {a['level']}  {a['label']:<12} {a['rule']}")
     print(f"\ndefault modes: {', '.join(modes['default_modes'])}")
+    if modes.get("default_modes_note"):
+        print(f"  {modes['default_modes_note']}")
 
 
 def resolve_modes(decks: dict[str, Any], requested: list[str]) -> list[dict[str, Any]]:
@@ -173,28 +234,29 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
     # Extremal doubles the draw, but never past the point where two domains would
     # have to share a category - the distance guarantee outranks the width.
     domain_count = min(args.domains * 2, category_count) if extremal else args.domains
-    domains, wrapped_d = draw_domains(decks, args.topic, args.salt, args.run, domain_count, forced_categories)
+    # Not args.salt: the seed carries the policy-bearing request fields too, so
+    # that none of them can be rewritten afterwards without changing the hand.
+    seed = compose_seed(args.salt or "", policy_seed(mode_ids, args.anchor, args.domains))
+    domains, wrapped_d = draw_domains(decks, args.topic, seed, args.run, domain_count, forced_categories)
 
     constraint_count = 2 if extremal else 1
-    constraints, wrapped_c = draw_one(decks, "constraints", "constraints", args.topic, args.salt, args.run, constraint_count)
-    perspectives, wrapped_p = draw_one(decks, "perspectives", "perspectives", args.topic, args.salt, args.run)
-    senses, wrapped_s = draw_one(decks, "senses", "senses", args.topic, args.salt, args.run)
-    affects, wrapped_a = draw_one(decks, "affects", "pairs", args.topic, args.salt, args.run)
+    constraints, wrapped_c = draw_one(decks, "constraints", "constraints", args.topic, seed, args.run, constraint_count)
+    perspectives, wrapped_p = draw_one(decks, "perspectives", "perspectives", args.topic, seed, args.run)
+    senses, wrapped_s = draw_one(decks, "senses", "senses", args.topic, seed, args.run)
+    affects, wrapped_a = draw_one(decks, "affects", "pairs", args.topic, seed, args.run)
 
     cliches = decks["cliches"]
     banned_phrases = [p for p in cliches["phrases"] if p["tier"] == "ban"]
 
-    thresholds = {"min_mean": 9.0, "min_axis": 8} if extremal else {"min_mean": 8.0, "min_axis": 6}
-
     required = ["domains", "constraints", "perspectives", "senses", "affects"]
     checklist = [
-        f"Every drawn domain must answer its probe inside the result; a domain that is only mentioned is a decoration - cut it or replace it.",
-        f"The drawn constraint must be broken AND replaced by a new law that makes something newly impossible.",
-        f"The drawn perspective governs the whole result; if the result survives its removal, it was never applied.",
-        f"Both affects in the pair must be produced by the same feature.",
-        f"No phrase from the ban list, no hollow adjective, no 'X meets Y' pitch.",
-        f"Before writing, list the {12} most probable answers to this topic and forbid all of them (banlist.py).",
-        f"Score the result with score_gate.py; mean below {thresholds['min_mean']} does not ship.",
+        "Every drawn domain must answer its probe inside the result; a domain that is only mentioned is a decoration - cut it or replace it.",
+        "The drawn constraint must be broken AND replaced by a new law that makes something newly impossible.",
+        "The drawn perspective governs the whole result; if the result survives its removal, it was never applied.",
+        "Both affects in the pair must be produced by the same feature.",
+        "No phrase from the ban list, no hollow adjective, no 'X meets Y' pitch.",
+        "Before writing, list the 12 most probable answers to this topic and forbid all of them (banlist.py).",
+        "Score every rubric axis and argue each score in writing (score_gate.py). The number does not decide the verdict; answering the question changes the work.",
     ]
 
     payload: dict[str, Any] = {
@@ -228,7 +290,10 @@ def build_draw(args: argparse.Namespace, decks: dict[str, Any]) -> dict[str, Any
         "requirements": {
             "required_by_modes": sorted(forced_decks),
             "all_drawn_components_are_binding": required,
-            "thresholds": thresholds,
+            # No thresholds. The gate has no numeric bar to carry down here any
+            # more: twenty measured runs all self-scored just over the old one,
+            # so the number decided nothing and let the graded party grade
+            # itself. The schema version is bumped because the field is gone.
             "domain_categories": sorted({d["category"] for d in domains}),
         },
         "forbidden_moves": cliches["moves"],
@@ -278,8 +343,8 @@ def render_human(payload: dict[str, Any]) -> str:
     lines.append(f"AFFECT PAIR: {a['a']} + {a['b']}")
     lines.append(f"      test:   {a['test']}")
     lines.append("")
-    lines.append(f"THRESHOLDS: mean >= {payload['requirements']['thresholds']['min_mean']}, "
-                 f"no axis < {payload['requirements']['thresholds']['min_axis']}")
+    lines.append("RUBRIC: every axis must be scored and each score argued in writing. No numeric "
+                 "threshold decides the verdict - the structural checks do.")
     lines.append("")
     lines.append("MODE DIRECTIVES:")
     for m in payload["modes"]:

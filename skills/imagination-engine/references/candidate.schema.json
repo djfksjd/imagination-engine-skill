@@ -278,7 +278,8 @@
         "type": "string",
         "minLength": 15
       },
-      "description": "One written answer per manual check in banlist.json. A check that is only printed is not a check."
+      "propertyNames": { "pattern": "^obvious-[0-9]{2}$" },
+      "description": "An object KEYED BY CHECK ID, not a list: {\"obvious-01\": \"how the result avoids it\", \"obvious-02\": \"...\"}. One entry for every id in banlist.json manual_checks, each at least 30 content units. A check that is only printed is not a check. A fiction, ritual or mechanic brief usually produces twelve of twelve manual checks, because a sentence-shaped instinct is always too long to phrase-match; a product brief usually produces none, which is why the shipped example clears only one."
     }
   }
 }

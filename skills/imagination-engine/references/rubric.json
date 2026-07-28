@@ -1,15 +1,8 @@
 {
   "rubric": "imagination-engine",
   "version": "0.4.0",
-  "default_thresholds": {
-    "min_mean": 8.0,
-    "min_axis": 6
-  },
-  "extremal_thresholds": {
-    "min_mean": 9.0,
-    "min_axis": 8
-  },
-  "note": "Self-scoring is weak evidence and this rubric does not pretend otherwise. Its value is that each axis names a specific failure, so a low score has to be argued away with a rewrite rather than with an adjective. Score honestly: a 6 that gets fixed beats a 9 that was assigned.",
+  "note": "These axes are a self-interrogation aid, not a measurement. There is no threshold: no mean and no per-axis floor decides whether a run passes. Twenty gated runs across four unrelated briefs were measured and every self-score landed in [8.00, 8.25], with fourteen of the twenty on exactly 8.125, against a threshold of 8.0 - including runs that blind judges ranked last in their pile. A number with no observed variance discriminates nothing; what it did was let the party the verdict is about write the verdict. This repo had already deleted --min-mean, --min-axis and --rubric on the principle that a threshold asserted at verdict time is asserted by the party the verdict is about, and left the ability to assert the score one level down. That is now gone too.",
+  "why_the_axes_stay": "Answering them changes the work even when the number does not decide anything, which is the part that was worth keeping: each axis names a specific failure, so a weak one has to be argued away with a rewrite rather than with an adjective. The gate still requires all eight to be present, scored as integers, and argued in writing, and it still records the scores in the verdict. Score honestly and low where it is low - the field that does work is weakest_fix, not the mean.",
   "axes": [
     {
       "id": "unpredictability",

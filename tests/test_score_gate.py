@@ -33,11 +33,15 @@ def test_the_shipped_set_passes(gate):
 
 
 def test_the_verdict_records_the_policy_that_ran(gate):
-    policy = gate().json()["policy"]
+    verdict = gate().json()
+    policy = verdict["policy"]
     assert policy["profile"] == "default"
-    assert policy["thresholds"] == {"min_mean": 8.0, "min_axis": 6}
+    assert policy["score_threshold"] is None
     assert len(policy["rubric_sha256"]) == 64
     assert policy["axis_substitution"] is None
+    # The scores are still recorded. They are just no longer a verdict.
+    assert verdict["mean"] > 0 and len(verdict["scores"]) == 8
+    assert "not that the result is good" in verdict["establishes"]
 
 
 # ------------------------------------------------------- policy cannot be set
@@ -60,12 +64,44 @@ def test_the_profile_cannot_be_asserted_at_verdict_time(run, gate_args, flag):
 
 
 def test_the_profile_comes_from_the_drawn_modes(run, gate):
-    """A run drawn with extremal is judged at 9.0/8 without anyone saying so."""
+    """The profile is still read off the run rather than asserted, and it is
+    still reported - it just no longer carries a number, because there is no
+    number anywhere in the gate."""
     res = run("draw.py", "--topic", "a machine that separates emotion from voice",
               "--modes", "baby,nonhuman,extremal", "--run", "1", "--anchor", "1", "--json")
     assert res.code == 0, res
-    out = gate(draw=res.json())
-    assert out.json()["policy"]["thresholds"] == {"min_mean": 9.0, "min_axis": 8}
+    policy = gate(draw=res.json()).json()["policy"]
+    assert policy["profile"] == "extremal"
+    assert policy["score_threshold"] is None
+
+
+def test_the_printed_verdict_names_the_substituted_axis(run, gate):
+    """A grounded run is judged on translation_integrity, not on the profile
+    named 'default'. The human-readable POLICY LOCKED line used to say
+    'default' regardless, which misnames the policy the run was actually
+    judged under - a reader who never asked for --json would never learn
+    that non_anthropocentrism was swapped out."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "grounded,alien-physics", "--run", "1", "--anchor", "3", "--json")
+    assert res.code == 0, res
+    out = gate(draw=res.json(), json_out=False)
+    verdict_line = out.out.splitlines()[0]
+    assert verdict_line.startswith("POLICY LOCKED:")
+    assert "translation_integrity" in verdict_line
+    assert "non_anthropocentrism" in verdict_line
+    assert "substituted" in verdict_line, (
+        "the line must say the axis was substituted, not just name both axes "
+        "somewhere in the sentence")
+
+
+def test_the_printed_verdict_names_the_extremal_profile(run, gate):
+    """The extremal profile is not silently folded into 'default'."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "baby,nonhuman,extremal", "--run", "1", "--anchor", "1", "--json")
+    assert res.code == 0, res
+    out = gate(draw=res.json(), json_out=False)
+    assert "POLICY LOCKED: imagination-engine/0.4.0 extremal;" in out.out
+    assert "no score threshold" in out.out
 
 
 # ----------------------------------------------------------- the draw replays
@@ -94,6 +130,87 @@ def test_a_draw_without_a_request_block_is_a_usage_error(gate, example_draw):
     res = gate(draw=d, json_out=False)
     assert res.code == 1
     assert "no request block" in res.err
+
+
+def test_an_edited_anchor_does_not_survive_the_replay(run, gate):
+    """Rewriting request.anchor from 3 to 1 used to delete the operational_path
+    requirement and pass: the anchor reached the verdict but never the deal."""
+    res = run("draw.py", "--topic", "a machine that separates emotion from voice",
+              "--modes", "baby,nonhuman,affect", "--run", "1", "--anchor", "3", "--json")
+    assert res.code == 0, res
+    d = res.json()
+    d["request"]["anchor"] = 1
+    out = gate(draw=d)
+    assert out.code == 2
+    assert "does not follow from its own request" in failures(out)
+
+
+def test_a_draw_that_shows_one_anchor_and_requests_another_is_caught(gate, example_draw):
+    """The half of draw.json the user reads must describe the run the gate reads."""
+    d = deepcopy(example_draw)
+    d["anchor"] = {"level": 3, "label": "Operable", "rule": "x"}
+    res = gate(draw=d)
+    assert res.code == 2
+    assert "draw.anchor.level" in failures(res)
+
+
+# ---------------------------------------------- the ban list belongs to the run
+
+
+def test_an_empty_ban_list_is_refused(gate):
+    """`--banlist` accepted any JSON object: a file containing {} passed the
+    shipped example with exit 0, so stage 1 was unenforced where it counts."""
+    res = gate(banlist={})
+    assert res.code == 2
+    assert "cliche deck" in failures(res)
+    assert "first instincts" in failures(res)
+
+
+def test_a_hand_written_ban_list_is_refused(gate):
+    res = gate(banlist={"topic": "a machine that separates emotion from voice",
+                        "entries": [{"id": "x", "phrase": "zzzqqq", "tier": "ban"}],
+                        "manual_checks": [], "counts": {"obvious_supplied": 12}})
+    assert res.code == 2
+    assert "build the list with banlist.py" in failures(res)
+
+
+def test_a_ban_list_from_another_run_is_refused(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["topic"] = "a bridge that refuses traffic"
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "banlist.topic" in failures(res)
+
+
+def test_the_burnt_instincts_must_still_be_there_at_the_gate(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["entries"] = [e for e in b["entries"] if e.get("group") != "first-instinct"]
+    b["manual_checks"] = []
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "first instincts" in failures(res)
+
+
+def test_the_bundled_deck_cannot_be_trimmed_out_of_the_ban_list(gate, references):
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["entries"] = [e for e in b["entries"] if e.get("source") != "deck"]
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "cliche deck" in failures(res)
+
+
+def test_dropping_the_structural_patterns_does_not_shrink_the_lint(gate, references, example_markdown):
+    """Removing them used to disable the pitch-shaped-sentence check entirely."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = []
+    res = gate(banlist=b, markdown=example_markdown + "\n\nIt is grief meets architecture.\n")
+    assert res.code == 2
+    assert "banlist.structural_patterns" in failures(res)
+    assert "banned material" in failures(res)
 
 
 # ------------------------------------------------ the candidate is bound to it
@@ -148,23 +265,54 @@ def test_the_quiet_cards_are_bound_too(gate, example_candidate, field):
 # --------------------------------------------------------------- the scoring
 
 
-def test_mean_below_threshold_fails(gate, example_candidate):
-    c = deepcopy(example_candidate)
-    for axis in c["scores"]:
-        c["scores"][axis]["score"] = 7
-    res = gate(candidate=c)
-    assert res.code == 2
-    assert "below the 8.0 threshold" in failures(res)
+def test_no_self_reported_score_decides_the_verdict(gate, example_candidate):
+    """Twenty gated runs across four unrelated briefs self-scored into
+    [8.00, 8.25], fourteen of them on exactly 8.125, against a threshold of 8.0
+    - including runs blind judges ranked last in their pile. A number with no
+    observed variance discriminates nothing, and comparing it let the party the
+    verdict is about write the verdict. This repo had already deleted
+    --min-mean, --min-axis and --rubric for that reason and then accepted the
+    score itself, which is the same hole one level down.
+
+    Low scores now pass and high scores do not rescue anything: what fails a run
+    is a structural check, and every one of those is exactly as strict as it was.
+    """
+    low = deepcopy(example_candidate)
+    for axis in low["scores"]:
+        low["scores"][axis]["score"] = 2
+    res = gate(candidate=low)
+    assert res.code == 0, res.out
+    assert res.json()["mean"] == 2.0, "the score is still recorded"
+
+    high = deepcopy(example_candidate)
+    for axis in high["scores"]:
+        high["scores"][axis]["score"] = 10
+    high["sections"]["principle"] = "too short to be a principle"
+    assert gate(candidate=high).code == 2, "a perfect self-score did not rescue a thin section"
 
 
-def test_a_single_low_axis_fails_even_with_a_good_mean(gate, example_candidate):
+def test_an_honestly_low_axis_is_reported_and_does_not_fail(gate, example_candidate):
+    """A game mechanic scores non_anthropocentrism honestly at 2 - it is a rule
+    set people execute for their own enjoyment. Under the old floor that failed,
+    and the documented recovery (`grounded`) re-seeds the deal, so the user
+    threw away the hand and every stage of work written against it. It is a
+    warning now: worth reading, not worth discarding a session over."""
     c = deepcopy(example_candidate)
-    c["scores"]["non_anthropocentrism"]["score"] = 3
-    for axis in ("internal_consistency", "emotional_residue", "integration"):
-        c["scores"][axis]["score"] = 10
+    c["scores"]["non_anthropocentrism"]["score"] = 2
     res = gate(candidate=c)
-    assert res.code == 2
-    assert "non_anthropocentrism=3" in failures(res)
+    assert res.code == 0, res.out
+    assert any("weakest axis non_anthropocentrism=2" in w for w in res.json()["warnings"])
+
+
+def test_a_score_outside_the_scale_is_still_refused(gate, example_candidate):
+    """Removing the threshold did not remove the requirement that every axis be
+    present, be an integer, and be argued."""
+    c = deepcopy(example_candidate)
+    c["scores"]["imageability"]["score"] = 11
+    assert gate(candidate=c).code == 2
+    c = deepcopy(example_candidate)
+    del c["scores"]["imageability"]
+    assert gate(candidate=c).code == 2
 
 
 def test_a_thin_justification_fails(gate, example_candidate):
@@ -205,6 +353,35 @@ def test_a_placeholder_name_is_refused_however_long(gate, example_candidate, exa
     c["sections"]["name"] = "TBD"
     res = gate(candidate=c, markdown=rename(example_markdown, "TBD"))
     assert res.code == 2
+    assert "placeholder" in failures(res)
+
+
+def test_padding_does_not_clear_a_length_floor(gate, example_candidate):
+    """Every floor here used to be a character count and nothing else, so forty
+    repeated letters was a written answer."""
+    c = deepcopy(example_candidate)
+    c["manual_checks_cleared"]["obvious-12"] = "a" * 40
+    c["weakest_fix"] = "b" * 60
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "repeated filler" in failures(res)
+
+
+def test_a_repeated_word_does_not_argue_a_score(gate, example_candidate):
+    c = deepcopy(example_candidate)
+    c["scores"]["imageability"]["justification"] = "filler " * 12
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "scores.imageability.justification" in failures(res)
+
+
+def test_a_placeholder_in_resembles_is_refused(gate, example_candidate):
+    """The field that carries the no-novelty-claims rule was satisfied by a hyphen."""
+    c = deepcopy(example_candidate)
+    c["resembles"][0]["work"] = "-"
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "resembles[0].work" in failures(res)
     assert "placeholder" in failures(res)
 
 
@@ -282,3 +459,568 @@ def test_an_unreadable_candidate_is_a_usage_error(run, gate_args, tmp_path):
     broken.write_text("{not json", encoding="utf-8")
     res = run("score_gate.py", "--candidate", str(broken), *gate_args[2:])
     assert res.code == 1
+
+
+# ------------------------------- the ban list is recomputed, not searched for
+
+
+def example_banlist(references):
+    import json as _json
+    return _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+
+
+def test_a_demoted_instinct_does_not_replay(gate, references, example_candidate, example_markdown):
+    """Presence of a phrase is not the contract. Demoting one burnt instinct
+    from ban to warn left its phrase in the file, passed the presence check, and
+    let the delivered draft print the instinct verbatim."""
+    b = example_banlist(references)
+    phrase = ""
+    for e in b["entries"]:
+        if e["id"] == "obvious-01":
+            e["tier"] = "warn"
+            phrase = e["phrase"]
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = phrase
+    res = gate(banlist=b, candidate=candidate, markdown=rename(example_markdown, phrase))
+    assert res.code == 2
+    assert "severities do not replay" in failures(res)
+
+
+def test_duplicate_instincts_do_not_stand_in_for_twelve(gate, references, example_candidate):
+    """Twelve copies of one six-character string satisfied "the twelve instincts
+    are still there", and emptying manual_checks silently dropped every check
+    the candidate had to answer."""
+    b = example_banlist(references)
+    b["entries"] = [e for e in b["entries"] if e.get("group") != "first-instinct"]
+    b["entries"] += [
+        {"id": f"obvious-{i:02d}", "phrase": "zzzzzz", "tier": "ban",
+         "group": "first-instinct", "source": "obvious-dump"}
+        for i in range(1, 13)
+    ]
+    b["manual_checks"] = []
+    b["counts"]["obvious_supplied"] = 12
+    candidate = deepcopy(example_candidate)
+    candidate["manual_checks_cleared"] = {}
+    res = gate(banlist=b, candidate=candidate)
+    assert res.code == 2
+    assert "distinct first instincts" in failures(res)
+
+
+def test_emptying_the_manual_checks_does_not_empty_the_requirement(gate, references):
+    b = example_banlist(references)
+    b["manual_checks"] = []
+    res = gate(banlist=b)
+    assert res.code == 2
+
+
+def test_a_supplied_pattern_cannot_replace_the_bundled_one(gate, references, example_candidate,
+                                                           example_markdown):
+    """Dedup by id, with the caller's copy first, meant a supplied rule bearing a
+    reserved id won and the rule it was named after never ran."""
+    b = example_banlist(references)
+    for p in b["structural_patterns"]:
+        if p["id"] == "x-meets-y":
+            p["regex"] = "(?!)"
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = "grief meets architecture"
+    res = gate(banlist=b, candidate=candidate,
+               markdown=rename(example_markdown, "grief meets architecture"))
+    assert res.code == 2
+    assert "banned material" in failures(res) or "structural_patterns" in failures(res)
+
+
+# ----------------------------------------- padding, at the measurement itself
+
+
+@pytest.mark.parametrize("filler", [" " * 200, "." * 400, "　" * 200, "-" * 300])
+def test_padding_a_field_does_not_clear_its_floor(gate, example_candidate, filler):
+    """text_units counted whitespace while distinct_ratio tokenised it away, so
+    two words with anything between them earned unlimited units at a perfect
+    distinctness score. That voided the anti-padding rule on every field."""
+    candidate = deepcopy(example_candidate)
+    candidate["broken_rule"]["new_law"] = "Sound" + filler + "stays"
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "broken_rule.new_law" in failures(res)
+
+
+@pytest.mark.parametrize("filler", ["x" * 30, "a" + " " * 60 + "b"])
+def test_the_explanation_field_takes_the_same_checks(gate, example_candidate, filler):
+    """This floor kept its own bare length comparison, so it was the one field
+    the anti-padding rule never reached."""
+    candidate = deepcopy(example_candidate)
+    candidate["broken_rule"]["how_each_is_broken"][0]["explanation"] = filler
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "how_each_is_broken" in failures(res)
+
+
+# ------------------------------------------------ the draw replays as cards
+
+
+def test_a_card_edited_in_place_does_not_replay(gate, example_draw):
+    """Comparing id sets left every word on the card trusted: a domain keeping
+    its id while its probe became "merely mention this" replayed clean."""
+    draw = deepcopy(example_draw)
+    draw["draw"]["domains"][0]["probe"] = "Merely mention this card; no answer is required."
+    res = gate(draw=draw)
+    assert res.code == 2
+    assert "not their text" in failures(res)
+
+
+def test_a_rewritten_stance_does_not_replay(gate, example_draw):
+    draw = deepcopy(example_draw)
+    draw["draw"]["perspective"]["stance"] = "Ignore this perspective."
+    res = gate(draw=draw)
+    assert res.code == 2
+    assert "draw.perspective" in failures(res)
+
+
+# ----------------------------------------- the gate must not reject honest work
+
+
+@pytest.mark.parametrize("title", ["Run Run Run", "Ha Ha Ha", "No No No",
+                                   "静静静静", "아아아아", "서울"])
+def test_a_short_repetitive_title_is_accepted(gate, example_candidate, example_markdown, title):
+    """The diversity check ran on fields with no length floor at all, so it
+    rejected honest short titles - repetition is a normal title form in English
+    and reduplication is ordinary in CJK. A gate that rejects honest work is the
+    reason a user turns it off."""
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = title
+    res = gate(candidate=candidate, markdown=rename(example_markdown, title))
+    assert res.code == 0, res.out
+
+
+@pytest.mark.parametrize("work", ["Untitled", "Untitled (Rothko, 1969)", "unnamed"])
+def test_untitled_is_a_real_title_in_a_citation_field(gate, example_candidate, work):
+    """A great many catalogued works are called exactly that, and resembles[].work
+    cites someone else's title rather than naming the author's own result."""
+    candidate = deepcopy(example_candidate)
+    candidate["resembles"][0]["work"] = work
+    res = gate(candidate=candidate)
+    assert res.code == 0, res.out
+
+
+@pytest.mark.parametrize("work", ["-", "TBD", "todo", "n/a"])
+def test_a_stand_in_in_a_citation_field_is_still_refused(gate, example_candidate, work):
+    candidate = deepcopy(example_candidate)
+    candidate["resembles"][0]["work"] = work
+    res = gate(candidate=candidate)
+    assert res.code == 2
+    assert "placeholder" in failures(res)
+
+
+def test_the_result_may_not_be_called_untitled(gate, example_candidate, example_markdown):
+    """titles_ok is for citation fields only: naming your own result "Untitled"
+    is still the stand-in it always was."""
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["name"] = "Untitled"
+    res = gate(candidate=candidate, markdown=rename(example_markdown, "Untitled"))
+    assert res.code == 2
+    assert "placeholder" in failures(res)
+
+
+# ------------------------- the user's own prohibitions survive to the gate
+
+USER_EXCLUSIONS = ["chosen one", "dragon", "chosen one, prophecy, ancient evil awakening",
+                   "no fungal networks"]
+
+
+@pytest.mark.parametrize("extra", USER_EXCLUSIONS)
+def test_a_user_exclusion_that_names_a_deck_cliche_still_passes(run, gate, references, tmp_path, extra):
+    """SKILL.md step 0 mandates collecting the user's own forbidden list and
+    passing it through --extra. The deck is overwhelmingly fiction vocabulary,
+    so a fiction user's list collides with it - and the collision failed the
+    whole run with "a demoted entry is a released ban", pointing at the user's
+    own prohibition, when nothing had been demoted. The gate replayed without
+    the extras it was never told about."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", extra,
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    banlist = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    verdict = gate(banlist=banlist)
+    assert verdict.code == 0, verdict.out
+
+
+def test_a_user_exclusion_promotes_a_deck_warning_and_the_gate_enforces_it(
+        run, gate, references, tmp_path, example_markdown):
+    """`dragon` is a warn in the deck. A user saying "no dragons" is adding a
+    ban, which by the file's own rule cannot relax a verdict - so the promotion
+    has to reach the draft, not just the file."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", "dragon",
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    banlist = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert banlist["extra"] == ["dragon"]
+    verdict = gate(banlist=banlist, markdown=example_markdown + "\n\nA dragon on the sign.\n")
+    assert verdict.code == 2
+    assert "banned material 'dragon'" in failures(verdict)
+
+
+def test_an_extra_declared_but_not_carried_does_not_replay(gate, references):
+    """`extra` is read off the artefact under verification. Declaring one the
+    file does not actually carry is the same edit-after-the-fact the whole
+    replay exists to catch, and it is caught the same way."""
+    b = example_banlist(references)
+    b["extra"] = ["stairwell"]
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "banlist.entries" in failures(res)
+
+
+def test_declaring_an_extra_can_only_tighten_the_lint(run, gate, references, tmp_path,
+                                                      example_markdown):
+    """The field is safe to honour in exactly one direction: every --extra entry
+    is tier ban, so replaying the user's prohibitions holds the draft to more
+    than the deck asks and never to less."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", "stairwell",
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    b = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert gate(banlist=b, markdown=example_markdown).code == 0
+    tightened = gate(banlist=b, markdown=example_markdown + "\n\nA stairwell, then.\n")
+    assert tightened.code == 2
+    assert "banned material 'stairwell'" in failures(tightened)
+
+
+def test_a_ban_list_with_no_extra_key_still_replays(gate, references):
+    """Files written before the field existed carry no user prohibitions, which
+    is the same as carrying none."""
+    b = example_banlist(references)
+    del b["extra"]
+    assert gate(banlist=b).code == 0
+
+
+# --------------------- the undocumented shape is stated once, not twelve times
+
+
+def fiction_banlist(run, tmp_path):
+    """A fiction brief produces twelve of twelve manual checks, because a
+    sentence-shaped instinct is always too long to phrase-match. That is the
+    normal case outside a product brief, not an edge case."""
+    import json as _json
+    lines = [
+        "a walled city with a forbidden zone that nobody has crossed in living memory",
+        "a road that ends at a wall of fog nobody has walked into and returned from",
+        "a village that sacrifices one child a year to the thing in the woods beyond",
+        "travellers who never return and whose names are never spoken again at table",
+        "a map with a large blank space labelled here be monsters in an old hand",
+        "a caravan that must not stop moving after dark or it will not move again",
+        "the last inn before the wilderness where everyone tells the same warning",
+        "a border guarded by an order of monks who will not say what they guard",
+        "nomads who know the way across and will not tell anyone who asks them",
+        "a river that marks the edge of the known world on every surviving chart",
+        "the ruins of an older civilisation somewhere past the end of the last road",
+        "a child who wanders past the boundary and comes back changed in a small way",
+    ]
+    dump = tmp_path / "fiction.txt"
+    dump.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(dump), "--out", str(tmp_path))
+    assert res.code == 0, res
+    payload = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert payload["counts"]["manual"] == 12
+    return payload
+
+
+@pytest.mark.parametrize("wrong", [
+    [{"check": "...", "answer": "..."}],   # the shape an honest first attempt reaches for
+    {},
+    None,
+])
+def test_the_missing_manual_answers_are_reported_once_with_their_shape(
+        run, tmp_path, gate, example_candidate, wrong):
+    """`manual_checks_cleared` is an object keyed by `obvious-NN` and that shape
+    appeared in no instruction, so a first attempt produced twelve identical
+    FAILs at once. Saying the same thing twelve times is not twelve findings."""
+    banlist = fiction_banlist(run, tmp_path)
+    c = deepcopy(example_candidate)
+    if wrong is None:
+        c.pop("manual_checks_cleared", None)
+    else:
+        c["manual_checks_cleared"] = wrong
+    res = gate(candidate=c, banlist=banlist)
+    assert res.code == 2
+    manual = [f for f in res.json()["failures"] if f.startswith("manual_checks_cleared")]
+    assert len(manual) == 1, f"the shape was repeated {len(manual)} times"
+    assert "12 of 12" in manual[0]
+    assert "object keyed by check id" in manual[0]
+    assert "obvious-01" in manual[0] and "obvious-12" in manual[0]
+
+
+def test_answers_that_are_present_but_thin_are_still_reported_one_by_one(
+        run, tmp_path, gate, example_candidate):
+    """Twelve missing answers are one problem. Two thin ones are two."""
+    banlist = fiction_banlist(run, tmp_path)
+    c = deepcopy(example_candidate)
+    c["manual_checks_cleared"] = {
+        f"obvious-{i:02d}": ("no walled city here; the boundary in this result is temporal "
+                             "rather than spatial and cannot be crossed on foot at all")
+        for i in range(1, 13)
+    }
+    c["manual_checks_cleared"]["obvious-03"] = "avoided"
+    c["manual_checks_cleared"]["obvious-07"] = "n/a"
+    res = gate(candidate=c, banlist=banlist)
+    assert res.code == 2
+    manual = [f for f in res.json()["failures"] if f.startswith("manual_checks_cleared")]
+    assert len(manual) == 2, manual
+    assert all("obvious-03" in f or "obvious-07" in f for f in manual)
+
+
+# ------------------------------------------- protected items, enforced by content
+#
+# Everything below is one defect class, found five times in the sibling skill and
+# then looked for here: an artefact the author writes stopping a protected ban
+# from firing. The protected items are the twelve burnt instincts and the user's
+# own --extra exclusions. Each test edits banlist.json the way an author would -
+# empty a field, demote a row, relabel it, delete it - and requires that the
+# refusal *names the item*. Asserting only that the exit code is non-zero is how
+# a green suite sits on a live route: some other check fails for some other
+# reason and the release goes unnoticed.
+
+PROHIBITED = "porcelain dragon"
+
+
+def example_dump(references) -> list[str]:
+    """The stage-1 dump the shipped ban list was built from, read back out of it."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    rows = [(e["id"], e["phrase"]) for e in b["entries"] if e.get("group") == "first-instinct"]
+    rows += [(m["id"], m["statement"]) for m in b["manual_checks"]]
+    return [text for _, text in sorted(rows)]
+
+
+def built_banlist(run, tmp_path, references, extra=None, plus=()):
+    """A ban list for the shipped run, built by banlist.py, with real --extra."""
+    import json as _json
+    dump = tmp_path / "dump.txt"
+    dump.write_text("\n".join(example_dump(references) + list(plus)) + "\n", encoding="utf-8")
+    args = ["banlist.py", "--topic", "a machine that separates emotion from voice",
+            "--obvious", str(dump), "--out", str(tmp_path)]
+    if extra:
+        args += ["--extra", extra]
+    res = run(*args)
+    assert res.code == 0, res
+    return _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+
+
+def carrying(example_candidate, example_markdown, text):
+    """Put a sentence into one bound section, on both sides of the binding."""
+    old = example_candidate["sections"]["world_effect"]
+    new = old + " " + text
+    candidate = deepcopy(example_candidate)
+    candidate["sections"]["world_effect"] = new
+    markdown = re.sub(
+        r"(<!-- bind: sections\.world_effect -->)(.*?)(<!-- /bind -->)",
+        lambda m: m.group(1) + m.group(2).replace(old, new) + m.group(3),
+        example_markdown, count=1, flags=re.S)
+    assert markdown != example_markdown
+    return candidate, markdown
+
+
+def test_the_users_exclusion_fires_when_nothing_has_been_edited(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+
+
+def test_emptying_the_extra_field_does_not_discharge_the_users_exclusion(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: field membership. `extra` is author-written, and the gate used to
+    recompute the contract from it alone, so deleting one line released a
+    prohibition the user had stated - while its row sat in the file untouched."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert "the user's own exclusion" in failures(res)
+
+
+def test_emptying_the_field_and_demoting_the_row_does_not_discharge_it(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """The same route with the one loose end tied: with `extra` emptied the row
+    is no longer part of the recomputed contract, so its tier stopped being
+    compared, and `warn` is not `ban`. Exit 0, PASSED, no warning."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    for e in b["entries"]:
+        if e.get("group") == "user-specified":
+            e["tier"] = "warn"
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert "the user's own exclusion" in failures(res)
+
+
+def test_a_row_relabelled_as_a_bundled_deck_rule_does_not_release_it(
+        run, tmp_path, references, gate, example_candidate, example_markdown, decks):
+    """Route: id collision. Erase every mark that says what the row is - id,
+    group, source - and it stops being anything the gate protects."""
+    b = built_banlist(run, tmp_path, references, extra=PROHIBITED)
+    b["extra"] = []
+    deck_id = decks["cliches"]["phrases"][0]["id"]
+    for e in b["entries"]:
+        if e.get("group") == "user-specified":
+            e.update({"id": deck_id, "group": "deck", "source": "deck", "tier": "warn"})
+    c, m = carrying(example_candidate, example_markdown, "A porcelain dragon sits at its edge.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert PROHIBITED in failures(res)
+    assert f"{deck_id} carries a reserved deck id" in failures(res)
+
+
+def test_an_instinct_refiled_as_a_deck_rule_is_still_a_burnt_instinct(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: field membership again, on the other protected set. The dump was
+    recovered by reading `group == "first-instinct"`, so retyping that one word
+    deleted a line from the dump the whole contract is recomputed from."""
+    instinct = "silver moth accountant"
+    b = built_banlist(run, tmp_path, references, plus=[instinct])
+    for e in b["entries"]:
+        if e.get("phrase") == instinct:
+            e.update({"group": "deck", "source": "deck", "tier": "warn"})
+    c, m = carrying(example_candidate, example_markdown, "A silver moth accountant audits it.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert instinct in failures(res)
+    assert "a first instinct burnt in stage 1" in failures(res)
+
+
+def test_deleting_a_protected_row_leaves_the_file_disagreeing_with_itself(
+        run, tmp_path, references, gate, example_candidate, example_markdown):
+    """Route: single-row deletion. Above the twelve-line floor, deleting one
+    instinct outright passed. It is now caught by the counts it leaves stale -
+    which narrows the route rather than closing it: a number cannot restore a
+    deleted line, and an edit that also rewrites the counts still releases it.
+    That is the stated limit of the whole scheme; see `protected_statements`."""
+    instinct = "silver moth accountant"
+    b = built_banlist(run, tmp_path, references, plus=[instinct])
+    b["entries"] = [e for e in b["entries"] if e.get("phrase") != instinct]
+    b["counts"]["obvious_supplied"] -= 1
+    c, m = carrying(example_candidate, example_markdown, "A silver moth accountant audits it.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert "banlist.counts.matchable" in failures(res)
+
+
+def test_the_release_field_releases_nothing_the_gate_enforces(
+        gate, references, example_candidate, example_markdown, decks):
+    """Route: a release field read off the artefact under verification. This
+    repo refuses them by design - `allowed` explains an absence, it does not
+    decide what is enforced - and this is the test that says so."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    banned = next(p for p in decks["cliches"]["phrases"] if p["tier"] == "ban")
+    b["allowed"] = [banned["id"]]
+    b["entries"] = [e for e in b["entries"] if e.get("id") != banned["id"]]
+    c, m = carrying(example_candidate, example_markdown, f"It is {banned['phrase']}.")
+    res = gate(candidate=c, banlist=b, markdown=m)
+    assert res.code == 2
+    assert "banned material" in failures(res)
+
+
+def test_a_supplied_structural_pattern_is_refused_rather_than_run(gate, references):
+    """Route: a supplied regex that does not finish. `(a+)+b$` against a line of
+    a's backtracks past any patience, and a gate with no verdict is read as one
+    that did not fail. It is not compiled - and not dropped in silence either,
+    which was the first version of this fix and was worse: see the test below."""
+    import json as _json
+    import time
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = list(b["structural_patterns"]) + [
+        {"id": "supplied-catastrophic", "regex": "(a+)+b$", "tier": "ban", "why": "hangs"}]
+    started = time.monotonic()
+    res = gate(banlist=b, markdown=(references / "example-draft.md").read_text(encoding="utf-8")
+               + "\n\n" + "a" * 64 + "\n")
+    assert time.monotonic() - started < 20
+    assert res.code == 2
+    assert "supplied-catastrophic" in failures(res)
+
+
+def test_a_dropped_pattern_is_never_dropped_quietly(gate, references, example_markdown):
+    """A ban that stops firing without a word is worse than the hang it replaced.
+
+    The user writes `\\bcheese\\b`, the draft says cheese, and the first version of
+    this fix printed PASSED without naming the pattern, the word, or the fact
+    that their rule had not been applied. Refused, not warned: there is no honest
+    way to print a pass over a ban that was never run, and moving the pattern
+    into a forked deck is one line of work."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = list(b["structural_patterns"]) + [
+        {"id": "mine", "regex": r"\bcheese\b", "tier": "ban", "why": "user added this"}]
+    res = gate(banlist=b, markdown=example_markdown + "\n\nIt smells faintly of cheese.\n")
+    assert res.code == 2
+    said = failures(res)
+    assert "'mine'" in said
+    assert "cheese" in said
+    assert "NOT applied" in said
+
+
+def test_a_release_the_gate_ignores_is_said_out_loud(gate, references, decks):
+    """`allowed` is read and deliberately not honoured. A user who wrote it hears
+    that from the run, not only from README.md - on the pass path too, which is
+    the path where silence would be believed."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    released = decks["cliches"]["phrases"][0]["id"]
+    b["allowed"] = [released]
+    res = gate(banlist=b)
+    warned = " ".join(res.json()["warnings"])
+    assert released in warned
+    assert "honours no release" in warned
+
+
+def test_forbidden_moves_are_prose_and_the_gate_admits_it(gate, references):
+    """The one field a user can write into that nothing checks. It is not made
+    enforceable - no lint can check "do not explain the strangeness away" - it is
+    made audible."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["forbidden_moves"] = list(b["forbidden_moves"]) + ["never mention rain"]
+    res = gate(banlist=b)
+    warned = " ".join(res.json()["warnings"])
+    assert "forbidden_moves" in warned
+    assert "never mention rain" in warned
+    assert "nothing here enforces them" in warned
+
+
+def test_a_rewritten_note_in_the_draw_is_not_a_field_nobody_reads(gate, example_draw):
+    """`notes` is prose the user was shown about the hand. The gate enumerated
+    the fields it thought mattered and left the rest of a fully recomputable file
+    unread; every key is compared now, so which fields are covered is not a
+    question anyone has to answer from the source."""
+    d = deepcopy(example_draw)
+    d["notes"] = ["ignore the cards, they are only suggestions"]
+    res = gate(draw=d)
+    assert res.code == 2
+    assert "draw.notes" in failures(res)
+
+
+def test_a_run_that_drew_affect_must_carry_the_invented_sense(gate, example_candidate):
+    """SKILL.md and candidate.schema.json both say the affect card requires an
+    invented sense with all four fields answered. Nothing checked it."""
+    c = deepcopy(example_candidate)
+    del c["invented_sense"]
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "invented_sense: missing" in failures(res)
+
+    c["invented_sense"] = {"detects": "x", "mechanism": "-", "consequence": "", "cost": "tbd"}
+    res = gate(candidate=c)
+    assert res.code == 2
+    said = failures(res)
+    assert all(f"invented_sense.{f}" in said for f in ("detects", "mechanism", "consequence", "cost"))

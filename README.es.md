@@ -84,11 +84,13 @@ Modo extremal, ancla 2: tengo que poder construirla de verdad.
 | Modo | Qué elimina |
 |---|---|
 | `baby` | La función aprendida, los nombres correctos y el orden de causa y efecto. Lógica de infante, ejecución adulta: un resultado tierno es un fracaso. |
-| `nonhuman` | La utilidad para las personas. Aquí nada existe para nadie; si el resultado es un producto, queda descalificado. |
+| `nonhuman` | La utilidad para las personas. Aquí nada existe para nadie; si el resultado es un producto, queda descalificado. **Destruye cualquier encargo que tenga una persona dentro** — lee el aviso de abajo. |
 | `alien-physics` | La apariencia como lugar de la novedad. Cambian la física, el tiempo o la identidad. |
 | `affect` | Los cinco sentidos y las emociones con nombre. Exige inventar un sentido con sus cuatro campos, incluida la nueva injusticia que crea. |
-| `extremal` | Todo candidato seguro. Los umbrales suben a media 9,0 y ningún eje por debajo de 8. |
-| `grounded` | Nada. Añade una vía hacia algo real sin tocar el principio. |
+| `extremal` | Todo candidato seguro. Ensancha la mano, reparte dos reglas que romper y sube el listón del descarte. |
+| `grounded` | Nada. Añade una vía hacia algo real sin tocar el principio y sustituye el eje `non_anthropocentrism` por `translation_integrity`. |
+
+**El valor por defecto es `alien-physics` con ancla 1, y `nonhuman` ya no está dentro.** Antes sí lo estaba. Un experimento controlado — cuatro encargos, cinco tiradas con un prompt normal y cinco con el motor en cada uno, ocho jueces ciegos a los que nunca se les dijo qué se estaba probando — encontró que el antiguo valor por defecto reducía a la mitad lo bien que el resultado respondía al encargo (6,45 → 3,27), y que los jueces aceptaron 24 de 24 salidas del prompt normal y 0 de 24 del motor. Sus razones eran consistentes: el motor había disuelto el encargo en vez de responderlo. Eso es `nonhuman` funcionando exactamente como está especificado — elimina la utilidad humana por diseño — y es lo que no hay que aplicar a un encargo para el que nadie lo eligió. **Si tu encargo tiene una persona dentro — un jugador, un lector, una congregación, un cliente — no añadas `nonhuman`.** Se la llevará por delante.
 
 ### Anclas · cuánto debe seguir siendo alcanzable el resultado
 
@@ -157,26 +159,57 @@ Enséñame los doce impulsos que quemaste y la mano que repartiste.
 
 ### Ejecutar la tubería a mano
 
-No hace falta instalar nada más allá de Python 3.11 y el repositorio. Los scripts están en `skills/imagination-engine/scripts/`; escribe los archivos de trabajo en un directorio temporal, nunca dentro de la carpeta de la habilidad.
+No hace falta instalar nada más allá de Python 3.11 y el repositorio. **Todos los comandos de abajo se ejecutan desde el directorio de la habilidad**, y los archivos de trabajo van a un directorio temporal, nunca dentro de la carpeta de la habilidad:
 
 ```bash
-# 1 · reparte la mano (sembrada desde el tema, así que se reproduce exactamente)
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
+
+Dos de las cinco entradas las escribes tú, no las produce ningún script. El repositorio trae una versión terminada de cada una, así que puedes copiarla y editarla en vez de partir de un archivo vacío.
+
+```bash
+# 1 · quema las respuestas obvias en una lista comprobable.
+#     obvious.txt lo escribes tú: las doce respuestas que darías primero,
+#     una por línea. references/example-obvious.txt es una ya terminada.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # o escribe la tuya
+python3 scripts/banlist.py --topic "un rellano entre dos plantas" \
+    --obvious /tmp/work/obvious.txt --extra "sin fantasmas,sin estetica liminal" --out /tmp/work
+#     Pasa tus propias prohibiciones a --extra tal como las dirías, aunque el mazo
+#     incluido ya nombre una: el archivo las registra y la verja las repite, así
+#     que "nada de dragones" asciende un aviso del mazo a prohibición. El código
+#     2 significa que el volcado es corto, o que es una sola línea con un número
+#     cambiado: doce variantes de una plantilla son un instinto escrito doce
+#     veces. banlist.py también acepta --allow <id de cliché> para liberar una
+#     frase del mazo; lee antes el límite honesto de más abajo.
+
+# 2 · reparte la mano (sembrada desde la petición, así que se reproduce exactamente)
 python3 scripts/draw.py --topic "un rellano entre dos plantas" \
     --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
 
-# 2 · quema las respuestas obvias en una lista comprobable
-python3 scripts/banlist.py --topic "un rellano entre dos plantas" \
-    --obvious /tmp/work/obvious.txt --extra "sin fantasmas,sin estetica liminal" --out /tmp/work
+# 3 · escribe el resultado dos veces: candidate.json para que la verja lo puntúe
+#     y draft.md para quien lo lea. Cada sección puntuada va marcada en el
+#     borrador entre <!-- bind: sections.<id> --> ... <!-- /bind -->, idéntica a
+#     la del candidato, o la verja rechaza el borrador.
+#       estructura → references/candidate.schema.json, references/output-template.md
+#       ejemplo    → references/example-candidate.json, references/example-draft.md
+#     candidate.json necesita además manual_checks_cleared: un OBJETO INDEXADO
+#     POR ID DE COMPROBACIÓN — {"obvious-01": "...", "obvious-02": "..."} — con
+#     una respuesta escrita por cada comprobación manual de la lista. Un encargo
+#     de relato, mundo, rito o mecánica suele producir doce; uno de producto,
+#     ninguna, y por eso el ejemplo incluido solo resuelve una.
 
-# 3 · pasa el linter a cualquier borrador contra esa lista
+# 4 · pasa el linter a mitad de escritura (es un diagnóstico; pasarlo no es aprobación)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · haz pasar por la verja el candidato terminado
+# 5 · la verja. Los cuatro artefactos, un solo veredicto
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla. `--extremal` y `--grounded` no son pruebas: `candidate.json` tiene que declarar los mismos modos o la verja los rechaza.
+Para ver la tubería entera pasar antes de correr la tuya, apunta el paso 5 a los cuatro artefactos que trae el repositorio: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` imprime los modos. `--run 2` reparte material nuevo, todavía de categorías disjuntas, para una regeneración; `--salt` vuelve a repartir la misma tirada sin avanzarla.
 
 ### Códigos de salida, y qué hacer con cada uno
 
@@ -184,20 +217,28 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 |---|---|---|
 | `0` | pasó | — |
 | `1` | uso, archivo ausente o mazo mal formado | una errata, no un juicio |
-| `2` | **la verja falló** — falta una sección o es delgada, un eje bajo el suelo, una carta repartida quedó de adorno | reescribe la idea. Redondear una nota hacia arriba es la única jugada que la habilidad prohíbe |
+| `2` | **la verja falló** — falta una sección o es delgada, una carta repartida quedó de adorno, un artefacto no pertenece a los demás | reescribe la idea. No hay nota que redondear: ningún número de esta verja decide nada |
 | `3` | **hay material prohibido** en el borrador | reescribe el pensamiento, no la palabra. Borrar la frase señalada y conservar la oración no es un arreglo |
 
-Si falla el mismo eje dos veces, lo que está mal es el material y no la redacción: reparte de nuevo con `--run <n+1>` en vez de editar.
+Si falla la misma comprobación dos veces, lo que está mal es el material y no la redacción: reparte de nuevo con `--run <n+1>` en vez de editar.
+
+Hay un `2` que no es de los scripts: `No such file or directory` también deja `2`, porque Python sale antes de que el script arranque. Eso es el directorio de trabajo equivocado — vuelve a `cd skills/imagination-engine`. Dentro de los scripts un error de uso siempre es `1`, así que una errata nunca puede presentarse como un veredicto.
 
 > [!IMPORTANT]
-> **Un solo comando puede decir "pasó", y ese toma todo.** `score_gate.py` vuelve a repartir la mano contra los mazos incluidos para cotejarla, ata el candidato carta por carta, lo puntúa con el perfil que implica la *tirada*, exige una respuesta escrita a cada prohibición demasiado larga para cotejar, y comprueba que el borrador a punto de mostrarse es el que se puntuó. No hay `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric`: un umbral afirmado en el momento del veredicto lo afirma la parte sobre la que trata el veredicto. `cliche_lint.py` es una ayuda de redacción; superarlo no es una autorización.
+> **Un solo comando puede decir "pasó", y ese toma todo.** `score_gate.py` vuelve a repartir la mano contra los mazos incluidos para cotejarla, ata el candidato carta por carta, exige que todos los ejes de la rúbrica estén puntuados y argumentados, exige una respuesta escrita a cada prohibición demasiado larga para cotejar, y comprueba que el borrador a punto de mostrarse es el que se puntuó. No hay `--extremal`, `--grounded`, `--min-mean`, `--min-axis` ni `--rubric`: un umbral afirmado en el momento del veredicto lo afirma la parte sobre la que trata el veredicto. **Y tampoco hay umbral de puntuación.** Veinte tiradas medidas se autopuntuaron todas dentro de una franja de un cuarto de punto, justo por encima del antiguo listón de 8,0, incluidas las que jueces ciegos colocaron en último lugar; un número sin varianza no separa nada, así que aquí ya no decide nada. Los ejes se quedan porque responderlos cambia el trabajo. `cliche_lint.py` es una ayuda de redacción; superarlo no es una autorización.
+
+**`--allow` se respeta en un sitio y no en el otro, a propósito.** `cliche_lint.py --allow <id>` libera una frase del mazo mientras redactas. `score_gate.py` no tiene esa opción e ignora la liberación registrada en la lista de prohibiciones, porque ese archivo es uno de los artefactos que está comprobando: respetarla allí dejaría que una tirada liberase sus propias prohibiciones en el momento del veredicto. Si una frase incluida de verdad no encaja en tu trabajo, la vía es bifurcar el repositorio y editar `references/decks/cliches.json`.
+
+**La lista de prohibiciones se aplica por contenido, no por cómo el archivo la clasifica.** Cinco ediciones distintas de `banlist.json` dejaban una frase protegida a la vista y aun así impedían que se activara: vaciar `extra` conservando la fila construida a partir de él, degradar esa fila a `warn`, reetiquetarla con un id de cliché del mazo, escribir `deck` en el grupo de un instinto quemado, o añadir un patrón estructural cuya regex no termina nunca. Ahora `score_gate.py` toma la unión de todos los lugares donde queda registrado un instinto quemado o una de tus exclusiones `--extra` y revisa el borrador contra esas afirmaciones como prohibiciones, sin leer id, ni nivel, ni grupo, ni liberación; solo se compilan los patrones del mazo, así que uno suministrado se ignora en vez de ejecutarse. El límite, dicho con exactitud: una afirmación borrada de *todas* las filas que la registran desaparece. Borrar una sola fila deja `counts` en desacuerdo con el contenido, lo que atrapa la edición barata y no la minuciosa: la puerta no guarda ninguna copia de la lista que la ejecución no haya escrito.
+
+**Nada de lo que la puerta lee se descarta en silencio.** Un patrón que añadas a `structural_patterns` se rechaza *por su nombre* — no se compila, y tampoco se ignora: la primera versión de esta corrección lo ignoraba, y `{"id": "mine", "regex": "\bcheese\b"}` con «cheese» en el borrador imprimía `PASSED`, que es el mismo fallo que el arreglo del cuelgue quería evitar, con mejor cara. Ponlo en un `references/decks/cliches.json` bifurcado y se compilará como cualquier otro. Una liberación en `allowed` se informa como advertencia nombrando los ids, también en la ruta de aprobado; una lista `forbidden_moves` distinta a la del mazo se informa como prosa que nada aplica. Sacar `affect` ahora exige `invented_sense` con sus cuatro campos, como `SKILL.md` decía desde siempre, y cada campo de `draw.json` se recalcula — `notes` y los recuentos autoinformados incluidos. **`imagination-brainstorming` decide este campo al revés**: acepta patrones suministrados tras un escaneo estructural y un temporizador. La diferencia es deliberada: esta puerta rechaza cualquier política suministrada por la ejecución (`--rubric`, `--min-mean`, un `--allow` honrado), y un temporizador hace que lo revisado dependa de lo rápida que sea tu máquina.
 
 > [!NOTE]
-> Las verjas son suelos, no jueces. Prueban que ciertas jugadas conocidas están *ausentes* y que el trabajo exigido se *hizo*. No pueden decirte que la idea sea buena, y la nota de aprobado es autoasignada. Lee el resultado tú mismo.
+> La verja es un suelo, no un juez. Un aprobado establece que el trabajo exigido está presente y que los cuatro artefactos se pertenecen entre sí: la mano la repartieron los mazos y no se editó después, se usaron todas las cartas, la lista de prohibiciones es la que implica el propio volcado de esta tirada, cada instinto largo tiene respuesta escrita, y el borrador a punto de mostrarse es el texto que se comprobó. No puede decirte que la idea sea buena, y ya no finge que un número pueda. Lee el resultado tú mismo.
 
 ## Qué produce
 
-Ocho secciones fijas, en tu idioma: el nombre · una definición de una línea que no se apoya en comparaciones · la ley por la que existe · una escena de primer encuentro · su propiedad más extraña · los sentimientos en conflicto que provoca · lo que cambia en el mundo por su existencia · y, obligatorio, **qué versiones familiares se descartaron y a qué obra conocida se parece más**.
+Ocho secciones fijas, en tu idioma: el nombre · una definición de una línea que no se apoya en comparaciones · la ley por la que existe · una escena de primer encuentro · su propiedad más extraña · los sentimientos en conflicto que provoca · lo que cambia en el mundo por su existencia · y, obligatorio, **qué versiones familiares se descartaron y a qué obra conocida se parece más**. Se añade una novena sección, **un camino hacia algo real**, siempre que la tirada sea `grounded` o el ancla sea `3` — el gate la exige exactamente en esos dos casos, y ninguna de las otras siete secciones desaparece cuando aparece.
 
 <details open>
 <summary>Del ejemplo completo — tema: <i>"una máquina que separa la emoción de la voz"</i></summary>
@@ -222,6 +263,16 @@ Fíjate en lo que *no* hay: ningún aparato, ningún dispositivo luminoso, nada 
 > - **Fingir que pasar el linter significa que la idea es buena.** El linter demuestra que ciertos movimientos conocidos están *ausentes*; no puede demostrar que haya algo presente. La rúbrica es autoevaluada y la skill lo dice. Lo que ambos controles imponen de verdad es que el trabajo no se saltó.
 > - **Reducir tu petición en silencio.** Si necesitas algo construible, se sube el ancla en lugar de ablandar la premisa. Y cuando la respuesta convencional es la correcta, la skill debe decírtelo y responder con normalidad.
 
+## Qué se ha medido que hace, y qué no
+
+Esta habilidad se puso a prueba en julio de 2026: cuatro encargos de cuatro dominios sin relación entre sí, cinco tiradas con un prompt normal y cinco con la tubería completa en cada uno, veinte manos repartidas sin solapamiento, codificadas y juzgadas a ciegas por agentes a los que nunca se les dijo que existían dos condiciones. Las dos mitades del resultado están aquí, porque una habilidad que esconde su propia medición está pidiendo que se le crea en vez de que se la lea.
+
+**Confirmado, con una condición.** Un prompt normal converge de verdad, pero solo cuando el encargo tiene una respuesta obvia hacia la que converger. Pedido un ser de estuario, cinco tiradas independientes produjeron cinco versiones del mismo organismo, y una sexta lo produjo otra vez. Pedida una premisa que transcurra entera dentro de un edificio, cinco tiradas produjeron cinco ideas sin relación. La afirmación del principio de esta página describe lo que le pasa a *algunos* encargos; no es una ley.
+
+**No demostrado: que quitar caminos descorrelacione respuestas repetidas.** Veinte tiradas del motor sobre veinte manos disjuntas convergieron en una sola forma: un proceso sin cuerpo en vez de una cosa, una obligación normalmente formulada como deuda, una consecuencia administrativa. Agregadas, se parecían *más* entre sí que las del prompt normal, no menos. Y las cartas no eran adorno: la mayoría no dejó rastro alguno en la redacción, o sea que sí habían sido absorbidas, y aun así las salidas convergieron. La lectura honesta es que quitar el atractor de primer orden funciona — estas respuestas de verdad no se parecen a las del prompt normal — pero quitarlo no reparte lo que queda de forma uniforme. **Solo cambia de sitio la moda.**
+
+Eso no está arreglado y esta página no dirá que lo está. Lo que se sigue en la práctica: si necesitas opciones realmente distintas, dale encargos distintos o modos distintos en vez de correr el mismo dos veces; y si tu resultado es un proceso sin cuerpo que impone una obligación y genera papeleo, has llegado adonde llegaron las últimas veinte tiradas: devuélvelo.
+
 ## Por dentro
 
 | Script | Función | Salida distinta de cero |
@@ -239,9 +290,13 @@ skills/imagination-engine/
 ├── references/
 │   ├── output-template.md      # el contrato de secciones entregadas
 │   ├── worked-example.md       # una ejecución completa, con las etapas ocultas
-│   ├── rubric.json             # ocho ejes · umbrales · mínimos por sección
+│   ├── rubric.json             # los ocho ejes y los mínimos por sección (sin umbrales)
 │   ├── candidate.schema.json   # lo que valida score_gate.py
-│   ├── example-candidate.json  # un candidato que pasa ambos controles (y sirve de fixture)
+│   ├── example-obvious.txt     # ─┐ una ejecución completa, incluida: los doce
+│   ├── example-banlist.json    #  │ primeros instintos, la lista hecha con
+│   ├── example-draw.json       #  │ ellos, la mano, el candidato puntuado y el
+│   ├── example-candidate.json  #  │ borrador. Los cuatro últimos son las cuatro
+│   ├── example-draft.md        # ─┘ entradas de la verja, y el fixture del test
 │   └── decks/                  # dominios · restricciones · sentidos · perspectivas
 │                               # afectos · modos · clichés
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

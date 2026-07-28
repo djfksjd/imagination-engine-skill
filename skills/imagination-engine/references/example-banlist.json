@@ -1,10 +1,11 @@
 {
-  "engine_version": "0.3.0",
+  "engine_version": "0.4.0",
   "topic": "a machine that separates emotion from voice",
+  "extra": [],
   "counts": {
     "obvious_supplied": 12,
-    "matchable": 71,
-    "warn": 23,
+    "matchable": 70,
+    "warn": 24,
     "manual": 1
   },
   "allowed": [],
@@ -369,7 +370,7 @@
     {
       "id": "the-matrix",
       "phrase": "the Matrix",
-      "tier": "ban",
+      "tier": "warn",
       "group": "named-work",
       "source": "deck"
     },
@@ -678,27 +679,27 @@
   "structural_patterns": [
     {
       "id": "x-meets-y",
-      "regex": "\\b[A-Za-z]+\\s+meets\\s+[A-Za-z]+\\b",
+      "regex": "\\b(?:it'?s|it is|this is|basically|essentially|think of it as|kind of)\\s+(?:like\\s+)?[A-Za-z]+\\s+meets\\s+[A-Za-z]+\\b",
       "tier": "ban",
-      "why": "The pitch reduces to two known things joined by a verb. If the idea survives this sentence, it is a combination, not an invention."
+      "why": "The pitch reduces to two known things joined by a verb. If the idea survives this sentence, it is a combination, not an invention. Narrowed to the pitch frame on purpose: 'meets' is an ordinary English verb, and this skill advertises story seeds, rituals and mechanics, where 'the committee meets each Tuesday' and 'where fresh water meets salt water' are sentences and not pitches. Unanchored, this rule banned all of them at ban tier and told the author to rewrite a thought that was not there."
     },
     {
       "id": "cross-between",
-      "regex": "\\bcross between\\b",
+      "regex": "\\ba cross between\\b",
       "tier": "ban",
-      "why": "Same failure as X meets Y, stated more honestly."
+      "why": "The same failure as X meets Y, stated more honestly. Anchored on the article for the same reason: 'the children cross between the courtyards' is a verb, 'a cross between' is a pitch."
     },
     {
       "id": "mix-of-a-and-b",
-      "regex": "\\b(a )?(mix|blend|fusion|mashup) of\\b",
-      "tier": "ban",
-      "why": "Announces assembly. The parts should have stopped being separable."
+      "regex": "\\b(?:a )?(?:mix|blend|fusion|mashup|combination) of\\b",
+      "tier": "warn",
+      "why": "Announces assembly. The parts should have stopped being separable. Warn rather than ban, because 'a mix of fear and relief' is how an affect is ordinarily described and this skill requires a section about conflicting feelings - banning the phrase there punished the section the contract demands. A warn still reports it, which is what a drafting aid is for."
     },
     {
       "id": "but-with-ai",
-      "regex": "\\bbut with (AI|robots|magic|aliens|blockchain)\\b",
+      "regex": "\\bbut (?:with|for) (?:AI|robots|blockchain|crypto)\\b",
       "tier": "ban",
-      "why": "An ordinary thing with a topical noun attached."
+      "why": "An ordinary thing with a topical noun attached. 'magic' and 'aliens' were removed from the list: in a fiction brief 'the same procession, but with magic' is a description of a variant, not a positioning."
     },
     {
       "id": "ai-powered",

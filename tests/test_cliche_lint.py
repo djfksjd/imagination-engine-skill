@@ -5,6 +5,8 @@ contain a banned string."""
 
 from __future__ import annotations
 
+import pytest
+
 
 def draft(tmp_path, text):
     path = tmp_path / "draft.md"
@@ -110,3 +112,52 @@ def test_the_shipped_example_passes_its_own_lint(run, references, tmp_path):
     path = draft(tmp_path, "\n".join(candidate["sections"].values()))
     res = run("cliche_lint.py", "--deck-only", "--draft", path, "--strict")
     assert res.code == 0, res.out
+
+
+# ------------------------------- the deck must not ban ordinary English
+
+ORDINARY_PROSE = [
+    "The committee meets each Tuesday in the west room.",
+    "Where fresh water meets salt water the silt drops out.",
+    "The family meets once a year to wash the stones.",
+    "Where the congregation meets on Sundays the floor is cold.",
+    "The group meets in this room or the tokens are gone forever.",
+    "A door meets its frame and the sound changes.",
+    "The children cross between the courtyards after lunch.",
+    "Her answer carries a mix of fear and relief.",
+    "The rite is a blend of two older customs nobody remembers separately.",
+    "The same procession, but with magic, would be a different rite entirely.",
+    "The matrix of obligations between the four households is the mechanic.",
+]
+
+PITCHES = [
+    "It is Alien meets Jaws.",
+    "Think of it as Tetris meets grief.",
+    "This is architecture meets liturgy.",
+    "It's kind of like Minecraft meets probate.",
+    "It is a cross between a lighthouse and a debt.",
+    "But with AI it would ship next quarter.",
+]
+
+
+@pytest.mark.parametrize("line", ORDINARY_PROSE)
+def test_ordinary_prose_is_not_banned(run, tmp_path, banlist, line):
+    """The engine advertises story seeds, rituals, worlds and mechanics, and the
+    bundled deck was banning the English those briefs are written in: 'meets' is
+    a verb, 'cross between' is a verb, 'a mix of fear and relief' is how the
+    affect section is ordinarily written. The gate's advice on a ban - 'rewrite
+    the thought, not the word' - is actively wrong when there is no thought
+    there, because deleting the word is the only available fix."""
+    path = draft(tmp_path, line + "\n")
+    res = run("cliche_lint.py", "--banlist", str(banlist), "--draft", path, "--json")
+    bans = [f for f in res.json()["findings"] if f["tier"] == "ban"]
+    assert bans == [], f"ordinary prose banned: {bans}"
+    assert res.code == 0
+
+
+@pytest.mark.parametrize("line", PITCHES)
+def test_the_pitch_frame_is_still_banned(run, tmp_path, banlist, line):
+    """Narrowing is not deleting. The frame the rules exist for still fails."""
+    path = draft(tmp_path, line + "\n")
+    res = run("cliche_lint.py", "--banlist", str(banlist), "--draft", path, "--json")
+    assert res.code == 3, res.out

@@ -84,11 +84,13 @@ Extremal-Modus, Anker 2 — ich muss es tatsächlich bauen können.
 | Modus | Was er entfernt |
 |---|---|
 | `baby` | Gelernte Funktion, richtige Namen, die Reihenfolge von Ursache und Wirkung. Säuglingslogik, erwachsene Ausführung — ein niedliches Ergebnis ist ein gescheitertes. |
-| `nonhuman` | Den Nutzen für Menschen. Hier existiert nichts für irgendwen; ist das Ergebnis ein Produkt, ist es disqualifiziert. |
+| `nonhuman` | Den Nutzen für Menschen. Hier existiert nichts für irgendwen; ist das Ergebnis ein Produkt, ist es disqualifiziert. **Zerstört jeden Auftrag, in dem ein Mensch vorkommt** — siehe die Warnung unten. |
 | `alien-physics` | Das Aussehen als Ort des Neuen. Stattdessen ändern sich Physik, Zeit oder Selbst. |
 | `affect` | Die fünf Sinne und die benannten Gefühle. Verlangt einen erfundenen, vollständig spezifizierten Sinn — samt der neuen Ungerechtigkeit, die er schafft. |
-| `extremal` | Jeden sicheren Kandidaten. Die Schwellen steigen auf Mittelwert 9,0, keine Achse unter 8. |
-| `grounded` | Nichts. Fügt einen Weg zu etwas Realem hinzu, ohne das Prinzip zu ändern. |
+| `extremal` | Jeden sicheren Kandidaten. Verbreitert die Hand, teilt zwei zu brechende Regeln aus und hebt die Verwerfungsschwelle. |
+| `grounded` | Nichts. Fügt einen Weg zu etwas Realem hinzu, ohne das Prinzip zu ändern, und ersetzt die Rubrik-Achse `non_anthropocentrism` durch `translation_integrity`. |
+
+**Die Voreinstellung ist `alien-physics` bei Anker 1, und `nonhuman` gehört nicht mehr dazu.** Früher schon. Ein kontrolliertes Experiment — vier Aufträge, je fünf Durchläufe mit einem gewöhnlichen Prompt und fünf mit der Maschine, acht blinde Beurteilende, denen nie gesagt wurde, was geprüft wird — ergab, dass die alte Voreinstellung halbierte, wie gut das Ergebnis zum Auftrag passt (6,45 → 3,27), und dass die Beurteilenden 24 von 24 Ausgaben des gewöhnlichen Prompts annahmen und 0 von 24 der Maschine. Ihre Begründungen waren einhellig: die Maschine hatte den Auftrag aufgelöst, statt ihn zu beantworten. Genau so arbeitet `nonhuman` spezifikationsgemäß — es entfernt den menschlichen Nutzen konstruktionsbedingt — und genau das darf man keinem Auftrag antun, für den es niemand gewählt hat. **Kommt in Ihrem Auftrag ein Mensch vor — eine Spielerin, ein Leser, eine Gemeinde, eine Kundin — fügen Sie `nonhuman` nicht hinzu.** Er wird sie entfernen.
 
 ### Anker · wie erreichbar das Ergebnis bleiben muss
 
@@ -157,26 +159,58 @@ Zeig mir die zwölf verbrannten Reflexe und die Hand, die du gezogen hast.
 
 ### Die Pipeline von Hand fahren
 
-Außer Python 3.11 und dem Repository ist nichts zu installieren. Die Skripte liegen in `skills/imagination-engine/scripts/`; schreiben Sie Arbeitsdateien in ein Scratch-Verzeichnis, nie in den Ordner der Fähigkeit.
+Außer Python 3.11 und dem Repository ist nichts zu installieren. **Alle Befehle unten laufen aus dem Verzeichnis der Fähigkeit**, und Arbeitsdateien gehen in ein Scratch-Verzeichnis, nie in den Ordner der Fähigkeit:
 
 ```bash
-# 1 · die Hand austeilen (aus dem Thema geseedet, also exakt wiederholbar)
+cd skills/imagination-engine
+mkdir -p /tmp/work
+```
+
+Zwei der fünf Eingaben erzeugt kein Skript, die schreiben Sie selbst. Von beiden liegt eine ausgefüllte Fassung im Repository, Sie können sie also kopieren und ändern, statt vor einer leeren Datei zu sitzen.
+
+```bash
+# 1 · die naheliegenden Antworten in eine prüfbare Verbotsliste verbrennen.
+#     obvious.txt schreiben Sie: die zwölf Antworten, die Ihnen zuerst
+#     einfallen, eine pro Zeile. references/example-obvious.txt ist eine fertige.
+cp references/example-obvious.txt /tmp/work/obvious.txt   # oder selbst schreiben
+python3 scripts/banlist.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
+    --obvious /tmp/work/obvious.txt --extra "keine Geister,keine liminale Aesthetik" --out /tmp/work
+#     Geben Sie Ihre eigenen Verbote so an --extra, wie Sie sie sagen würden —
+#     auch wenn das mitgelieferte Deck eines davon schon nennt: die Datei hält
+#     sie fest und das Gatter spielt sie nach, sodass „keine Drachen" eine
+#     Deck-Warnung zum Verbot heraufstuft. Code 2 heißt, der Abwurf ist zu kurz
+#     oder er ist eine Zeile mit geänderter Zahl — zwölf Varianten einer Vorlage
+#     sind ein Instinkt, zwölfmal geschrieben. banlist.py kennt außerdem
+#     --allow <Klischee-Id>, um eine Deck-Wendung freizugeben; lesen Sie vorher
+#     die ehrliche Einschränkung weiter unten.
+
+# 2 · die Hand austeilen (aus der Anfrage geseedet, also exakt wiederholbar)
 python3 scripts/draw.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
     --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
 
-# 2 · die naheliegenden Antworten in eine prüfbare Verbotsliste verbrennen
-python3 scripts/banlist.py --topic "ein Treppenabsatz zwischen zwei Etagen" \
-    --obvious /tmp/work/obvious.txt --extra "keine Geister,keine liminale Aesthetik" --out /tmp/work
+# 3 · das Ergebnis zweimal schreiben: candidate.json, damit das Gatter es
+#     bewertet, und draft.md zum Lesen. Jeder bewertete Abschnitt steht im
+#     Entwurf zwischen <!-- bind: sections.<id> --> ... <!-- /bind -->, wörtlich
+#     wie im Kandidaten, sonst weist das Gatter den Entwurf ab.
+#       Struktur → references/candidate.schema.json, references/output-template.md
+#       Beispiel → references/example-candidate.json, references/example-draft.md
+#     candidate.json braucht außerdem manual_checks_cleared: ein OBJEKT MIT DER
+#     PRÜF-ID ALS SCHLÜSSEL — {"obvious-01": "...", "obvious-02": "..."} — mit
+#     je einer schriftlichen Antwort pro manueller Prüfung der Verbotsliste. Ein
+#     Erzähl-, Welt-, Ritual- oder Mechanik-Auftrag erzeugt meist zwölf davon,
+#     ein Produktauftrag keine — darum löst das mitgelieferte Beispiel nur eine.
 
-# 3 · einen Entwurf gegen diese Liste linten
+# 4 · beim Schreiben linten (Diagnose; bestanden heißt nicht freigegeben)
 python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
 
-# 4 · den fertigen Kandidaten durchs Gatter schicken
+# 5 · das Gatter. Alle vier Artefakte, ein Urteil
 python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/work/draw.json \
     --banlist /tmp/work/banlist.json --markdown /tmp/work/draft.md
 ```
 
-`draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen. `--extremal` und `--grounded` sind kein Beleg: `candidate.json` muss dieselben Modi deklarieren, sonst weist das Gatter sie ab.
+Wer das Ganze erst einmal bestehen sehen will, richtet Schritt 5 auf die vier mitgelieferten Artefakte: `--candidate references/example-candidate.json --draw references/example-draw.json --banlist references/example-banlist.json --markdown references/example-draft.md`.
+
+`draw.py --list-modes` gibt die Modi aus. `--run 2` teilt frisches, weiterhin disjunktes Material für eine Regeneration aus; `--salt` teilt denselben Zug neu aus, ohne ihn weiterzuzählen.
 
 ### Exit-Codes und was jeweils zu tun ist
 
@@ -184,20 +218,28 @@ python3 scripts/score_gate.py --candidate /tmp/work/candidate.json --draw /tmp/w
 |---|---|---|
 | `0` | bestanden | — |
 | `1` | Aufruf, fehlende Datei oder fehlerhaftes Deck | ein Tippfehler, kein Urteil |
-| `2` | **Gatter gescheitert** — Abschnitt fehlt oder ist dünn, eine Achse unter dem Boden, eine gezogene Karte blieb Dekoration | schreiben Sie die Idee neu. Eine Note aufzurunden ist der einzige Zug, den die Fähigkeit verbietet |
+| `2` | **Gatter gescheitert** — Abschnitt fehlt oder ist dünn, eine gezogene Karte blieb Dekoration, ein Artefakt gehört nicht zu den anderen | schreiben Sie die Idee neu. Es gibt keine Note zum Aufrunden: keine Zahl in diesem Gatter entscheidet etwas |
 | `3` | **verbotenes Material** im Entwurf | schreiben Sie den Gedanken neu, nicht das Wort. Die markierte Wendung zu löschen und den Satz zu behalten ist kein Fix |
 
-Scheitert dieselbe Achse zweimal, ist das Material falsch und nicht die Formulierung: neu austeilen mit `--run <n+1>`, statt zu redigieren.
+Scheitert dieselbe Prüfung zweimal, ist das Material falsch und nicht die Formulierung: neu austeilen mit `--run <n+1>`, statt zu redigieren.
+
+Eine `2` stammt nicht von den Skripten: `No such file or directory` hinterlässt ebenfalls `2`, weil Python beendet, bevor das Skript startet. Das ist das falsche Arbeitsverzeichnis — zurück zu `cd skills/imagination-engine`. In den Skripten selbst ist ein Bedienfehler immer `1`, ein Tippfehler kann also nie als Urteil gemeldet werden.
 
 > [!IMPORTANT]
-> **Nur ein Befehl kann „bestanden" sagen, und der nimmt alles.** `score_gate.py` teilt die Hand aus den mitgelieferten Decks neu aus und vergleicht, bindet den Kandidaten Karte für Karte daran, bewertet ihn nach dem Profil, das der *Zug* impliziert, verlangt zu jedem nicht maschinell prüfbaren Verbot eine schriftliche Antwort und prüft, ob der gleich gezeigte Entwurf der bewertete ist. Es gibt kein `--extremal`, `--grounded`, `--min-mean`, `--min-axis`, `--rubric`: Eine zur Urteilszeit behauptete Schwelle behauptet die Partei, um die es im Urteil geht. `cliche_lint.py` ist eine Schreibhilfe; sie zu bestehen ist keine Freigabe.
+> **Nur ein Befehl kann „bestanden" sagen, und der nimmt alles.** `score_gate.py` teilt die Hand aus den mitgelieferten Decks neu aus und vergleicht, bindet den Kandidaten Karte für Karte daran, verlangt für jede Achse der Rubrik eine Note samt Begründung, verlangt zu jedem nicht maschinell prüfbaren Verbot eine schriftliche Antwort und prüft, ob der gleich gezeigte Entwurf der bewertete ist. Es gibt kein `--extremal`, `--grounded`, `--min-mean`, `--min-axis`, `--rubric`: Eine zur Urteilszeit behauptete Schwelle behauptet die Partei, um die es im Urteil geht. **Und es gibt auch keine Notenschwelle.** Zwanzig gemessene Durchläufe benoteten sich allesamt in einem Band von einem Viertelpunkt Breite, unmittelbar über der alten Marke von 8,0 — darunter Durchläufe, die blinde Beurteilende auf den letzten Platz setzten. Eine Zahl ohne Varianz trennt nichts, also entscheidet sie hier nichts mehr. Die Achsen bleiben, weil ihre Beantwortung die Arbeit verändert. `cliche_lint.py` ist eine Schreibhilfe; sie zu bestehen ist keine Freigabe.
+
+**`--allow` wird an einer Stelle beachtet und an der anderen nicht, mit Absicht.** `cliche_lint.py --allow <id>` gibt beim Schreiben eine Deck-Wendung frei. `score_gate.py` hat diesen Schalter nicht und ignoriert auch die in der Verbotsliste vermerkte Freigabe, denn diese Datei ist eines der Artefakte, die es prüft: sie dort zu beachten hieße, einen Durchlauf zur Urteilszeit seine eigenen Verbote aufheben zu lassen. Passt eine mitgelieferte Wendung wirklich nicht zu Ihrer Arbeit, ist der vorgesehene Weg ein Fork mit geänderter `references/decks/cliches.json`.
+
+**Die Bannliste wird über ihren Inhalt durchgesetzt, nicht über ihre Ablage.** Fünf verschiedene Änderungen an `banlist.json` ließen einen geschützten Ausdruck offen im Dokument stehen und verhinderten trotzdem, dass er greift — `extra` leeren und die daraus gebaute Zeile behalten, diese Zeile auf `warn` herabstufen, sie mit einer mitgelieferten Klischee-Id umetikettieren, die Gruppe eines verbrannten Instinkts als `deck` eintragen oder ein Strukturmuster hinzufügen, dessen Regex nie fertig wird. `score_gate.py` bildet jetzt die Vereinigung aller Stellen, an denen ein verbrannter Instinkt oder eine deiner `--extra`-Ausschlüsse festgehalten ist, und lintet den Entwurf gegen diese Aussagen als Bann — ohne Id, ohne Stufe, ohne Gruppe, ohne Freigabe zu lesen; kompiliert werden nur die mitgelieferten Muster, ein übergebenes wird ignoriert statt ausgeführt. Die Grenze, genau gesagt: eine Aussage, die aus *jeder* sie festhaltenden Zeile gelöscht wurde, ist weg. Das Löschen einer einzelnen Zeile lässt `counts` dem Inhalt widersprechen, was die billige Änderung fängt und nicht die gründliche — das Gate besitzt keine Kopie der Bannliste, die der Lauf nicht selbst geschrieben hat.
+
+**Nichts, was das Gate liest, wird stillschweigend verworfen.** Ein Muster, das du zu `structural_patterns` hinzufügst, wird *namentlich* zurückgewiesen — nicht kompiliert und auch nicht ignoriert: die erste Fassung dieser Korrektur ignorierte es, und `{"id": "mine", "regex": "\bcheese\b"}` mit „cheese“ im Entwurf druckte `PASSED` — genau das Versagen, gegen das die Hänger-Korrektur gedacht war, nur freundlicher verpackt. Leg es in ein geforktes `references/decks/cliches.json`, dann wird es wie jedes andere kompiliert. Eine Freigabe in `allowed` wird als Warnung mit Nennung der Ids gemeldet, auch auf dem Erfolgspfad; eine von der Deck-Fassung abweichende `forbidden_moves`-Liste wird als Prosa gemeldet, die nichts durchsetzt. Wer `affect` zieht, braucht jetzt `invented_sense` mit allen vier Feldern, wie `SKILL.md` es immer sagte, und jedes Feld von `draw.json` wird neu berechnet — `notes` und die selbst berichteten Zähler eingeschlossen. **`imagination-brainstorming` entscheidet dieses Feld andersherum**: dort werden übergebene Muster hinter einem Struktur-Scan und einem Timer akzeptiert. Der Unterschied ist gewollt — dieses Gate weist vom Lauf mitgelieferte Policy überall sonst zurück (`--rubric`, `--min-mean`, ein beachtetes `--allow`), und ein Timer macht davon abhängig, wie schnell deine Maschine ist, was tatsächlich geprüft wurde.
 
 > [!NOTE]
-> Gatter sind Böden, keine Richter. Sie belegen, dass bestimmte vertraute Züge *fehlen* und dass die verlangte Arbeit *getan* wurde. Ob die Idee gut ist, können sie nicht sagen, und die bestandene Note ist selbst vergeben. Lesen Sie das Ergebnis selbst.
+> Das Gatter ist ein Boden, kein Richter. Ein Bestehen belegt, dass die verlangte Arbeit vorhanden ist und dass die vier Artefakte zueinander gehören: die Hand wurde von den Decks ausgeteilt und danach nicht bearbeitet, jede Karte wurde genutzt, die Verbotsliste ist die, die der eigene Abwurf dieses Durchlaufs impliziert, jeder lange Instinkt hat eine schriftliche Antwort, und der gleich gezeigte Entwurf ist der geprüfte Text. Ob die Idee gut ist, kann es nicht sagen, und es tut auch nicht mehr so, als könnte das eine Zahl. Lesen Sie das Ergebnis selbst.
 
 ## Was herauskommt
 
-Acht feste Abschnitte, in deiner Sprache: der Name · eine einzeilige Definition ohne Vergleich · das Gesetz, nach dem es existiert · eine Szene der ersten Begegnung · seine fremdeste Eigenschaft · die widersprüchlichen Gefühle, die es erzeugt · was sich in der Welt durch seine Existenz ändert · und, verpflichtend, **welche vertrauten Fassungen verworfen wurden und welchem bekannten Werk das Ergebnis am nächsten kommt**.
+Acht feste Abschnitte, in deiner Sprache: der Name · eine einzeilige Definition ohne Vergleich · das Gesetz, nach dem es existiert · eine Szene der ersten Begegnung · seine fremdeste Eigenschaft · die widersprüchlichen Gefühle, die es erzeugt · was sich in der Welt durch seine Existenz ändert · und, verpflichtend, **welche vertrauten Fassungen verworfen wurden und welchem bekannten Werk das Ergebnis am nächsten kommt**. Ein neunter Abschnitt, **ein Weg zu etwas Echtem**, kommt hinzu, sobald der Lauf `grounded` ist oder der Anker `3` beträgt — das Gate verlangt ihn genau in diesen beiden Fällen, und keiner der anderen sieben Abschnitte entfällt dadurch.
 
 <details open>
 <summary>Aus dem durchgearbeiteten Beispiel — Thema: <i>„eine Maschine, die Gefühl von Stimme trennt"</i></summary>
@@ -222,6 +264,16 @@ Beachte, was *fehlt*: kein Apparat, kein leuchtendes Gerät, nichts, das ungewö
 > - **So tun, als hieße ein bestandener Lint, die Idee sei gut.** Der Linter beweist nur die *Abwesenheit* bestimmter bekannter Züge. Das Raster ist Selbstbewertung, und der Skill sagt das. Was beide Gates wirklich erzwingen: dass die Arbeit nicht übersprungen wurde.
 > - **Deine Anfrage stillschweigend verkleinern.** Brauchst du etwas Baubares, wird der Anker erhöht statt die Prämisse aufgeweicht. Und wenn die konventionelle Antwort die richtige ist, soll der Skill genau das sagen und normal antworten.
 
+## Was gemessen wurde — und was nicht
+
+Diese Fähigkeit wurde im Juli 2026 geprüft: vier Aufträge aus vier zusammenhanglosen Bereichen, je fünf Durchläufe mit gewöhnlichem Prompt und fünf mit der vollen Pipeline, zwanzig überschneidungsfreie ausgeteilte Hände, blind kodiert und beurteilt von Agenten, denen nie gesagt wurde, dass zwei Bedingungen existieren. Beide Hälften des Ergebnisses stehen hier, denn eine Fähigkeit, die ihre eigene Messung verbirgt, verlangt Vertrauen statt Lektüre.
+
+**Bestätigt, mit einer Bedingung.** Ein gewöhnlicher Prompt konvergiert tatsächlich — aber nur, wenn der Auftrag eine naheliegende Antwort hat, zu der hin er konvergieren kann. Auf ein Ästuar-Lebewesen hin lieferten fünf unabhängige Durchläufe fünf Fassungen desselben Organismus, ein sechster lieferte ihn erneut. Auf eine Prämisse, die vollständig in einem Gebäude spielt, lieferten fünf Durchläufe fünf zusammenhanglose Ideen. Die Behauptung am Kopf dieser Seite beschreibt, was *manchen* Aufträgen widerfährt; ein Gesetz ist sie nicht.
+
+**Nicht nachgewiesen: dass das Entfernen von Wegen wiederholte Antworten dekorreliert.** Zwanzig Maschinendurchläufe auf zwanzig disjunkten Händen konvergierten auf eine Gestalt — ein körperloser Vorgang statt eines Dings, eine meist als Schuld gefasste Verpflichtung, eine administrative Folge. Zusammengenommen ähnelten sie einander *stärker* als die des gewöhnlichen Prompts, nicht schwächer. Und die Karten waren keine Dekoration: die meisten hinterließen im Wortlaut überhaupt keine Spur, waren also wirklich aufgenommen worden — und die Ausgaben konvergierten trotzdem. Die ehrliche Lesart: das Entfernen des Attraktors erster Ordnung wirkt — diese Antworten ähneln denen eines gewöhnlichen Prompts wirklich nicht — aber das Entfernen verteilt den Rest nicht gleichmäßig. **Es verschiebt nur den Modus.**
+
+Das ist nicht behoben, und diese Seite wird das Gegenteil nicht behaupten. Praktisch folgt daraus: Wer wirklich verschiedene Optionen braucht, gibt verschiedene Aufträge oder verschiedene Modi, statt denselben zweimal laufen zu lassen; und wenn Ihr Ergebnis ein körperloser Vorgang ist, der eine Verpflichtung auferlegt und Papierkram erzeugt, sind Sie dort angekommen, wo die letzten zwanzig Durchläufe ankamen — schicken Sie es zurück.
+
 ## Unter der Haube
 
 | Skript | Aufgabe | Exit ≠ 0 |
@@ -239,9 +291,13 @@ skills/imagination-engine/
 ├── references/
 │   ├── output-template.md      # der Vertrag der gelieferten Abschnitte
 │   ├── worked-example.md       # ein kompletter Durchlauf samt verborgener Stufen
-│   ├── rubric.json             # acht Achsen · Schwellen · Mindestlängen
+│   ├── rubric.json             # die acht Achsen und die Mindestlängen (ohne Schwellen)
 │   ├── candidate.schema.json   # was score_gate.py validiert
-│   ├── example-candidate.json  # ein Kandidat, der beide Gates besteht (zugleich Fixture)
+│   ├── example-obvious.txt     # ─┐ ein kompletter Durchlauf, mitgeliefert: die
+│   ├── example-banlist.json    #  │ zwölf ersten Reflexe, die daraus gebaute
+│   ├── example-draw.json       #  │ Verbotsliste, die Hand, der bewertete
+│   ├── example-candidate.json  #  │ Kandidat, der gezeigte Entwurf. Die letzten
+│   ├── example-draft.md        # ─┘ vier sind die Eingaben des Gatters
 │   └── decks/                  # Domänen · Einschränkungen · Sinne · Perspektiven
 │                               # Affekte · Modi · Klischees
 └── scripts/                    # draw · banlist · cliche_lint · score_gate

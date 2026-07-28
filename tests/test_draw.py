@@ -207,3 +207,46 @@ def test_an_ordinary_salt_still_redeals(run):
     plain = draw(run, "--modes", "baby,affect")
     salted = draw(run, "--modes", "baby,affect", "--salt", "second attempt")
     assert plain["draw"] != salted["draw"]
+
+
+def test_a_salt_cannot_spell_a_policy_field_through_normalization(run):
+    """The length prefix used to be measured *before* the normalization that
+    collapses whitespace runs, so it described a string that no longer existed
+    by the time the seed was hashed. Two salts of equal raw length packed
+    differently and normalized identically, and this pair reproduced the
+    anchor-3 hand byte for byte from an anchor-1 request."""
+    strict = draw(run, "--modes", "", "--anchor", "3", "--salt", "x" + " " * 99)
+    downgraded = draw(run, "--modes", "", "--anchor", "1",
+                      "--salt", "x" + " " * 88 + "|8:anchor=3")
+    assert downgraded["draw"] != strict["draw"], (
+        "an anchor-1 request impersonated anchor 3 through whitespace collapse")
+
+
+def test_whitespace_padding_of_a_salt_cannot_shift_a_field_boundary(run):
+    """The general form of the same bug: any transformation the hash applies
+    after the measurement lets one field grow into the next. Salts that differ
+    only in collapsible whitespace are one salt; salts that differ in content
+    are different salts, whatever their raw lengths."""
+    base = draw(run, "--modes", "affect", "--salt", "retry two")
+    spaced = draw(run, "--modes", "affect", "--salt", "  retry   two  ")
+    assert base["draw"] == spaced["draw"], "normalization must apply before measurement, not after"
+    for salt in ("retry two|", "9:retry two", "retry twp"):
+        other = draw(run, "--modes", "affect", "--salt", salt)
+        assert other["draw"] != base["draw"], f"salt {salt!r} collided with a different salt"
+
+
+def test_the_topic_and_the_salt_do_not_share_a_boundary(run):
+    """`--topic` is the other free-text field that reaches the seed. It arrives
+    as its own part rather than inside the packed one, so moving characters
+    across the topic/salt boundary must change the hand: if it did not, a topic
+    could carry salt material and vice versa. Codex flagged this field as
+    unexamined; this is the examination."""
+    seen = []
+    for topic, salt in (("a stairwell", "between floors"),
+                        ("a stairwell between floors", ""),
+                        ("a stairwell between", "floors"),
+                        ("a", "stairwell between floors")):
+        res = run("draw.py", "--topic", topic, "--json", "--modes", "affect", "--salt", salt)
+        assert res.code == 0, res
+        seen.append(json.dumps(res.json()["draw"], sort_keys=True))
+    assert len(set(seen)) == len(seen), "a split of the same characters dealt the same hand"

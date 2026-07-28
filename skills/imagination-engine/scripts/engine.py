@@ -98,6 +98,9 @@ PLACEHOLDER_NAMES = {
 REAL_TITLE_WORDS = {"untitled", "unnamed"}
 
 
+MARKS_PER_BASE = 2
+
+
 def text_units(text: str) -> int:
     """Length in *content* units rather than code points.
 
@@ -118,14 +121,49 @@ def text_units(text: str) -> int:
     characters cannot clear a floor that plain prose has to earn.
     Compatibility-normalizing first stops fullwidth Latin from inflating the
     count.
+
+    **Combining marks count, capped per base.** Discarding every `Mn`/`Mc`/`Me`
+    mark - which is what "letters and digits only" did - destroyed the scripts
+    that write their vowels as marks: a Devanagari sentence of 56 code points
+    measured 27, Hebrew with niqqud 16 measured 9, Thai 29 measured 20. Those
+    authors were held to a floor roughly twice as high as an English author
+    writing the same argument, which is the same unfairness the wide-letter rule
+    exists to remove, in the other direction. So a mark that attaches to a letter
+    or digit counts one unit, up to two marks per base.
+
+    The cap is per *base character* and **does not reset on punctuation or
+    whitespace**. That ordering is the load-bearing detail: the sibling
+    `imagination-brainstorming` repo reset its counter on any non-mark, which
+    let `"Nurse" + 120x(dot + two accents) + "waits"` measure 251 units and
+    clear a 250 floor from 370 code points of dots and accents. Here the run of
+    dots creates no new base, so the same string measures 7 - stacking marks
+    cannot buy units, and neither can stacking punctuation, because punctuation
+    never counted in the first place.
+
+    Neither half is sufficient alone, and neither this repo nor its sibling had
+    both. This is the union, and both repos are being moved to it so they stop
+    diverging. What it does not do is judge the marks: a mark on a base still
+    counts even if it is meaningless there. The defence against repetition is
+    `distinct_ratio`, which is unchanged and still applies to every field with a
+    floor.
     """
     if not isinstance(text, str):
         return 0
     total = 0
+    base_is_content = False
+    marks_on_base = 0
     for ch in unicodedata.normalize("NFKC", text):
-        if unicodedata.category(ch)[0] not in ("L", "N"):
-            continue
-        total += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+        category = unicodedata.category(ch)
+        if category[0] in ("L", "N"):
+            total += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+            base_is_content = True
+            marks_on_base = 0
+        elif category in ("Mn", "Mc", "Me"):
+            if base_is_content and marks_on_base < MARKS_PER_BASE:
+                total += 1
+                marks_on_base += 1
+        # Anything else - space, punctuation, symbol, emoji - contributes
+        # nothing and, deliberately, does not open a new base for marks.
     return total
 
 
@@ -196,12 +234,35 @@ def pack_fields(*fields: str) -> str:
     produced a byte-identical hand to a genuine anchor-3 request. The downgrade
     cost nothing at all - not even a redraw.
 
+    **Each field is normalized before it is measured**, and that ordering is the
+    whole fix. The first length-prefixed version measured the raw field and left
+    normalization to `seed_int`, which collapses whitespace runs - so the prefix
+    described a string that no longer existed by the time it was hashed. Two
+    salts of equal *raw* length packed differently and normalized identically,
+    and `--anchor 1 --salt "x" + 88 spaces + "|8:anchor=3"` reproduced the
+    anchor-3 hand byte for byte, exactly as the separator bug had. Measuring the
+    post-normalization field closes it: `normalize` is idempotent, so the
+    prefixes still describe the string the hash sees.
+
+    U+001F is refused here rather than normalized away, because `normalize`
+    treats it as whitespace and would silently merge two different requests onto
+    one hand - and because `seed_int` can no longer see it once this function has
+    folded it into a space.
+
     Packing an empty set of fields to the empty string keeps the plain request
-    seeding exactly as it did before any policy field existed.
+    seeding exactly as it did before any policy field existed. Normalization runs
+    before that test too, so a salt of only spaces is the same request as no salt
+    at all, which is what every other comparison in this package already assumes.
     """
-    if not any(fields):
+    for field in fields:
+        if SEED_SEP in field:
+            raise EngineError(
+                "seed material may not contain the U+001F unit separator: it delimits the seed "
+                "fields, so a value carrying one could impersonate another field's contribution")
+    packed = [normalize(f) for f in fields]
+    if not any(packed):
         return ""
-    return "|".join(f"{len(f)}:{f}" for f in fields)
+    return "|".join(f"{len(f)}:{f}" for f in packed)
 
 
 def seed_int(*parts: Any) -> int:
@@ -213,6 +274,16 @@ def seed_int(*parts: Any) -> int:
     map two different requests onto one hand, which is the property being
     defended. The check reads the raw part, not the normalized one, because
     `normalize` treats U+001F as whitespace and would hide it.
+
+    Every field that reaches the seed was audited, not only `--salt`:
+    `--topic` is free text and arrives here as its own part, so the separator
+    check below is what pins its extent; `--modes` cannot be free text at all,
+    because `resolve_modes` refuses any id the bundled deck does not carry, so
+    the only mode strings that ever reach the seed are `extremal` and
+    `grounded`; `--anchor` is an int checked against the deck's anchor levels
+    and `--domains` an int with its own floor. The one free-text field left
+    inside the packed part is the salt, and `pack_fields` measures it after
+    normalization so its extent is pinned too.
     """
     raw = [str(p) for p in parts]
     for value in raw:

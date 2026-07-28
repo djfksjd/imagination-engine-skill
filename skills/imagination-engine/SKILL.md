@@ -270,13 +270,41 @@ All four are required and must belong to each other. The gate:
   structural pattern whose regex never finishes. So a second pass takes the union
   of every location that records a burnt instinct or an `--extra` exclusion and
   lints the draft against those statements as bans, reading no id, no tier, no
-  group and no release. Only the bundled `structural_patterns` are compiled - a
-  pattern supplied in `banlist.json` is ignored rather than run, because a gate
-  that never returns is read as one that did not fail; add yours to a forked
-  deck. **The limit, exactly:** a statement deleted from *every* row that records
+  group and no release. Only the bundled `structural_patterns` are compiled, and
+  a pattern supplied in `banlist.json` is **refused by name** rather than run: a
+  regex that does not finish leaves this gate with no verdict, and a verdict is
+  what the caller reads. Refused rather than ignored because the first version of
+  that fix ignored it in silence, and `{"id": "mine", "regex": "\bcheese\b"}`
+  with cheese in the draft printed PASSED - a ban that quietly stops firing is
+  worse than the hang it replaced. Put the pattern in a forked
+  `references/decks/cliches.json` and the gate compiles it like any other.
+  **The limit, exactly:** a statement deleted from *every* row that records
   it is gone. Deleting one row now leaves `counts` disagreeing with the contents,
   which catches the cheap version and not a thorough one - the gate holds no copy
   of the ban list that the run did not write.
+- **says out loud everything it read and did not act on.** A field a user can
+  write into that the gate silently discards is the same defect as a ban that
+  stops firing: the reader believes their rule was applied. A release recorded in
+  `allowed` is now reported as a warning naming the ids, on the pass path too -
+  it is read, and deliberately not honoured, and that is said by the run rather
+  than only by `README.md`. A `forbidden_moves` list that differs from the deck's
+  is reported the same way: the moves are prose for you to obey, no lint can
+  check "do not explain the strangeness away", and nothing here enforces them
+  either way. Two requirements that were stated and never checked now are:
+  drawing `affect` requires `invented_sense` with all four fields answered, and
+  every field of `draw.json` is recomputed - `notes` and the self-reported counts
+  included - not only the ones an earlier version thought mattered.
+
+**On supplied patterns, this skill and `imagination-brainstorming` disagree, and
+the disagreement is deliberate.** The sibling accepts a supplied
+`structural_patterns` entry and defends it with a structural scan and a timer;
+this gate refuses it. Both are answers to the same hang. This one is chosen
+because refusing run-supplied policy is what the rest of this gate already does -
+there is no `--rubric`, no `--min-mean`, no honoured `--allow` - and because a
+timer makes what got linted depend on how fast the host is, which is a verdict
+that varies by machine. A refusal that names the pattern and says where to put it
+costs one line of work and cannot vary. If you move between the two skills, this
+is the field to expect a different answer on.
 - **requires every manual ban answered.** Long entries from stage 1 cannot be
   phrase-matched, so they land in `manual_checks` - and used to be printed and
   forgotten. Each needs a written answer of at least thirty units in

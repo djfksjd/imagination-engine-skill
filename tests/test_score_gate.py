@@ -932,10 +932,11 @@ def test_the_release_field_releases_nothing_the_gate_enforces(
     assert "banned material" in failures(res)
 
 
-def test_a_supplied_structural_pattern_is_never_compiled(gate, references):
+def test_a_supplied_structural_pattern_is_refused_rather_than_run(gate, references):
     """Route: a supplied regex that does not finish. `(a+)+b$` against a line of
     a's backtracks past any patience, and a gate with no verdict is read as one
-    that did not fail. Only the bundled patterns are compiled now."""
+    that did not fail. It is not compiled - and not dropped in silence either,
+    which was the first version of this fix and was worse: see the test below."""
     import json as _json
     import time
     b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
@@ -945,4 +946,81 @@ def test_a_supplied_structural_pattern_is_never_compiled(gate, references):
     res = gate(banlist=b, markdown=(references / "example-draft.md").read_text(encoding="utf-8")
                + "\n\n" + "a" * 64 + "\n")
     assert time.monotonic() - started < 20
-    assert res.code == 0, res.out
+    assert res.code == 2
+    assert "supplied-catastrophic" in failures(res)
+
+
+def test_a_dropped_pattern_is_never_dropped_quietly(gate, references, example_markdown):
+    """A ban that stops firing without a word is worse than the hang it replaced.
+
+    The user writes `\\bcheese\\b`, the draft says cheese, and the first version of
+    this fix printed PASSED without naming the pattern, the word, or the fact
+    that their rule had not been applied. Refused, not warned: there is no honest
+    way to print a pass over a ban that was never run, and moving the pattern
+    into a forked deck is one line of work."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["structural_patterns"] = list(b["structural_patterns"]) + [
+        {"id": "mine", "regex": r"\bcheese\b", "tier": "ban", "why": "user added this"}]
+    res = gate(banlist=b, markdown=example_markdown + "\n\nIt smells faintly of cheese.\n")
+    assert res.code == 2
+    said = failures(res)
+    assert "'mine'" in said
+    assert "cheese" in said
+    assert "NOT applied" in said
+
+
+def test_a_release_the_gate_ignores_is_said_out_loud(gate, references, decks):
+    """`allowed` is read and deliberately not honoured. A user who wrote it hears
+    that from the run, not only from README.md - on the pass path too, which is
+    the path where silence would be believed."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    released = decks["cliches"]["phrases"][0]["id"]
+    b["allowed"] = [released]
+    res = gate(banlist=b)
+    warned = " ".join(res.json()["warnings"])
+    assert released in warned
+    assert "honours no release" in warned
+
+
+def test_forbidden_moves_are_prose_and_the_gate_admits_it(gate, references):
+    """The one field a user can write into that nothing checks. It is not made
+    enforceable - no lint can check "do not explain the strangeness away" - it is
+    made audible."""
+    import json as _json
+    b = _json.loads((references / "example-banlist.json").read_text(encoding="utf-8"))
+    b["forbidden_moves"] = list(b["forbidden_moves"]) + ["never mention rain"]
+    res = gate(banlist=b)
+    warned = " ".join(res.json()["warnings"])
+    assert "forbidden_moves" in warned
+    assert "never mention rain" in warned
+    assert "nothing here enforces them" in warned
+
+
+def test_a_rewritten_note_in_the_draw_is_not_a_field_nobody_reads(gate, example_draw):
+    """`notes` is prose the user was shown about the hand. The gate enumerated
+    the fields it thought mattered and left the rest of a fully recomputable file
+    unread; every key is compared now, so which fields are covered is not a
+    question anyone has to answer from the source."""
+    d = deepcopy(example_draw)
+    d["notes"] = ["ignore the cards, they are only suggestions"]
+    res = gate(draw=d)
+    assert res.code == 2
+    assert "draw.notes" in failures(res)
+
+
+def test_a_run_that_drew_affect_must_carry_the_invented_sense(gate, example_candidate):
+    """SKILL.md and candidate.schema.json both say the affect card requires an
+    invented sense with all four fields answered. Nothing checked it."""
+    c = deepcopy(example_candidate)
+    del c["invented_sense"]
+    res = gate(candidate=c)
+    assert res.code == 2
+    assert "invented_sense: missing" in failures(res)
+
+    c["invented_sense"] = {"detects": "x", "mechanism": "-", "consequence": "", "cost": "tbd"}
+    res = gate(candidate=c)
+    assert res.code == 2
+    said = failures(res)
+    assert all(f"invented_sense.{f}" in said for f in ("detects", "mechanism", "consequence", "cost"))

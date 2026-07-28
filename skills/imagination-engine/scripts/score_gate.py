@@ -265,6 +265,24 @@ def replay_draw(draw: dict[str, Any], decks: dict[str, Any]) -> list[str]:
             failures.append(
                 f"draw.{label}: says {got!r} while the request it carries produces {want!r}. The file "
                 "and the request no longer describe the same run")
+
+    # And every remaining key, by name. The checks above enumerate the fields
+    # that were thought to matter, which left the rest of a recomputable file
+    # unread: `notes` is prose the user was shown, `banned_phrase_count` and
+    # `deck_wrapped` are what the run reported about itself, and all three could
+    # be rewritten after the deal without a word from here. The whole file is
+    # recomputed anyway, so comparing all of it costs nothing and removes the
+    # question of which fields are covered.
+    # Only the request itself is exempt: it is the input, not a result of it.
+    checked = {"request"}
+    for key in sorted(set(draw) | set(expected)):
+        if key in checked:
+            continue
+        if draw.get(key) != expected.get(key):
+            failures.append(
+                f"draw.{key}: says {str(draw.get(key))[:60]!r} while this request produces "
+                f"{str(expected.get(key))[:60]!r} - every field of a dealt hand is recomputed, "
+                "including the ones only the reader sees")
     return failures
 
 
@@ -334,7 +352,7 @@ def bind_candidate_to_draw(candidate: dict[str, Any], draw: dict[str, Any]) -> l
 
 
 def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any],
-                    grounded: bool, needs_path: bool) -> tuple[list[str], list[str], dict[str, int], float]:
+                    grounded: bool, needs_path: bool, affect: bool) -> tuple[list[str], list[str], dict[str, int], float]:
     """Every structural requirement, and no numeric threshold.
 
     The eight axes are still required, still have to be integers, and still have
@@ -378,6 +396,21 @@ def check_candidate(candidate: dict[str, Any], rubric: dict[str, Any],
         failures += check_text(
             "broken_rule.now_impossible", broken.get("now_impossible"), MIN_IMPOSSIBLE,
             "a world where the rule is merely gone is empty, not strange")
+
+    # SKILL.md says the affect card "requires an invented sense with all four
+    # fields answered", and candidate.schema.json says the same. Nothing checked
+    # it: a run could draw affect, skip the field entirely, and pass. A
+    # requirement stated in two documents and enforced in none is the same
+    # silence as a ban that stops firing - the reader believes it was applied.
+    if affect:
+        sense = candidate.get("invented_sense")
+        if not isinstance(sense, dict):
+            failures.append(
+                "invented_sense: missing - the affect card was dealt, and it requires an invented "
+                "sense with detects, mechanism, consequence and cost all answered")
+        else:
+            for field in ("detects", "mechanism", "consequence", "cost"):
+                failures += check_text(f"invented_sense.{field}", sense.get(field), MIN_IMPOSSIBLE)
 
     domains = candidate.get("domains_used")
     if isinstance(domains, list):
@@ -556,7 +589,7 @@ def protected_statements(dump: list[str], extra: list[str]) -> list[dict[str, st
 
 
 def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
-                   decks: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+                   decks: dict[str, Any]) -> tuple[list[str], list[str], dict[str, Any]]:
     """Recompute the ban list this run implies, and lint against that, not the file.
 
     The first version of this checked that expected *phrases* appeared somewhere
@@ -580,6 +613,7 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     where SKILL.md's regeneration protocol can see it.
     """
     failures: list[str] = []
+    warnings: list[str] = []
     cliches = decks["cliches"]
 
     drawn_topic = str(draw["request"]["topic"])
@@ -600,6 +634,16 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     unknown = sorted(set(allowed) - known_ids)
     if unknown:
         failures.append(f"banlist.allowed: releases id(s) that are not in the cliche deck: {', '.join(unknown)}")
+    honoured = sorted(set(allowed) - set(unknown))
+    if honoured:
+        # Said out loud, not only in README.md. This gate reads the release and
+        # enforces the phrase anyway - deliberately, because `allowed` sits in
+        # the artefact under verification - and a user who wrote it is entitled
+        # to hear that from the run rather than from a document.
+        warnings.append(
+            f"banlist.allowed releases {', '.join(honoured)} and this gate honours no release: those "
+            "phrases are enforced here regardless. The release applies to cliche_lint.py while you "
+            "draft. To drop a bundled phrase for good, fork references/decks/cliches.json")
 
     supplied_entries = [e for e in (banlist.get("entries") or []) if isinstance(e, dict)]
     # Through banlist.py's own parser, because that is what it did to the dump:
@@ -642,7 +686,7 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
             f"before writing - cannot be rebuilt from the {len(dump)} distinct first instincts this "
             f"file carries. Stage 1 is the subtraction this skill is named after: build the list "
             f"with banlist.py rather than by hand. {exc}")
-        return failures, {
+        return failures, warnings, {
             "entries": [e for e in deck_entries(cliches) if e["tier"] in ("ban", "warn")] + supplied_entries,
             "patterns": list(cliches["structural_patterns"]),
             "manual_checks": [],
@@ -694,6 +738,26 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
                 f"banlist.structural_patterns: {want['id']} does not match the bundled pattern - a "
                 "supplied rule carrying a reserved id is a rewritten rule, not an added one")
 
+    reserved_ids = {p["id"] for p in expected["structural_patterns"]}
+    # A pattern this file adds is refused, not dropped. Compiling it reopens the
+    # denial of verdict - `(a+)+b$` against a line of a's does not finish, and a
+    # gate with no verdict gets read as one that did not fail - but ignoring it in
+    # silence is worse than the hang it replaced: `{"id": "mine", "regex":
+    # "\\bcheese\\b"}` plus "it smells faintly of cheese" in the draft printed
+    # PASSED, named nothing, and told a user who had written their own ban that
+    # their draft was clean. A refusal rather than a warning because there is no
+    # honest way to print a pass over a ban that was never applied, and because
+    # the fix takes one line: put the pattern in a forked deck, where it is a
+    # distribution decision and the gate will compile it like any other.
+    unusable = [p for p in supplied_patterns if p.get("id") not in reserved_ids and p.get("regex")]
+    for p in unusable:
+        failures.append(
+            f"banlist.structural_patterns: {str(p.get('id'))!r} is not a rule of the bundled deck, and "
+            f"a regex supplied in this file is never compiled - one that does not finish would leave "
+            f"this gate with no verdict at all. So {str(p.get('regex'))[:40]!r} was NOT applied to the "
+            "draft and nothing here checked what it was written to catch. Move it into a forked "
+            "references/decks/cliches.json, or delete it and hold the line by reading")
+
     # A row cannot claim to be part of the bundled deck unless it is. Without
     # this, the way to release a protected phrase was to erase every mark that
     # said what it was: retype its id as a deck id, its group and source as
@@ -716,6 +780,24 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
                 f"banlist.entries: {eid} carries a reserved deck id but not the deck's rule - the deck "
                 f"says {row['phrase']!r}/{row['tier']} and this file says "
                 f"{str(entry.get('phrase', ''))[:40]!r}/{entry.get('tier')}")
+
+    # Prose, and the gate says so rather than leaving the impression it is
+    # checked. banlist.py copies the deck's forbidden moves into the file for the
+    # model to read; nothing machine-checks them, so a move added here is obeyed
+    # by whoever reads it or by nobody. That is not a hole - no lint can check
+    # "do not explain the strangeness away" - but it is a field a user can write
+    # into and hear nothing back about, which is the same silence the pattern
+    # above was refused for.
+    deck_moves = list(cliches["moves"])
+    supplied_moves = banlist.get("forbidden_moves")
+    if isinstance(supplied_moves, list) and supplied_moves != deck_moves:
+        added = [str(m) for m in supplied_moves if m not in deck_moves]
+        dropped = [m for m in deck_moves if m not in supplied_moves]
+        warnings.append(
+            f"banlist.forbidden_moves differs from the bundled deck ({len(added)} added, "
+            f"{len(dropped)} missing{': ' + added[0][:50] if added else ''}). This gate never reads "
+            "that field - the moves are prose for the model to obey, and nothing here enforces them "
+            "either way")
 
     counts = banlist.get("counts")
     declared = counts.get("obvious_supplied") if isinstance(counts, dict) else None
@@ -775,7 +857,7 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     # verdict time; add it to a forked deck instead, where it is a distribution
     # decision rather than a per-run one.
     effective_patterns = list(enforced["structural_patterns"])
-    return failures, {
+    return failures, warnings, {
         "entries": effective_entries,
         "patterns": effective_patterns,
         "manual_checks": expected["manual_checks"],
@@ -928,7 +1010,7 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
          markdown: str, rubric: dict[str, Any], decks: dict[str, Any]) -> dict[str, Any]:
     failures = replay_draw(draw, decks)
     failures += bind_candidate_to_draw(candidate, draw)
-    banlist_failures, contract = replay_banlist(banlist, draw, decks)
+    banlist_failures, banlist_warnings, contract = replay_banlist(banlist, draw, decks)
     failures += banlist_failures
 
     # The profile is read off the validated run. There is no --extremal and no
@@ -946,7 +1028,11 @@ def gate(candidate: dict[str, Any], draw: dict[str, Any], banlist: dict[str, Any
     needs_path = grounded or anchor == 3
 
     cand_failures, warnings, values, mean = check_candidate(
-        candidate, rubric, grounded, needs_path)
+        candidate, rubric, grounded, needs_path, affect="affect" in mode_ids)
+    # Printed on both paths, pass and fail: everything the gate read off an
+    # artefact and did not act on is said out loud, so no user is left believing
+    # a rule they wrote was applied.
+    warnings = banlist_warnings + warnings
     failures += cand_failures
     failures += check_banlist(candidate, contract)
     failures += check_markdown(candidate, markdown, rubric, contract, needs_path)

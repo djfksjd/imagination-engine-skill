@@ -72,8 +72,15 @@ def test_extremal_widens_the_draw_and_carries_no_threshold(run):
 
 
 def test_default_modes_apply_when_unspecified(run):
+    """The default is alien-physics alone. nonhuman was in it, and a controlled
+    experiment measured what that cost: fit to the brief halved (6.45 control
+    against 3.27 engine) and blind judges accepted 24 of 24 control outputs and
+    0 of 24 engine ones, because nonhuman removes human usefulness by design and
+    most briefs people bring have a person in them. It is still available and
+    still the strongest mode in the deck; it is no longer applied to briefs
+    nobody chose it for."""
     payload = draw(run)
-    assert [m["id"] for m in payload["modes"]] == ["nonhuman", "alien-physics"]
+    assert [m["id"] for m in payload["modes"]] == ["alien-physics"]
 
 
 def test_sense_carries_its_required_fields(run):

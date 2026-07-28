@@ -122,10 +122,14 @@ def list_modes(decks: dict[str, Any]) -> None:
     print("modes:")
     for m in modes["modes"]:
         print(f"  {m['id']:<14} {m['label']}")
+        print(f"      suits:    {m['suits']}")
+        print(f"      destroys: {m['destroys']}")
     print("\nanchors:")
     for a in modes["anchors"]:
         print(f"  {a['level']}  {a['label']:<12} {a['rule']}")
     print(f"\ndefault modes: {', '.join(modes['default_modes'])}")
+    if modes.get("default_modes_note"):
+        print(f"  {modes['default_modes_note']}")
 
 
 def resolve_modes(decks: dict[str, Any], requested: list[str]) -> list[dict[str, Any]]:

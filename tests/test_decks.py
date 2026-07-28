@@ -71,6 +71,23 @@ def test_mode_forces_reference_real_decks(decks):
         assert mode["directives"] and mode["guard"]
 
 
+def test_every_mode_says_which_briefs_it_suits_and_which_it_destroys(decks):
+    """A mode that removes something has a brief it is wrong for, and the deck
+    used to say only what each one removes. nonhuman was the documented default
+    and dissolves any brief with a person in it, which nothing said anywhere."""
+    for m in decks["modes"]["modes"]:
+        assert len(m.get("suits", "")) > 60, f"{m['id']} does not say which briefs it suits"
+        assert len(m.get("destroys", "")) > 60, f"{m['id']} does not say which briefs it destroys"
+    nonhuman = next(m for m in decks["modes"]["modes"] if m["id"] == "nonhuman")
+    assert "person in it" in nonhuman["destroys"], (
+        "nonhuman must warn that it dissolves any brief with a person in it")
+
+
+def test_the_default_is_alien_physics_alone(decks):
+    assert decks["modes"]["default_modes"] == ["alien-physics"]
+    assert decks["modes"].get("default_modes_note"), "the change of default must be explained"
+
+
 def test_default_modes_exist(decks):
     ids = {m["id"] for m in decks["modes"]["modes"]}
     assert set(decks["modes"]["default_modes"]) <= ids

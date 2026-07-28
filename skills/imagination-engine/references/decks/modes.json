@@ -3,7 +3,6 @@
   "version": "0.4.0",
   "note": "Modes are compatible and stack. Each mode adds mandatory directives and forces a specific deck to be drawn. Stacking more than three modes tends to produce noise rather than strangeness - the draw script warns above three.",
   "default_modes": [
-    "nonhuman",
     "alien-physics"
   ],
   "modes": [
@@ -20,7 +19,9 @@
         "Do not maintain the boundaries alive/dead, inside/outside, self/other, real/imagined unless the world's own new law restores them.",
         "Ask 'why must it be so?' of every premise that no one usually states."
       ],
-      "guard": "Infant logic, adult execution. Childlike results (cute, silly, whimsical for its own sake) are a failure of this mode, not an expression of it."
+      "guard": "Infant logic, adult execution. Childlike results (cute, silly, whimsical for its own sake) are a failure of this mode, not an expression of it.",
+      "suits": "Origins, first contact, anything whose function should not be assumed: a creature, a rite whose reason was forgotten, a world before naming. Also good when the brief is stale because everyone already agrees what the thing is for.",
+      "destroys": "Anything with a specification. A tool, a workflow, a game mechanic that must resolve, a service someone pays for: this mode discards learned function, so it discards the requirement with it. The result reads as whimsy, which this mode's own guard calls a failure."
     },
     {
       "id": "nonhuman",
@@ -34,7 +35,9 @@
         "If the result would be a product, a tool, or a service, it is disqualified in this mode.",
         "Do not give it a humanoid body plan, a face, or motives that map onto human wants."
       ],
-      "guard": "Check every sentence containing 'so that' or 'in order to'. If the beneficiary is a person, rewrite."
+      "guard": "Check every sentence containing 'so that' or 'in order to'. If the beneficiary is a person, rewrite.",
+      "suits": "A creature, a world rule, a form of life, a process - subjects where nobody has to want the result. It is the strongest mode in the deck at what it does, and it produced the most genuinely unfamiliar material in every test.",
+      "destroys": "Any brief with a person in it. It dissolves the asker out of the answer by construction: asked for a ritual a community performs, it returns a process observed by nobody; asked for a two-player game mechanic, it returns something with no players. If the brief names a user, an audience, a player, a reader, a congregation, a customer or a patient, this mode will remove them and the result will not answer the question. Measured cost when it is applied to briefs like that: fit to the brief halved and zero of twenty-four outputs accepted by blind judges. Choose it on purpose, not by default."
     },
     {
       "id": "alien-physics",
@@ -48,7 +51,9 @@
         "Derive at least three consequences from the new law that you did not intend when you wrote it.",
         "The visual appearance may be perfectly mundane. The strangeness lives in what is possible, not in what is seen."
       ],
-      "guard": "If deleting the visual description leaves the idea intact, the mode was applied. If it leaves nothing, it was not."
+      "guard": "If deleting the visual description leaves the idea intact, the mode was applied. If it leaves nothing, it was not.",
+      "suits": "Almost everything. It changes what is possible rather than what is visible, which leaves the brief's subject and its audience intact - a mechanic still resolves, a ritual is still performed by people, a creature still lives somewhere. This is the default for that reason.",
+      "destroys": "Nothing outright. It is weakest where the brief is about a feeling or a relationship rather than a rule, because there may be no law to break; pair it with affect there."
     },
     {
       "id": "affect",
@@ -63,7 +68,9 @@
         "Name the new injustice, misunderstanding, or grief it creates.",
         "Do not translate the new sense into sight or sound as a shortcut, and do not render feelings as colors."
       ],
-      "guard": "A sense that only adds convenience is a feature. A sense that adds a new way to be wronged is an invention."
+      "guard": "A sense that only adds convenience is a feature. A sense that adds a new way to be wronged is an invention.",
+      "suits": "Interior states, senses, relationships, grief, etiquette, anything whose subject is what it is like rather than how it works. Strongest on rituals and on briefs where the interesting part is the misunderstanding.",
+      "destroys": "Nothing, but it is expensive: it requires an invented sense with all four fields answered, which is a large amount of the result spent on one card. On a brief that is really about a mechanism it crowds out the mechanism."
     },
     {
       "id": "extremal",
@@ -75,7 +82,9 @@
         "Cull harder rather than scoring higher: this mode changes the hand and the discard bar, not the gate.",
         "If nothing survives, report that honestly and show the closest failure with the reason it failed."
       ],
-      "guard": "Extremal is not louder. It is a stricter cull with the same coherence requirement."
+      "guard": "Extremal is not louder. It is a stricter cull with the same coherence requirement.",
+      "suits": "The third attempt, after two rounds the user has already rejected. It widens the hand and doubles the rules to break, so there is more distance to work with.",
+      "destroys": "A first attempt, usually. Reaching for it early spends the widest material in the deck before the ordinary hand has been tried, and there is nothing wider to escalate to afterwards."
     },
     {
       "id": "grounded",
@@ -91,7 +100,9 @@
       "incompatible_with": [
         "nonhuman"
       ],
-      "note": "Scores translation_integrity in place of non_anthropocentrism and requires the operational_path section. It cannot be stacked with nonhuman: the axis it removes is the one nonhuman mode exists to enforce, and score_gate.py refuses the combination."
+      "note": "Scores translation_integrity in place of non_anthropocentrism and requires the operational_path section. It cannot be stacked with nonhuman: the axis it removes is the one nonhuman mode exists to enforce, and score_gate.py refuses the combination.",
+      "suits": "Anything that has to exist afterwards: a product, a prototype, a shootable scene, a mechanic a group will actually play, a rite a family will actually perform. Use with anchor 2 or 3.",
+      "destroys": "Nothing, but it is not a rescue. It cannot be stacked with nonhuman, and reaching for it mid-run re-seeds the deal and throws away the hand and everything written against it, so choose it at stage 3 rather than at stage 8."
     }
   ],
   "anchors": [
@@ -115,5 +126,6 @@
       "label": "Operable",
       "rule": "Must include one path to a real prototype, publication, or product, with the loss from that translation stated."
     }
-  ]
+  ],
+  "default_modes_note": "alien-physics alone. The documented default used to be nonhuman,alien-physics, and a controlled experiment measured what that cost: four briefs, five control and five engine runs each, eight blind judges never told the design. Fit to the brief halved - 6.45 control against 3.27 engine - and the judges accepted 24 of 24 control outputs and 0 of 24 engine outputs, with the written reasons consistently that the engine had dissolved the brief instead of answering it. That is nonhuman working as specified: it removes human usefulness by design, which is wrong for most briefs people actually bring, and SKILL.md's own hard rule 6 forbids quietly narrowing the request. nonhuman is still here and still worth choosing deliberately - see its suits/destroys entry."
 }

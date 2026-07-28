@@ -648,20 +648,51 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     }
 
 
+MANUAL_SHAPE = (
+    'manual_checks_cleared is an object keyed by check id: '
+    '{"obvious-01": "how the result avoids it, in a sentence or two", "obvious-02": "..."}. '
+    'One entry per id below, each at least %d units of written answer.' % MIN_MANUAL_ANSWER
+)
+
+
 def check_banlist(candidate: dict[str, Any], contract: dict[str, Any]) -> list[str]:
     """Manual entries used to be printed and then forgotten. Now they are answered.
 
     The checks come from the recomputed contract, not from the supplied file:
     emptying `manual_checks` used to empty this loop with it.
+
+    A missing field is reported once with its shape, not once per check. The
+    shape - an object keyed by `obvious-NN` - appeared in no instruction, so an
+    honest first attempt used a list of {check, answer} objects and got twelve
+    identical FAILs in a row. A fiction brief produces twelve of twelve manual
+    checks, because a sentence-shaped instinct is always too long to match
+    literally, so this was the normal outcome outside a product brief rather
+    than an edge case. Saying the same thing twelve times does not make it
+    twelve findings; saying it once, with the shape, is what the reader needs.
+    Checks that are present but thin are still reported one by one, because
+    those are twelve different problems.
     """
     failures: list[str] = []
     manual = contract.get("manual_checks")
     manual = manual if isinstance(manual, list) else []
-    cleared = candidate.get("manual_checks_cleared")
-    cleared = cleared if isinstance(cleared, dict) else {}
-    for entry in manual:
-        if not isinstance(entry, dict) or "id" not in entry:
-            failures.append("banlist.manual_checks: an entry has no id")
+    raw = candidate.get("manual_checks_cleared")
+    cleared = raw if isinstance(raw, dict) else {}
+    ided = [e for e in manual if isinstance(e, dict) and "id" in e]
+    if len(ided) != len(manual):
+        failures.append("banlist.manual_checks: an entry has no id")
+
+    unanswered = [e for e in ided if not text_of(cleared.get(e["id"]))]
+    if len(unanswered) > 1:
+        listed = ", ".join(str(e["id"]) for e in unanswered)
+        wrong_shape = "" if isinstance(raw, dict) else (
+            f" The field is {type(raw).__name__ if raw is not None else 'absent'} here, not an object."
+        )
+        failures.append(
+            f"manual_checks_cleared: {len(unanswered)} of {len(ided)} checks have no written "
+            f"answer ({listed}). These are the instincts too long to phrase-match, so they are "
+            f"answered here or not at all.{wrong_shape} {MANUAL_SHAPE}")
+    for entry in ided:
+        if entry in unanswered and len(unanswered) > 1:
             continue
         statement = str(entry.get("statement", ""))[:60]
         failures += check_text(

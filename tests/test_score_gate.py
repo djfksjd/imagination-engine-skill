@@ -696,3 +696,79 @@ def test_a_ban_list_with_no_extra_key_still_replays(gate, references):
     b = example_banlist(references)
     del b["extra"]
     assert gate(banlist=b).code == 0
+
+
+# --------------------- the undocumented shape is stated once, not twelve times
+
+
+def fiction_banlist(run, tmp_path):
+    """A fiction brief produces twelve of twelve manual checks, because a
+    sentence-shaped instinct is always too long to phrase-match. That is the
+    normal case outside a product brief, not an edge case."""
+    import json as _json
+    lines = [
+        "a walled city with a forbidden zone that nobody has crossed in living memory",
+        "a road that ends at a wall of fog nobody has walked into and returned from",
+        "a village that sacrifices one child a year to the thing in the woods beyond",
+        "travellers who never return and whose names are never spoken again at table",
+        "a map with a large blank space labelled here be monsters in an old hand",
+        "a caravan that must not stop moving after dark or it will not move again",
+        "the last inn before the wilderness where everyone tells the same warning",
+        "a border guarded by an order of monks who will not say what they guard",
+        "nomads who know the way across and will not tell anyone who asks them",
+        "a river that marks the edge of the known world on every surviving chart",
+        "the ruins of an older civilisation somewhere past the end of the last road",
+        "a child who wanders past the boundary and comes back changed in a small way",
+    ]
+    dump = tmp_path / "fiction.txt"
+    dump.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(dump), "--out", str(tmp_path))
+    assert res.code == 0, res
+    payload = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert payload["counts"]["manual"] == 12
+    return payload
+
+
+@pytest.mark.parametrize("wrong", [
+    [{"check": "...", "answer": "..."}],   # the shape an honest first attempt reaches for
+    {},
+    None,
+])
+def test_the_missing_manual_answers_are_reported_once_with_their_shape(
+        run, tmp_path, gate, example_candidate, wrong):
+    """`manual_checks_cleared` is an object keyed by `obvious-NN` and that shape
+    appeared in no instruction, so a first attempt produced twelve identical
+    FAILs at once. Saying the same thing twelve times is not twelve findings."""
+    banlist = fiction_banlist(run, tmp_path)
+    c = deepcopy(example_candidate)
+    if wrong is None:
+        c.pop("manual_checks_cleared", None)
+    else:
+        c["manual_checks_cleared"] = wrong
+    res = gate(candidate=c, banlist=banlist)
+    assert res.code == 2
+    manual = [f for f in res.json()["failures"] if f.startswith("manual_checks_cleared")]
+    assert len(manual) == 1, f"the shape was repeated {len(manual)} times"
+    assert "12 of 12" in manual[0]
+    assert "object keyed by check id" in manual[0]
+    assert "obvious-01" in manual[0] and "obvious-12" in manual[0]
+
+
+def test_answers_that_are_present_but_thin_are_still_reported_one_by_one(
+        run, tmp_path, gate, example_candidate):
+    """Twelve missing answers are one problem. Two thin ones are two."""
+    banlist = fiction_banlist(run, tmp_path)
+    c = deepcopy(example_candidate)
+    c["manual_checks_cleared"] = {
+        f"obvious-{i:02d}": ("no walled city here; the boundary in this result is temporal "
+                             "rather than spatial and cannot be crossed on foot at all")
+        for i in range(1, 13)
+    }
+    c["manual_checks_cleared"]["obvious-03"] = "avoided"
+    c["manual_checks_cleared"]["obvious-07"] = "n/a"
+    res = gate(candidate=c, banlist=banlist)
+    assert res.code == 2
+    manual = [f for f in res.json()["failures"] if f.startswith("manual_checks_cleared")]
+    assert len(manual) == 2, manual
+    assert all("obvious-03" in f or "obvious-07" in f for f in manual)

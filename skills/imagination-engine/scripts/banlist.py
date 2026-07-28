@@ -201,6 +201,22 @@ def compose_banlist(topic: str, obvious: list[str], extra: list[str], allow: set
     return {
         "engine_version": VERSION,
         "topic": topic,
+        # The user's own prohibitions are recorded, not just applied, because the
+        # gate recomputes this file and has to be able to reach the same result.
+        # Without them, SKILL.md step 0 - "always ask for their own forbidden
+        # list" - produced a file that always failed: a user exclusion naming
+        # something the deck already names replaced the deck record, the gate
+        # replayed without it, and the group mismatch was reported as a released
+        # ban pointing at the user's own prohibition. `no dragons` did it, and
+        # so did every fiction word in the deck.
+        #
+        # Reading them back off the artefact under verification is safe in the
+        # one direction that matters: every --extra entry is tier `ban`, so
+        # replaying them can only hold the draft to more than the deck asks, and
+        # never to less. An extra that duplicates a deck `warn` promotes it,
+        # which is what the user asked for; an extra that duplicates a deck
+        # `ban` changes only which group the entry is filed under.
+        "extra": list(extra),
         "counts": {
             "obvious_supplied": len(obvious),
             "matchable": sum(1 for e in deduped if e["tier"] == "ban"),

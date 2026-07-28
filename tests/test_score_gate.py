@@ -583,3 +583,80 @@ def test_the_result_may_not_be_called_untitled(gate, example_candidate, example_
     res = gate(candidate=candidate, markdown=rename(example_markdown, "Untitled"))
     assert res.code == 2
     assert "placeholder" in failures(res)
+
+
+# ------------------------- the user's own prohibitions survive to the gate
+
+USER_EXCLUSIONS = ["chosen one", "dragon", "chosen one, prophecy, ancient evil awakening",
+                   "no fungal networks"]
+
+
+@pytest.mark.parametrize("extra", USER_EXCLUSIONS)
+def test_a_user_exclusion_that_names_a_deck_cliche_still_passes(run, gate, references, tmp_path, extra):
+    """SKILL.md step 0 mandates collecting the user's own forbidden list and
+    passing it through --extra. The deck is overwhelmingly fiction vocabulary,
+    so a fiction user's list collides with it - and the collision failed the
+    whole run with "a demoted entry is a released ban", pointing at the user's
+    own prohibition, when nothing had been demoted. The gate replayed without
+    the extras it was never told about."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", extra,
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    banlist = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    verdict = gate(banlist=banlist)
+    assert verdict.code == 0, verdict.out
+
+
+def test_a_user_exclusion_promotes_a_deck_warning_and_the_gate_enforces_it(
+        run, gate, references, tmp_path, example_markdown):
+    """`dragon` is a warn in the deck. A user saying "no dragons" is adding a
+    ban, which by the file's own rule cannot relax a verdict - so the promotion
+    has to reach the draft, not just the file."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", "dragon",
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    banlist = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert banlist["extra"] == ["dragon"]
+    verdict = gate(banlist=banlist, markdown=example_markdown + "\n\nA dragon on the sign.\n")
+    assert verdict.code == 2
+    assert "banned material 'dragon'" in failures(verdict)
+
+
+def test_an_extra_declared_but_not_carried_does_not_replay(gate, references):
+    """`extra` is read off the artefact under verification. Declaring one the
+    file does not actually carry is the same edit-after-the-fact the whole
+    replay exists to catch, and it is caught the same way."""
+    b = example_banlist(references)
+    b["extra"] = ["stairwell"]
+    res = gate(banlist=b)
+    assert res.code == 2
+    assert "banlist.entries" in failures(res)
+
+
+def test_declaring_an_extra_can_only_tighten_the_lint(run, gate, references, tmp_path,
+                                                      example_markdown):
+    """The field is safe to honour in exactly one direction: every --extra entry
+    is tier ban, so replaying the user's prohibitions holds the draft to more
+    than the deck asks and never to less."""
+    res = run("banlist.py", "--topic", "a machine that separates emotion from voice",
+              "--obvious", str(references / "example-obvious.txt"), "--extra", "stairwell",
+              "--out", str(tmp_path))
+    assert res.code == 0, res
+    import json as _json
+    b = _json.loads((tmp_path / "banlist.json").read_text(encoding="utf-8"))
+    assert gate(banlist=b, markdown=example_markdown).code == 0
+    tightened = gate(banlist=b, markdown=example_markdown + "\n\nA stairwell, then.\n")
+    assert tightened.code == 2
+    assert "banned material 'stairwell'" in failures(tightened)
+
+
+def test_a_ban_list_with_no_extra_key_still_replays(gate, references):
+    """Files written before the field existed carry no user prohibitions, which
+    is the same as carrying none."""
+    b = example_banlist(references)
+    del b["extra"]
+    assert gate(banlist=b).code == 0

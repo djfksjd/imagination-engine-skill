@@ -522,9 +522,15 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     # again turned a legitimate nested bullet into a different phrase, and the
     # gate then told the user to build the list with the tool that had built it.
     dump = parse_obvious("\n".join(recover_dump(banlist)), strip_bullets=False)
+    extra = banlist.get("extra") or []
+    if not isinstance(extra, list) or any(not isinstance(i, str) for i in extra):
+        failures.append(
+            "banlist.extra: must be the list of user prohibitions the list was built with")
+        extra = []
     try:
         expected = compose_banlist(
-            topic=drawn_topic, obvious=dump, extra=[], allow=set(allowed) - set(unknown), cliches=cliches)
+            topic=drawn_topic, obvious=dump, extra=extra,
+            allow=set(allowed) - set(unknown), cliches=cliches)
     except EngineError as exc:
         # compose_banlist refuses a short dump for the same reason banlist.py
         # does, and parse_obvious dedupes, so twelve identical lines arrive here
@@ -604,7 +610,7 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     # before this round - the gate has never honoured `--allow`, which SKILL.md
     # records as a known gap rather than a feature.
     enforced = compose_banlist(
-        topic=drawn_topic, obvious=dump, extra=[], allow=set(), cliches=cliches)
+        topic=drawn_topic, obvious=dump, extra=extra, allow=set(), cliches=cliches)
     effective_entries = list(enforced["entries"])
     known_phrases = {normalize(e["phrase"]) for e in effective_entries}
     effective_entries += [

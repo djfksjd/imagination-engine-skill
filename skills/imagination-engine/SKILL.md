@@ -185,12 +185,13 @@ scripts/score_gate.py --candidate <work>/candidate.json --draw <work>/draw.json 
 
 All four are required and must belong to each other. The gate:
 
-- **replays the draw** from its own request against the bundled decks, so a card
-  swapped after it was dealt no longer follows from the request that produced
-  it. This is a consistency boundary, not an authenticity one - it cannot show
-  that the topic came from the user, that this was the first draw, or that a
-  salt was not retried until the hand was agreeable. Say so rather than implying
-  more.
+- **replays the draw** from its own request against the bundled decks, card by
+  card and not by id, so neither a card swapped after it was dealt nor a card
+  whose probe, stance or replacement requirement was rewritten in place still
+  follows from the request that produced it. This is a consistency boundary, not
+  an authenticity one - it cannot show that the topic came from the user, that
+  this was the first draw, or that a salt was not retried until the hand was
+  agreeable. Say so rather than implying more.
 - **binds the candidate to that draw.** Topic, run, anchor and modes must match;
   `domains_used` must be the exact set of drawn domains; `broken_rule.constraint_ids`
   the exact set of drawn constraints, each accounted for in `how_each_is_broken`;
@@ -203,11 +204,18 @@ All four are required and must belong to each other. The gate:
   in the drawn modes raises the thresholds; `grounded` substitutes the axis;
   the bundled rubric is the policy, and a fork edits it rather than passing one.
   The verdict records which policy ran, with its hash.
-- **replays the ban list.** It must be the contract `banlist.py` built for this
-  run: the topic that was drawn, the bundled cliche deck and its structural
-  patterns present minus only the ids the list records releasing, and the twelve
-  burnt instincts still in it. A hand-written file, or a shorter one, is
-  refused - otherwise stage 1 is optional at the only place a verdict is issued.
+- **recomputes the ban list, and enforces what it recomputed.** The dump the file
+  records is read back out of it, `banlist.py` is run again over that dump and the
+  bundled deck, and the draft is linted against *that* - severities, structural
+  patterns and manual checks included. The supplied file may only add: entries
+  beyond the recomputed set are kept, because adding a ban cannot relax a
+  verdict. Checking only that expected phrases were present, as an earlier
+  version did, was much weaker than it read as - demoting one instinct from
+  `ban` to `warn` left its phrase present and let the draft print it.
+  This proves the file is internally consistent with a run of `banlist.py`; it
+  does not prove the dump was the model's genuine first instincts. Twelve
+  distinct throwaway lines still recompute cleanly. What it removes is the free
+  edit after the fact.
 - **requires every manual ban answered.** Long entries from stage 1 cannot be
   phrase-matched, so they land in `manual_checks` - and used to be printed and
   forgotten. Each now needs a written answer in `manual_checks_cleared`.
@@ -221,6 +229,22 @@ is 3. Both of those reach the deal: the anchor, `grounded`, `extremal` and the
 requested domain count seed the shuffle, so lowering one of them in `draw.json`
 afterwards deals a different hand rather than relaxing the verdict. If you need
 a different setting, redeal and do the work for it.
+
+The seed fields are length-prefixed before they are hashed, so no value of
+`--salt` can spell another field's contribution. Without that, `--anchor 1
+--salt $'\x1fanchor=3'` dealt the anchor-3 hand exactly and the downgrade cost
+nothing - not even a redraw. What the seeding still cannot do is tell a
+downgraded run from an honest one dealt at the lower setting from the start, or
+stop a hand being redealt until it suits. It raises the cost of a downgrade to a
+redraw and the work already written; it is not a forgery barrier.
+
+Length floors count **content units** - letters and digits, with a wide letter
+counting two so that CJK is not penalised. Spaces, punctuation and symbols count
+zero. Counting them was how padding cleared every floor in the gate: `"Sound"`
+plus two hundred spaces plus `"stays"` measured 210 units at a perfect
+distinctness score. A field with no length floor is checked for being a stand-in
+but not for repetition, because there is nothing to pad towards - a title may be
+"Run Run Run".
 
 Fix by rewriting the idea, not by deleting the flagged word. If the gate fails
 twice on the same axis, return to stage 3 with `--run <n+1>`: the material is

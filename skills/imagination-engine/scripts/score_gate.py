@@ -627,9 +627,21 @@ def replay_banlist(banlist: dict[str, Any], draw: dict[str, Any],
     #
     # Recomputed with nothing released: `allowed` is read off the artefact under
     # verification, so it is allowed to explain why a deck phrase is absent from
-    # the file (above) but not to decide what the gate enforces. Unchanged from
-    # before this round - the gate has never honoured `--allow`, which SKILL.md
-    # records as a known gap rather than a feature.
+    # the file (above) but not to decide what the gate enforces. Honouring it
+    # here would let the run release its own bans at verdict time, which is the
+    # objection that deleted --min-mean and --rubric.
+    #
+    # This behaviour is unchanged. What was wrong here was the comment: it said
+    # SKILL.md recorded the gap, and SKILL.md did not mention --allow at all,
+    # while banlist.py and cliche_lint.py both advertise the flag in --help and
+    # cliche_lint.py honours it. A limit stated inaccurately is worse than one
+    # stated plainly, and it was stated in a file no user reads. SKILL.md stage
+    # 1 now documents it, and this comment no longer claims documentation that
+    # has to be checked to be believed.
+    #
+    # `extra` is honoured, above and here, because it can only add bans. The
+    # asymmetry is the point: a release read off the graded artefact relaxes the
+    # verdict, an addition read off it cannot.
     enforced = compose_banlist(
         topic=drawn_topic, obvious=dump, extra=extra, allow=set(), cliches=cliches)
     effective_entries = list(enforced["entries"])

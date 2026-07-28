@@ -19,6 +19,16 @@ The body, exactly as it appears in candidate.json.
 <!-- /bind -->
 ```
 
+`candidate.json` also carries `manual_checks_cleared`, which is not a section
+and so is not bound here. It is an **object keyed by check id** - `{"obvious-01":
+"...", "obvious-02": "..."}` - with one written answer of at least thirty units
+for every entry in `banlist.json`'s `manual_checks`. Expect twelve of them on a
+story, world, ritual or mechanic brief and none on a product brief: an instinct
+longer than six words cannot be phrase-matched, and a narrative instinct is
+naturally a clause where a product instinct is naturally a noun phrase. The
+shipped example is product-shaped and clears one, so it does not show you the
+normal case.
+
 The comparison is exact after Unicode normalization and whitespace collapse.
 Revising the prose means updating `candidate.json` to the final wording and
 re-gating - editing one side only fails, which is the point. See
@@ -86,9 +96,8 @@ it.
 
 ---
 
-**`operational_path` exists in every candidate.json this template renders,
-but it is only *required to be bound* when the run is `grounded` or the
-anchor is 3 (`score_gate.py` reads this off `draw.json`, not off a claim).
+**`operational_path` is only *required to be bound* when the run is
+`grounded` or the anchor is 3 (`score_gate.py` reads this off `draw.json`, not off a claim).
 At any other anchor or mode, leave this whole section out of the delivered
 draft - do not bind an empty or invented path just to fill the slot.**
 

@@ -1,6 +1,6 @@
 {
   "deck": "senses",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "note": "Seeds for inventing a sense. A named sense is worth nothing on its own. Every drawn seed must be answered on all four required fields (what it detects, the organ or mechanism, how daily life and culture bend around it, the new suffering or misunderstanding it creates). A sense that creates no new problem has not been invented, only decorated.",
   "required_fields": [
     "detects: the exact stimulus, stated so that a false positive is describable",

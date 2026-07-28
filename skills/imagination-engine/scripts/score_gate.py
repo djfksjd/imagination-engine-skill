@@ -24,11 +24,11 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from engine import VERSION, EngineError, SKILL_DIR, die  # type: ignore
+    from engine import VERSION, EngineError, SKILL_DIR, die, is_placeholder, text_units  # type: ignore
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from engine import VERSION, EngineError, SKILL_DIR, die  # type: ignore
+    from engine import VERSION, EngineError, SKILL_DIR, die, is_placeholder, text_units  # type: ignore
 
 GATE_FAIL = 2
 MIN_JUSTIFICATION = 40
@@ -45,7 +45,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--extremal", action="store_true", help="apply extremal thresholds (mean 9.0, no axis below 8)")
     p.add_argument("--grounded", action="store_true",
                    help="grounded mode: score translation_integrity in place of non_anthropocentrism, "
-                        "and require the operational_path section")
+                        "and require the operational_path section. The candidate must declare "
+                        "'grounded' in its own modes, and must not also declare 'nonhuman'")
     p.add_argument("--min-mean", type=float, default=None, help="override the mean threshold")
     p.add_argument("--min-axis", type=int, default=None, help="override the per-axis floor")
     p.add_argument("--rubric", default=None, help="path to an alternative rubric.json")
@@ -68,6 +69,11 @@ def text_of(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
+def section_minimum(spec: dict[str, Any]) -> int:
+    """Rubrics written before units existed still say min_chars."""
+    return int(spec.get("min_units", spec.get("min_chars", 0)))
+
+
 def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, min_axis: int,
           grounded: bool = False) -> dict[str, Any]:
     failures: list[str] = []
@@ -85,9 +91,14 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
         body = text_of(sections.get(spec["id"]))
         if not body:
             failures.append(f"sections.{spec['id']}: missing - {spec['note']}")
-        elif len(body) < spec["min_chars"]:
+        elif spec["id"] == "name":
+            # A name is an identifier, not prose. Asking it to be N characters
+            # long rejects a complete two-character name and accepts "TBD".
+            if is_placeholder(body):
+                failures.append(f"sections.name: '{body}' is a placeholder, not a name - {spec['note']}")
+        elif text_units(body) < section_minimum(spec):
             failures.append(
-                f"sections.{spec['id']}: {len(body)} chars, needs {spec['min_chars']} - {spec['note']}"
+                f"sections.{spec['id']}: {text_units(body)} units, needs {section_minimum(spec)} - {spec['note']}"
             )
 
     broken = candidate.get("broken_rule")
@@ -96,12 +107,12 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
     else:
         if not text_of(broken.get("constraint_id")):
             failures.append("broken_rule.constraint_id: missing - name the drawn constraint you broke")
-        if len(text_of(broken.get("new_law"))) < MIN_IMPOSSIBLE:
-            failures.append(f"broken_rule.new_law: needs at least {MIN_IMPOSSIBLE} chars")
+        if text_units(text_of(broken.get("new_law"))) < MIN_IMPOSSIBLE:
+            failures.append(f"broken_rule.new_law: needs at least {MIN_IMPOSSIBLE} units")
         impossible = text_of(broken.get("now_impossible"))
-        if len(impossible) < MIN_IMPOSSIBLE:
+        if text_units(impossible) < MIN_IMPOSSIBLE:
             failures.append(
-                f"broken_rule.now_impossible: needs at least {MIN_IMPOSSIBLE} chars - a world where "
+                f"broken_rule.now_impossible: needs at least {MIN_IMPOSSIBLE} units - a world where "
                 "the rule is merely gone is empty, not strange"
             )
 
@@ -118,7 +129,7 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
             ids.append(did)
             if not did:
                 failures.append(f"domains_used[{i}].id: missing")
-            if len(text_of(d.get("answer_to_probe"))) < MIN_PROBE_ANSWER:
+            if text_units(text_of(d.get("answer_to_probe"))) < MIN_PROBE_ANSWER:
                 failures.append(
                     f"domains_used[{i}] ({did or '?'}).answer_to_probe: too thin - a domain that answers "
                     "nothing is a decoration; cut it or make it load-bearing"
@@ -139,19 +150,39 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
                 continue
             if not text_of(r.get("work")):
                 failures.append(f"resembles[{i}].work: missing")
-            if len(text_of(r.get("how_it_differs"))) < MIN_DIFFERENCE:
-                failures.append(f"resembles[{i}].how_it_differs: needs at least {MIN_DIFFERENCE} chars")
+            if text_units(text_of(r.get("how_it_differs"))) < MIN_DIFFERENCE:
+                failures.append(f"resembles[{i}].how_it_differs: needs at least {MIN_DIFFERENCE} units")
 
-    if len(text_of(candidate.get("weakest_fix"))) < MIN_FIX:
+    if text_units(text_of(candidate.get("weakest_fix"))) < MIN_FIX:
         failures.append(
-            f"weakest_fix: needs at least {MIN_FIX} chars - name the weakest axis and what a rewrite would change"
+            f"weakest_fix: needs at least {MIN_FIX} units - name the weakest axis and what a rewrite would change"
         )
 
     axis_ids = [a["id"] for a in rubric["axes"]]
     if grounded and substitution:
-        # Substitution, not exemption: the axis a product cannot satisfy is
-        # replaced by the one it must.
-        axis_ids = [substitution["axis"]["id"] if a == substitution["replaces"] else a for a in axis_ids]
+        # Substitution, not exemption: the axis a result built for someone
+        # cannot satisfy is replaced by the one it must.
+        #
+        # The flag alone is not evidence. Unchecked, --grounded is a way to
+        # delete any axis you are about to score badly, and the axis it deletes
+        # is the one nonhuman mode exists to enforce - so a candidate that
+        # claims nonhuman may not use it, and a candidate that does not claim
+        # grounded may not either.
+        declared = candidate.get("modes")
+        declared = [m for m in declared if isinstance(m, str)] if isinstance(declared, list) else []
+        if "grounded" not in declared:
+            failures.append(
+                "--grounded was passed but the candidate does not declare grounded in its own modes - "
+                "the flag is not evidence, the run is. Re-run draw.py with --modes grounded, or drop the flag"
+            )
+        elif "nonhuman" in declared:
+            failures.append(
+                f"modes {', '.join(declared)}: grounded cannot substitute for {substitution['replaces']} "
+                "in a run that also claims nonhuman - that axis is the one nonhuman mode exists to enforce. "
+                "Drop one of the two modes and regenerate"
+            )
+        else:
+            axis_ids = [substitution["axis"]["id"] if a == substitution["replaces"] else a for a in axis_ids]
     scores = candidate.get("scores")
     values: dict[str, int] = {}
     if not isinstance(scores, dict):
@@ -176,9 +207,9 @@ def check(candidate: dict[str, Any], rubric: dict[str, Any], min_mean: float, mi
                 continue
             values[axis] = raw
             justification = text_of(entry.get("justification"))
-            if len(justification) < MIN_JUSTIFICATION:
+            if text_units(justification) < MIN_JUSTIFICATION:
                 failures.append(
-                    f"scores.{axis}.justification: needs at least {MIN_JUSTIFICATION} chars of argument"
+                    f"scores.{axis}.justification: needs at least {MIN_JUSTIFICATION} units of argument"
                 )
 
     mean = round(sum(values.values()) / len(values), 2) if values else 0.0

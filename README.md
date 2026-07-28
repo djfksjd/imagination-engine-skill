@@ -79,9 +79,6 @@ Design a creature for my game that is nothing like anything in the genre.
 Extremal mode, anchor 2 — I have to be able to actually build it.
 ```
 
-> [!TIP]
-> The single most valuable thing you can add is **your own ban list**. "Not another X" is worth more than any adjective — and if you do not offer one, the skill will ask.
-
 ### Modes · stack up to three
 
 | Mode | What it removes |
@@ -101,6 +98,98 @@ Extremal mode, anchor 2 — I have to be able to actually build it.
 | `1` | **Legible** | Explainable in three sentences without analogy to a known work |
 | `2` | **Stageable** | A concrete scene or artifact a team could produce |
 | `3` | **Operable** | One real path to a prototype, with the losses from that translation stated |
+
+### Driving a session
+
+You do not run the stages — the skill does. What you control is the four things below, and each of them changes the result more than any adjective would.
+
+| You say | What it changes |
+|---|---|
+| **the subject** | the seed for the whole draw — the hand is hashed from it, so rephrasing the topic deals different cards |
+| **what it is for** | story · world · game mechanic · artifact · concept-art brief · nothing. "Nothing" is a real answer and it produces the strangest results |
+| **modes and anchor** | which paths are removed, and how far the result has to stay reachable |
+| **your own ban list** | the highest-value input available. See below |
+
+**Give it your ban list.** The skill burns its own twelve first instincts before it generates anything, but it cannot know what *you* are sick of. One sentence — *"not another fungal network, not another thing that turns out to be alive"* — removes more probability mass than a paragraph of encouragement. If you do not offer one, the skill asks for it before drawing.
+
+**Picking modes:**
+
+| If you want | Try |
+|---|---|
+| a creature or entity that isn't genre furniture | `nonhuman, alien-physics` · anchor 1 |
+| a world rule rather than a monster | `alien-physics` · anchor 0 |
+| something a team can actually stage or shoot | `alien-physics, grounded` · anchor 2 |
+| a mechanic you could prototype this month | `grounded` · anchor 3 |
+| a sense, a feeling, or an interior state | `affect` · anchor 1 |
+| logic that predates learned function | `baby, nonhuman` · anchor 0 |
+| you have already rejected two rounds | add `extremal` |
+
+Anchor and modes are independent. `grounded` at anchor 0 is legal and produces something buildable that nobody asked to be legible; `extremal` at anchor 3 is the hardest setting the skill has.
+
+### The conversation, in practice
+
+**Starting.** Say what you want in any language. The skill answers in the language you used and reasons internally in English.
+
+```text
+Use the imagination engine on: what happens in a stairwell between two floors.
+Non-human and alien-physics modes, anchor 1. Not a ghost story, not a liminal-space aesthetic.
+```
+
+**When it comes back too safe.** Do not say "make it weirder" — that is the instruction that fails, and the skill has a defined answer for it instead:
+
+```text
+Still safe. Regenerate.
+```
+
+It will redeal from a fresh run, add *every element of the previous answer* to the ban list, and delete one more of the premises it had been protecting — then tell you which premise that was. That last line is usually the interesting part of the exchange. On a third pass it switches to `extremal`.
+
+**When it comes back unusable.** Raise the anchor rather than softening the request:
+
+```text
+Anchor 3 — I need one path I could actually build, and I want to know what the principle loses on the way.
+```
+
+**When you want to see the work.** The internal stages are hidden by design. Ask and they open:
+
+```text
+Show me the twelve instincts you burned and the hand you drew.
+```
+
+### Running the pipeline by hand
+
+Nothing here needs installing beyond Python 3.11 and the repo. Scripts live in `skills/imagination-engine/scripts/`; write working files to a scratch directory, never into the skill folder.
+
+```bash
+# 1 · deal the hand (seeded from the topic, so it replays exactly)
+python3 scripts/draw.py --topic "a stairwell between two floors" \
+    --modes nonhuman,alien-physics --run 1 --anchor 1 --out /tmp/work
+
+# 2 · burn the obvious answers into a checkable ban list
+python3 scripts/banlist.py --topic "a stairwell between two floors" \
+    --obvious /tmp/work/obvious.txt --extra "no ghosts,no liminal aesthetic" --out /tmp/work
+
+# 3 · lint any draft against that list
+python3 scripts/cliche_lint.py --banlist /tmp/work/banlist.json --draft /tmp/work/draft.md
+
+# 4 · gate the finished candidate
+python3 scripts/score_gate.py --candidate /tmp/work/candidate.json          # add --extremal, or --grounded
+```
+
+`draw.py --list-modes` prints the modes. `--run 2` deals fresh, still-disjoint material for a regeneration; `--salt` redeals the same run without advancing it.
+
+### Exit codes, and what to do about each
+
+| Code | Meaning | The fix |
+|---|---|---|
+| `0` | passed | — |
+| `1` | usage, missing file, or malformed deck | a typo, not a judgement |
+| `2` | **the gate failed** — a section is missing or thin, an axis is under the floor, a drawn card was decoration | rewrite the idea. Rounding a score up is the one move the skill forbids |
+| `3` | **banned material is present** in the draft | rewrite the thought, not the word. Deleting the flagged phrase and keeping the sentence is not a fix |
+
+If the same axis fails twice, the material is wrong rather than the phrasing: redeal with `--run <n+1>` instead of editing.
+
+> [!NOTE]
+> The gates are floors, not judges. They prove that specific familiar moves are *absent* and that the required work was *done*. They cannot tell you the idea is good, and a passing score is self-assigned. Read the result yourself.
 
 ## What comes out
 

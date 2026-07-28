@@ -47,42 +47,44 @@
       "properties": {
         "name": {
           "type": "string",
-          "minLength": 3
+          "minLength": 1,
+          "description": "Checked for being a placeholder rather than for length; score_gate.py is authoritative."
         },
         "one_line": {
           "type": "string",
-          "minLength": 60
+          "minLength": 30
         },
         "principle": {
           "type": "string",
-          "minLength": 200
+          "minLength": 100
         },
         "first_encounter": {
           "type": "string",
-          "minLength": 300
+          "minLength": 150
         },
         "strangest_property": {
           "type": "string",
-          "minLength": 150
+          "minLength": 75
         },
         "affect": {
           "type": "string",
-          "minLength": 120
+          "minLength": 60
         },
         "world_effect": {
           "type": "string",
-          "minLength": 200
+          "minLength": 100
         },
         "avoided": {
           "type": "string",
-          "minLength": 150
+          "minLength": 75
         },
         "operational_path": {
           "type": "string",
-          "minLength": 200,
+          "minLength": 100,
           "description": "Required in grounded mode: one path to something real, and the part of the principle that does not survive it."
         }
-      }
+      },
+      "description": "Length floors here are halved relative to score_gate.py's own minimums, because the gate counts units (a CJK letter counts as two) and a plain minLength cannot. A generic JSON Schema validator must not reject a candidate the gate accepts."
     },
     "broken_rule": {
       "type": "object",

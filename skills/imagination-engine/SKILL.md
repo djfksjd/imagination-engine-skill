@@ -83,7 +83,7 @@ is authoritative.
 | `alien-physics` | Appearance as the site of novelty. Physics, time, or selfhood changes instead. |
 | `affect` | The five senses and the named emotions. Requires an invented sense with all four fields answered. |
 | `extremal` | Every safe candidate. Raises thresholds to mean 9.0, no axis below 8. |
-| `grounded` | Nothing. Adds one operational path without editing the principle, and swaps one rubric axis (below). Use with anchor 2-3. |
+| `grounded` | Nothing. Adds one operational path without editing the principle, and swaps one rubric axis (below). Use with anchor 2-3. Cannot stack with `nonhuman`. |
 
 Default when the user does not choose: `nonhuman,alien-physics` at anchor 1.
 
@@ -177,12 +177,19 @@ scripts/score_gate.py --candidate <work>/candidate.json --grounded   # in ground
 scripts/cliche_lint.py --banlist <work>/banlist.json --draft <work>/draft.md
 ```
 
-**`--grounded` is not a discount.** A buildable result cannot score on distance
-from human centring - it exists for someone by construction - so that axis is
-*replaced* by `translation_integrity`: does the operable path keep the broken
-law intact, and is the loss stated? Grounded runs also owe the extra
-`operational_path` section. Without the flag a grounded run fails on an axis it
-was never able to satisfy, which is a fault in the gate rather than the idea.
+**`--grounded` is not a discount.** A result with a real path to being built
+usually exists for someone, and then scores near the floor on distance from
+human centring - so that axis is *replaced* by `translation_integrity`: does the
+operable path keep the broken law intact, and is the loss stated? Grounded runs
+also owe the extra `operational_path` section. Without the flag a grounded run
+fails on an axis it was never in a position to satisfy, which is a fault in the
+gate rather than the idea.
+
+**And the flag is not evidence.** `candidate.json` must declare the same modes
+the run was drawn with, or the gate rejects the substitution - otherwise
+`--grounded` is simply a way to delete whichever axis you were about to score
+badly. For the same reason `grounded` cannot stack with `nonhuman`: the axis it
+removes is the one that mode exists to enforce. Pick one and regenerate.
 
 Fix by rewriting the idea, not by deleting the flagged word. If the gate fails
 twice on the same axis, return to stage 3 with `--run <n+1>`: the material is

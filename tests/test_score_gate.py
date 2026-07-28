@@ -162,6 +162,7 @@ def test_grounded_mode_swaps_the_unsatisfiable_axis(run, tmp_path, candidate):
     distance from human centring guarantees failure. --grounded replaces that
     axis and adds an obligation instead of removing one."""
     c = deepcopy(candidate)
+    c["modes"] = ["alien-physics", "grounded"]
     del c["scores"]["non_anthropocentrism"]
     c["scores"]["translation_integrity"] = {
         "score": 8,
@@ -175,6 +176,7 @@ def test_grounded_mode_swaps_the_unsatisfiable_axis(run, tmp_path, candidate):
 
 def test_grounded_requires_the_operational_path(run, tmp_path, candidate):
     c = deepcopy(candidate)
+    c["modes"] = ["alien-physics", "grounded"]
     del c["scores"]["non_anthropocentrism"]
     c["scores"]["translation_integrity"] = {
         "score": 8, "justification": "The law survives and the losses from building it are stated in full.",
@@ -194,3 +196,48 @@ def test_the_default_gate_still_wants_the_default_axis(run, tmp_path, candidate)
     assert res.code == 2
     failures = " ".join(res.json()["failures"])
     assert "missing axes non_anthropocentrism" in failures and "unknown axes translation_integrity" in failures
+
+
+def test_the_grounded_flag_is_not_evidence_of_a_grounded_run(run, tmp_path, candidate):
+    """Unchecked, --grounded is a way to delete whichever axis you are about to
+    score badly. The flag has to agree with the run the candidate declares."""
+    c = deepcopy(candidate)
+    c["modes"] = ["alien-physics"]
+    del c["scores"]["non_anthropocentrism"]
+    c["scores"]["translation_integrity"] = {
+        "score": 8, "justification": "Scored as though this were a grounded run, which the candidate never claims.",
+    }
+    c["sections"]["operational_path"] = "A path a team could take, and what the principle loses on the way. " * 4
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--grounded", "--json")
+    assert res.code == 2
+    assert any("does not declare grounded" in f for f in res.json()["failures"])
+
+
+def test_grounded_cannot_delete_the_axis_nonhuman_mode_enforces(run, tmp_path, candidate):
+    c = deepcopy(candidate)
+    c["modes"] = ["nonhuman", "grounded"]
+    del c["scores"]["non_anthropocentrism"]
+    c["scores"]["translation_integrity"] = {
+        "score": 8, "justification": "Claiming both modes at once would exempt the axis that defines one of them.",
+    }
+    c["sections"]["operational_path"] = "A path a team could take, and what the principle loses on the way. " * 4
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--grounded", "--json")
+    assert res.code == 2
+    assert any("also claims nonhuman" in f for f in res.json()["failures"])
+
+
+def test_a_two_character_cjk_name_is_a_name(run, tmp_path, candidate):
+    """The old floor was three characters, which rejects a complete Korean or
+    Chinese name and accepts 'TBD - fill in later'."""
+    c = deepcopy(candidate)
+    c["sections"]["name"] = "\uae30\ub465"
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--json")
+    assert res.code == 0, res.out
+
+
+def test_a_placeholder_name_is_refused_however_long(run, tmp_path, candidate):
+    c = deepcopy(candidate)
+    c["sections"]["name"] = "TBD"
+    res = run("score_gate.py", "--candidate", write(tmp_path, c), "--json")
+    assert res.code == 2
+    assert any("placeholder" in f for f in res.json()["failures"])

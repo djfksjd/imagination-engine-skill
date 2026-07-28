@@ -1,6 +1,6 @@
 {
   "rubric": "imagination-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "default_thresholds": {
     "min_mean": 8.0,
     "min_axis": 6
@@ -79,48 +79,47 @@
   "required_sections": [
     {
       "id": "name",
-      "min_chars": 3,
       "note": "Names the operating principle, not the genre."
     },
     {
       "id": "one_line",
-      "min_chars": 60,
-      "note": "States what it is without comparing it to a known work."
+      "note": "States what it is without comparing it to a known work.",
+      "min_units": 60
     },
     {
       "id": "principle",
-      "min_chars": 200,
-      "note": "The law by which it exists and operates, including what it forbids."
+      "note": "The law by which it exists and operates, including what it forbids.",
+      "min_units": 200
     },
     {
       "id": "first_encounter",
-      "min_chars": 300,
-      "note": "A concrete scene: what is seen, heard, felt, and what behaviour changes."
+      "note": "A concrete scene: what is seen, heard, felt, and what behaviour changes.",
+      "min_units": 300
     },
     {
       "id": "strangest_property",
-      "min_chars": 150,
-      "note": "The novelty in its mode of existence, not its appearance."
+      "note": "The novelty in its mode of existence, not its appearance.",
+      "min_units": 150
     },
     {
       "id": "affect",
-      "min_chars": 120,
-      "note": "The conflicting feelings and the single feature that produces both."
+      "note": "The conflicting feelings and the single feature that produces both.",
+      "min_units": 120
     },
     {
       "id": "world_effect",
-      "min_chars": 200,
-      "note": "How language, culture, relations, industry, or daily habit reorganize."
+      "note": "How language, culture, relations, industry, or daily habit reorganize.",
+      "min_units": 200
     },
     {
       "id": "avoided",
-      "min_chars": 150,
-      "note": "Which familiar versions were discarded and why this is not one of them."
+      "note": "Which familiar versions were discarded and why this is not one of them.",
+      "min_units": 150
     },
     {
       "id": "operational_path",
-      "min_chars": 200,
-      "note": "Required in grounded mode: one path to something real, and the part of the principle that does not survive it."
+      "note": "Required in grounded mode: one path to something real, and the part of the principle that does not survive it.",
+      "min_units": 200
     }
   ],
   "grounded_substitution": {
@@ -135,5 +134,6 @@
       "anchor_7": "The law survives, but the losses from building it are vague or unstated.",
       "anchor_9": "The law survives untouched, the buildable version forbids the same thing, and every part of the principle that does not survive the translation is named."
     }
-  }
+  },
+  "units_note": "Minimums are counted in units, not code points: a CJK letter or digit counts as two, because one Han character or Hangul syllable carries roughly what two Latin letters carry. Counting code points made the same amount of argument about twice as hard to submit in Korean, Japanese or Chinese. The 'name' section has no minimum at all - it is checked for being a placeholder instead, since a length floor rejects a complete two-character name and accepts 'TBD'."
 }

@@ -1,13 +1,18 @@
 {
   "deck": "modes",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "note": "Modes are compatible and stack. Each mode adds mandatory directives and forces a specific deck to be drawn. Stacking more than three modes tends to produce noise rather than strangeness - the draw script warns above three.",
-  "default_modes": ["nonhuman", "alien-physics"],
+  "default_modes": [
+    "nonhuman",
+    "alien-physics"
+  ],
   "modes": [
     {
       "id": "baby",
       "label": "Infant mode - unlearn function, name, and causality",
-      "forces": ["domains:cognition-error"],
+      "forces": [
+        "domains:cognition-error"
+      ],
       "directives": [
         "Ignore the official function of every object involved; treat what it does when misused as what it is for.",
         "Let similar-sounding names imply real kinship between unrelated things, and follow that kinship seriously.",
@@ -20,7 +25,9 @@
     {
       "id": "nonhuman",
       "label": "Non-anthropocentric mode - remove human usefulness",
-      "forces": ["perspectives"],
+      "forces": [
+        "perspectives"
+      ],
       "directives": [
         "Nothing here exists for human benefit, and nothing was designed with a human in mind.",
         "Humans, if present, are weather, terrain, or an accident - never the audience.",
@@ -32,7 +39,9 @@
     {
       "id": "alien-physics",
       "label": "Rule-break mode - change physics, time, or selfhood rather than appearance",
-      "forces": ["constraints"],
+      "forces": [
+        "constraints"
+      ],
       "directives": [
         "Delete or invert at least one law of the drawn constraint deck and never restore it quietly.",
         "Install a replacement law that makes something newly impossible; state that impossibility explicitly.",
@@ -44,7 +53,10 @@
     {
       "id": "affect",
       "label": "Sense and feeling mode - invent a perception or an unnamed emotion",
-      "forces": ["senses", "affects"],
+      "forces": [
+        "senses",
+        "affects"
+      ],
       "directives": [
         "Invent at least one sense or one affect that has no existing name, and answer all four required fields for it.",
         "Show one ordinary daily situation reorganized by it - a greeting, a queue, a meal, a goodbye.",
@@ -75,13 +87,33 @@
         "State plainly which part of the principle does not survive that translation.",
         "Never let the operational path retro-edit the principle into something ordinary."
       ],
-      "guard": "Use with anchor 2 or 3 when the user needs the result for a real product, story, or brief."
+      "guard": "Use with anchor 2 or 3 when the user needs the result for a real product, story, or brief.",
+      "incompatible_with": [
+        "nonhuman"
+      ],
+      "note": "Scores translation_integrity in place of non_anthropocentrism and requires the operational_path section. It cannot be stacked with nonhuman: the axis it removes is the one nonhuman mode exists to enforce, and score_gate.py refuses the combination."
     }
   ],
   "anchors": [
-    { "level": 0, "label": "Unbound", "rule": "No requirement of buildability, usefulness, or human relevance. Internal consistency is the only obligation." },
-    { "level": 1, "label": "Legible", "rule": "Must be describable to a non-expert in three sentences without analogy to a known work." },
-    { "level": 2, "label": "Stageable", "rule": "Must be renderable as a concrete scene, artifact, or scenario a team could produce or film." },
-    { "level": 3, "label": "Operable", "rule": "Must include one path to a real prototype, publication, or product, with the loss from that translation stated." }
+    {
+      "level": 0,
+      "label": "Unbound",
+      "rule": "No requirement of buildability, usefulness, or human relevance. Internal consistency is the only obligation."
+    },
+    {
+      "level": 1,
+      "label": "Legible",
+      "rule": "Must be describable to a non-expert in three sentences without analogy to a known work."
+    },
+    {
+      "level": 2,
+      "label": "Stageable",
+      "rule": "Must be renderable as a concrete scene, artifact, or scenario a team could produce or film."
+    },
+    {
+      "level": 3,
+      "label": "Operable",
+      "rule": "Must include one path to a real prototype, publication, or product, with the loss from that translation stated."
+    }
   ]
 }

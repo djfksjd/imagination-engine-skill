@@ -1,6 +1,6 @@
 {
   "name": "imagination-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Radical idea generation that blocks the obvious answer instead of asking for a better one — ban list from the model's own first instincts, hash-seeded draw of distant domains and a reality rule to break, fail-closed rubric gate.",
   "author": {
     "name": "djfksjd",

@@ -106,13 +106,22 @@ def test_rubric_matches_schema(references):
     assert set(schema["properties"]["sections"]["required"]) == set(sections) - conditional
     assert conditional <= set(schema["properties"]["sections"]["properties"])
     for spec, prop in ((s, schema["properties"]["sections"]["properties"][s["id"]]) for s in rubric["required_sections"]):
-        assert prop["minLength"] == spec["min_chars"], f"{spec['id']} minimum differs between rubric and schema"
+        if "min_units" not in spec:
+            continue  # 'name' is checked for being a placeholder, not for length
+        # The schema floor must never reject what the gate accepts: the gate
+        # counts units, so a CJK section clears its floor at about half the
+        # code points, and a plain minLength has no way to express that.
+        assert prop["minLength"] <= spec["min_units"] / 2 + 1, (
+            f"{spec['id']}: schema minLength would reject CJK text the gate accepts")
     assert rubric["extremal_thresholds"]["min_mean"] > rubric["default_thresholds"]["min_mean"]
 
 
 def test_grounded_substitution_is_coherent(references):
-    """grounded asks for something buildable, so the human-centring axis is
-    unsatisfiable by construction. It must be replaced, not waived."""
+    """grounded asks for a path to something real, which in practice usually
+    means something built for someone - and the human-centring axis then scores
+    near its floor. Not unsatisfiable in every case, but routinely so, and the
+    answer is substitution rather than a waiver: an axis comes out, an axis and
+    a required section go in."""
     rubric = json.loads((references / "rubric.json").read_text(encoding="utf-8"))
     sub = rubric["grounded_substitution"]
     axis_ids = {a["id"] for a in rubric["axes"]}

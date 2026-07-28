@@ -1,6 +1,6 @@
 {
   "deck": "constraints",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "note": "Reality rules available for deletion. Breaking a rule is only half the move: the draw hands you a 'replacement_requirement' because a world where the rule is simply gone is not strange, it is empty. You must install a new law that forbids something the old world allowed.",
   "constraints": [
     { "id": "time-arrow", "statement": "Time runs from past to future.", "inversion_prompt": "What if the direction of time here is set by something other than entropy - by attention, by debt, by whether anyone is waiting?", "replacement_requirement": "State what can no longer be undone, and what can now be undone that never could be." },

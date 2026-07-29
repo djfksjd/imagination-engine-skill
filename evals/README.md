@@ -17,10 +17,12 @@ a pipeline. Keep it out of the model context during generation.
   already request the same portfolio shape; process-revealing prose is a
   treatment failure.
 
-`briefs.dev.jsonl` is for iteration. Do not tune on the confirmation set. Keep
-the real confirmation briefs outside the repository until the design and
-decision rule are frozen; `briefs.holdout.template.jsonl` defines their schema
-and coverage.
+`briefs.dev.jsonl` is the broad iteration set, and
+`briefs.narrative-dev.jsonl` stress-tests the conditional story proof alongside
+non-narrative regression briefs. Do not tune on the confirmation set. Keep the
+real confirmation briefs outside the repository until the design and decision
+rule are frozen; `briefs.holdout.template.jsonl` defines their schema and
+coverage.
 
 ## Output rows
 
@@ -72,24 +74,30 @@ python3 evals/harness.py score \
   --key /path/to/answer-key.jsonl \
   --outputs /path/to/outputs.jsonl \
   --report /path/to/report.json \
+  --diagnostics /path/to/diagnostics.jsonl \
   --expected-judges 5
 ```
 
 The report gives treatment-minus-control differences, per-brief differences,
 the treatment WANT win rate with a Wilson interval, and mean token/time costs.
+The diagnostics file gives one row per collapsed brief × judge cell, including
+run preferences, metric deltas, and the weakest metrics. Use its control-win
+rows to choose the next development intervention rather than tuning from the
+pooled mean alone.
 For WANT, repeated runs are collapsed into one majority decision per
 brief × judge before the interval is computed; model runs are not treated as
 independent judges. Apply the frozen rule in `PREREGISTRATION.md`. Do not change
 thresholds after opening the answer key.
 
+After unblinding, archive the briefs, outputs, packet, answer key, votes, report,
+and diagnostics together with hashes. A revealed confirmation set is retired;
+never tune on it or reuse it as a holdout.
+
 ## Iteration rule
 
-Start with the current minimal skill. Add only one intervention per experiment:
-
-1. current three-pass search;
-2. sequential generation conditioned on prior candidates;
-3. optional retrieval for mechanism transfer;
-4. independent pairwise critic.
-
-Keep an intervention only when it improves the development result without
-breaking the fit or cost veto. Revert otherwise. Run the confirmation set once.
+Treat the current three-pass search, private survivor proof, and conditional
+narrative proof as the confirmed baseline. Add only one intervention per
+experiment, chosen from the control-win diagnostics rather than from intuition
+alone. Keep it only when a repeated development result improves without
+breaking the fit, craft, or cost veto. Retire failed candidates and run each
+newly frozen confirmation set once.

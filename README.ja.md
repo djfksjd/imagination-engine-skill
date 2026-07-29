@@ -5,8 +5,8 @@
 **ブリーフを失わない、有用な意外性。**
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Version](https://img.shields.io/badge/version-0.5.1-2563eb)
-![Preference](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![Version](https://img.shields.io/badge/version-0.5.3-2563eb)
+![Preference](https://img.shields.io/badge/blind_preference-100%25-16a34a)
 ![License](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -38,11 +38,11 @@ $imagination-engine を使って、対話ツリーや隠しダイスなしで動
 
 | 指標 | 強い通常プロンプトとの差 |
 |---|---:|
-| 続けて発展させたい結果 | **26–4 (86.7%)** |
-| 有用な意外性 | **+0.90** |
-| 多様性 | **+0.47** |
-| ブリーフ適合性 | **+0.37** |
-| 完成度 | **+0.26** |
+| 続けて発展させたい結果 | **50–0 (100.0%)** |
+| 有用な意外性 | **+0.97** |
+| 多様性 | **+0.66** |
+| ブリーフ適合性 | **+0.60** |
+| 完成度 | **+0.56** |
 
 事前登録したブラインド比較のモデル審査結果です。全タスクでの普遍的優位を
 保証するものではありません。

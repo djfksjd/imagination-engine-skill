@@ -30,6 +30,7 @@ def test_packet_is_paired_blind_and_scoreable(tmp_path):
     key = tmp_path / "key.jsonl"
     votes = tmp_path / "votes.jsonl"
     report = tmp_path / "report.json"
+    diagnostics = tmp_path / "diagnostics.jsonl"
 
     write_jsonl(
         briefs,
@@ -88,18 +89,20 @@ def test_packet_is_paired_blind_and_scoreable(tmp_path):
             "left" if answer["left_condition"] == "treatment" else "right"
         )
         control_side = "right" if treatment_side == "left" else "left"
+        treatment_rating = 4 if answer["brief_id"] == "b" else 6
+        control_rating = 6 if answer["brief_id"] == "b" else 5
         ratings = {
             treatment_side: {
-                "fit": 6,
-                "useful_surprise": 6,
-                "set_diversity": 6,
-                "craft": 6,
+                "fit": treatment_rating,
+                "useful_surprise": treatment_rating,
+                "set_diversity": treatment_rating,
+                "craft": treatment_rating,
             },
             control_side: {
-                "fit": 5,
-                "useful_surprise": 5,
-                "set_diversity": 5,
-                "craft": 5,
+                "fit": control_rating,
+                "useful_surprise": control_rating,
+                "set_diversity": control_rating,
+                "craft": control_rating,
             },
         }
         votes_rows.append(
@@ -107,7 +110,9 @@ def test_packet_is_paired_blind_and_scoreable(tmp_path):
                 "comparison_id": answer["comparison_id"],
                 "judge_id": "judge-1",
                 "ratings": ratings,
-                "want": treatment_side,
+                "want": (
+                    control_side if answer["brief_id"] == "b" else treatment_side
+                ),
             }
         )
     write_jsonl(votes, votes_rows)
@@ -125,19 +130,32 @@ def test_packet_is_paired_blind_and_scoreable(tmp_path):
             str(outputs),
             "--report",
             str(report),
+            "--diagnostics",
+            str(diagnostics),
         ],
         check=True,
     )
     result = json.loads(report.read_text(encoding="utf-8"))
     assert result["votes"]["raw_vote_rows"] == 4
     assert result["votes"]["brief_judge_cells"] == 2
-    assert result["votes"]["treatment_wins"] == 2
-    assert result["votes"]["control_wins"] == 0
+    assert result["votes"]["treatment_wins"] == 1
+    assert result["votes"]["control_wins"] == 1
     assert result["mean_treatment_minus_control"] == {
-        "craft": 1.0,
-        "fit": 1.0,
-        "set_diversity": 1.0,
-        "useful_surprise": 1.0,
+        "craft": -0.5,
+        "fit": -0.5,
+        "set_diversity": -0.5,
+        "useful_surprise": -0.5,
+    }
+    diagnostic_rows = read_jsonl(diagnostics)
+    assert {row["outcome"] for row in diagnostic_rows} == {"treatment", "control"}
+    loss = result["diagnostics"]["control_win_cells"]
+    assert len(loss) == 1
+    assert loss[0]["brief_id"] == "b"
+    assert set(loss[0]["weakest_metrics"]) == {
+        "craft",
+        "fit",
+        "set_diversity",
+        "useful_surprise",
     }
     assert result["mean_costs"]["control"]["total_tokens"] == 30.0
     assert result["mean_costs"]["treatment"]["total_tokens"] == 36.0

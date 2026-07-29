@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-30",
+  "evaluation": "preregistered_holdout_after_survivor_proof",
+  "verdict": "pass",
+  "runtime_version": "0.5.2",
+  "runtime_source_sha256": "6ae8d48fa76f600196fb33375a6c19146b64eab4a60539bcd5ba7b43660075df",
+  "configuration": {
+    "model": "gpt-5.4",
+    "reasoning": "medium",
+    "briefs": 6,
+    "languages": [
+      "en",
+      "ko"
+    ],
+    "runs_per_condition_per_brief": 5,
+    "blind_ai_judges": 5,
+    "control": "strong_plain_prompt",
+    "seed": "engine-v052-confirm-20260730"
+  },
+  "evidence": {
+    "treatment_wins": 25,
+    "control_wins": 5,
+    "ties": 0,
+    "treatment_win_rate": 0.8333,
+    "wilson_95": [
+      0.6644,
+      0.9266
+    ],
+    "mean_treatment_minus_control": {
+      "fit": 0.3067,
+      "useful_surprise": 0.9800,
+      "set_diversity": 0.9333,
+      "craft": 0.1533
+    },
+    "mean_cost_ratio": {
+      "total_tokens": 1.1174,
+      "wall_seconds": 1.3201
+    }
+  },
+  "integrity": {
+    "briefs_sha256": "e0e30e95d6611ecce0bca5117b57f444c39b55e093ece3613e0f419fe35cbdde",
+    "outputs_sha256": "b63cbc7ad3de8a66a62d429ca6321d6f27e7b8bf906f3b1456c061016148f230",
+    "votes_sha256": "21867e9c64dfcb7410cfd09b3ab43c3968144d535afefb8d8b1df1f9c16cb3dd"
+  },
+  "limitations": [
+    "Judges were independent calls to the same model family, not human domain users.",
+    "Five of six briefs favored treatment unanimously; the speculative drama brief favored control unanimously.",
+    "The result supports the tested task distribution, not universal creativity or a guaranteed win on every request."
+  ]
+}

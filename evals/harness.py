@@ -213,6 +213,13 @@ def score(args: argparse.Namespace) -> int:
         lambda: {metric: [] for metric in METRICS}
     )
     want_balance: dict[tuple[str, str], int] = defaultdict(int)
+    cell_metric_deltas: dict[tuple[str, str], dict[str, list[float]]] = defaultdict(
+        lambda: {metric: [] for metric in METRICS}
+    )
+    cell_comparison_ids: dict[tuple[str, str], set[str]] = defaultdict(set)
+    cell_run_preferences: dict[tuple[str, str], dict[str, int]] = defaultdict(
+        lambda: {"treatment": 0, "control": 0, "tie": 0}
+    )
     seen_votes: set[tuple[str, str]] = set()
     judges_by_comparison: dict[str, set[str]] = defaultdict(set)
 
@@ -259,18 +266,23 @@ def score(args: argparse.Namespace) -> int:
                 raise ValueError(f"{source}: missing rating for {metric!r}") from exc
             delta = treatment_value - control_value
             per_brief[brief_id][metric].append(delta)
+            cell_metric_deltas[(brief_id, judge_id)][metric].append(delta)
 
         want = require_text(row, "want", source).lower()
         cell = (brief_id, judge_id)
+        cell_comparison_ids[cell].add(item_id)
         want_balance[cell] += 0
         if want == "tie":
+            cell_run_preferences[cell]["tie"] += 1
             continue
         if want not in {"left", "right"}:
             raise ValueError(f"{source}: want must be left, right, or tie")
         if sides[args.treatment] == want:
             want_balance[cell] += 1
+            cell_run_preferences[cell]["treatment"] += 1
         else:
             want_balance[cell] -= 1
+            cell_run_preferences[cell]["control"] += 1
 
     if not seen_votes:
         raise ValueError("votes file is empty")
@@ -299,6 +311,37 @@ def score(args: argparse.Namespace) -> int:
     ties = sum(balance == 0 for balance in want_balance.values())
     decisive = treatment_wins + control_wins
     interval = wilson_interval(treatment_wins, decisive)
+    cell_diagnostics: list[dict[str, Any]] = []
+    per_brief_preferences: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"treatment": 0, "control": 0, "tie": 0}
+    )
+    weakest_metric_counts: dict[str, int] = {metric: 0 for metric in METRICS}
+    for (brief_id, judge_id), balance in sorted(want_balance.items()):
+        outcome = "treatment" if balance > 0 else "control" if balance < 0 else "tie"
+        per_brief_preferences[brief_id][outcome] += 1
+        metric_deltas = {
+            metric: round(mean(values), 4)
+            for metric, values in cell_metric_deltas[(brief_id, judge_id)].items()
+        }
+        minimum = min(metric_deltas.values())
+        weakest_metrics = [
+            metric for metric, value in metric_deltas.items() if value == minimum
+        ]
+        if outcome == "control":
+            for metric in weakest_metrics:
+                weakest_metric_counts[metric] += 1
+        cell_diagnostics.append(
+            {
+                "brief_id": brief_id,
+                "judge_id": judge_id,
+                "outcome": outcome,
+                "want_balance": balance,
+                "run_preferences": cell_run_preferences[(brief_id, judge_id)],
+                "mean_treatment_minus_control": metric_deltas,
+                "weakest_metrics": weakest_metrics,
+                "comparison_ids": sorted(cell_comparison_ids[(brief_id, judge_id)]),
+            }
+        )
     pooled_differences = {
         metric: [
             mean(metric_values[metric])
@@ -338,9 +381,18 @@ def score(args: argparse.Namespace) -> int:
             }
             for brief_id, metric_values in sorted(per_brief.items())
         },
+        "diagnostics": {
+            "per_brief_preferences": dict(sorted(per_brief_preferences.items())),
+            "weakest_metric_counts_on_control_wins": weakest_metric_counts,
+            "control_win_cells": [
+                row for row in cell_diagnostics if row["outcome"] == "control"
+            ],
+        },
         "mean_costs": summarize_costs(args.outputs),
     }
 
+    if args.diagnostics:
+        write_jsonl(args.diagnostics, cell_diagnostics)
     serialized = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True)
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -369,6 +421,11 @@ def parser() -> argparse.ArgumentParser:
     score_command.add_argument("--key", type=Path, required=True)
     score_command.add_argument("--outputs", type=Path)
     score_command.add_argument("--report", type=Path)
+    score_command.add_argument(
+        "--diagnostics",
+        type=Path,
+        help="write one diagnostic row per collapsed brief × judge cell",
+    )
     score_command.add_argument("--control", default="control")
     score_command.add_argument("--treatment", default="treatment")
     score_command.add_argument("--expected-judges", type=int, default=0)

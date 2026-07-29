@@ -7,8 +7,8 @@
 A compact divergent-ideation skill for Codex and Claude Code.
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Version](https://img.shields.io/badge/version-0.5.1-2563eb)
-![Preference](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![Version](https://img.shields.io/badge/version-0.5.3-2563eb)
+![Preference](https://img.shields.io/badge/blind_preference-100%25-16a34a)
 ![License](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -30,8 +30,9 @@ veto: an unusual idea that weakens the brief does not survive.
 flowchart LR
     A[Brief + constraints] --> B[Three search passes]
     B --> C[Failure cull]
-    C --> D[3–5 independent ideas]
-    D --> E{Your choice}
+    C --> D[Private survivor proof]
+    D --> E[3–5 independent ideas]
+    E --> F{Your choice}
 ```
 
 ## Try it
@@ -52,6 +53,7 @@ important risk. The response ends with one question that helps you choose.
 | Search | Uses direct, mechanism-transfer and premise-shift passes |
 | Cull | Rejects constraint violations, renamed clichés and arbitrary novelty |
 | Compare | Uses pairwise fit, mechanism, useful-surprise and portfolio checks |
+| Prove | Privately verifies constraints, causal chain, first encounter and decisive uncertainty |
 | Deliver | Returns 3–5 independent directions without choosing for you |
 
 No generation script, random deck, absolute self-score, or mechanical gate is
@@ -63,18 +65,18 @@ In a fresh preregistered blind comparison against a strong plain prompt:
 
 | Metric | Treatment minus control |
 |---|---:|
-| Continuation preference | **26–4 (86.7%)** |
-| Useful surprise | **+0.90** |
-| Portfolio diversity | **+0.47** |
-| Brief fit | **+0.37** |
-| Craft | **+0.26** |
-| Token cost | `1.10×` |
+| Continuation preference | **50–0 (100.0%)** |
+| Useful surprise | **+0.97** |
+| Portfolio diversity | **+0.66** |
+| Brief fit | **+0.60** |
+| Craft | **+0.56** |
+| Token cost | `1.12×` |
 
-The 95% Wilson interval for preference was 70.3–94.7%. Judges were independent
+The 95% Wilson interval for preference was 92.9–100.0%. Judges were independent
 calls from the same model family rather than human domain users, so this result
 supports the tested distribution—not universal creativity. See
 [`evals/README.md`](evals/README.md) and the
-[frozen result](evals/results/2026-07-29-gpt-5.4-confirmation-v2.json).
+[frozen result](evals/results/2026-07-30-gpt-5.4-confirmation-v053.json).
 
 ## Standalone install
 

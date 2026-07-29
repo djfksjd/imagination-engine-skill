@@ -1,6 +1,6 @@
 {
   "name": "imagination-engine",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Experimental idea generation that preserves brief fit while producing a portfolio of causally different, non-obvious directions.",
   "author": {
     "name": "djfksjd",
@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "Imagination Engine",
     "shortDescription": "Useful, non-obvious idea portfolios",
-    "longDescription": "A concise experimental ideation skill that protects the user's non-negotiables, explores direct answers, remote causal mechanisms, and single-premise shifts, then returns a small portfolio of genuinely different directions. Fit is a veto; randomness and strangeness are not goals by themselves. Runtime evaluation gates were removed and moved to an offline blind A/B harness.",
+    "longDescription": "A concise experimental ideation skill that protects the user's non-negotiables, explores direct answers, remote causal mechanisms, and single-premise shifts, then privately proves each survivor before returning a small portfolio of genuinely different directions. Fit is a veto; randomness and strangeness are not goals by themselves. Runtime evaluation gates were removed and moved to an offline blind A/B harness.",
     "developerName": "djfksjd",
     "category": "Creativity",
     "capabilities": ["Read"],

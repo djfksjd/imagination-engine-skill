@@ -5,8 +5,8 @@
 **不牺牲需求契合度的有用惊喜。**
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Version](https://img.shields.io/badge/version-0.5.1-2563eb)
-![Preference](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![Version](https://img.shields.io/badge/version-0.5.2-2563eb)
+![Preference](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
 ![License](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -37,11 +37,11 @@ Imagination Engine 生成 3–5 个在 **因果机制** 上真正不同的方向
 
 | 指标 | 相对强普通提示词 |
 |---|---:|
-| 后续开发偏好 | **26–4（86.7%）** |
-| 有用的意外性 | **+0.90** |
-| 组合多样性 | **+0.47** |
-| 需求契合度 | **+0.37** |
-| 完成度 | **+0.26** |
+| 后续开发偏好 | **25–5（83.3%）** |
+| 有用的意外性 | **+0.98** |
+| 组合多样性 | **+0.93** |
+| 需求契合度 | **+0.31** |
+| 完成度 | **+0.15** |
 
 这是预注册盲测中的模型评审结果，并不保证对所有任务普遍占优。
 

@@ -7,8 +7,8 @@
 Codex와 Claude Code를 위한 간결한 아이디어 발산 스킬입니다.
 
 [![테스트](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![버전](https://img.shields.io/badge/version-0.5.1-2563eb)
-![선호도](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![버전](https://img.shields.io/badge/version-0.5.2-2563eb)
+![선호도](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
 ![라이선스](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -30,8 +30,9 @@ Imagination Engine은 이름이나 외형이 아니라 **인과적 메커니즘*
 flowchart LR
     A[브리프와 제약] --> B[세 가지 탐색]
     B --> C[실패 후보 제거]
-    C --> D[독립적인 아이디어 3–5개]
-    D --> E{사용자 선택}
+    C --> D[생존 아이디어 비공개 증명]
+    D --> E[독립적인 아이디어 3–5개]
+    E --> F{사용자 선택}
 ```
 
 ## 사용해 보기
@@ -52,6 +53,7 @@ $imagination-engine을 사용해서 대화 트리, 숨은 주사위, 설득 능�
 | 탐색 | 직접 답변, 원거리 메커니즘 전이, 전제 변경 |
 | 제거 | 제약 위반, 이름만 바꾼 클리셰, 자의적 새로움을 탈락 |
 | 비교 | 적합성, 메커니즘, 유용한 의외성, 포트폴리오 차이를 쌍별 비교 |
+| 증명 | 제약 근거, 인과 사슬, 첫 사용 장면, 결정적 불확실성을 비공개 검증 |
 | 전달 | 사용자를 대신해 고르지 않고 독립 방향 3–5개 제시 |
 
 생성 스크립트, 랜덤 덱, 절대 자기 점수와 기계식 게이트는 창작 문맥에
@@ -63,17 +65,17 @@ $imagination-engine을 사용해서 대화 트리, 숨은 주사위, 설득 능�
 
 | 지표 | 스킬 결과 − 일반 프롬프트 |
 |---|---:|
-| 계속 발전시키고 싶은 결과 | **26 대 4 (86.7%)** |
-| 유용한 의외성 | **+0.90** |
-| 포트폴리오 다양성 | **+0.47** |
-| 브리프 적합성 | **+0.37** |
-| 완성도 | **+0.26** |
-| 토큰 비용 | `1.10배` |
+| 계속 발전시키고 싶은 결과 | **25 대 5 (83.3%)** |
+| 유용한 의외성 | **+0.98** |
+| 포트폴리오 다양성 | **+0.93** |
+| 브리프 적합성 | **+0.31** |
+| 완성도 | **+0.15** |
+| 토큰 비용 | `1.12배` |
 
-선호도의 95% Wilson 구간은 70.3–94.7%입니다. 같은 모델 계열의 독립
+선호도의 95% Wilson 구간은 66.4–92.7%입니다. 같은 모델 계열의 독립
 호출이 심사했으므로 이 결과는 테스트 분포를 지지하지만 보편적 창의성을
 증명하지는 않습니다. 자세한 내용은 [`evals/README.md`](evals/README.md)와
-[고정 결과](evals/results/2026-07-29-gpt-5.4-confirmation-v2.json)를
+[고정 결과](evals/results/2026-07-30-gpt-5.4-confirmation-v052.json)를
 참조하세요.
 
 ## 단독 설치

@@ -26,6 +26,13 @@ def test_treatment_prompt_contains_skill_but_control_does_not() -> None:
     assert "TASK" in control and "TASK" in treatment
 
 
+def test_generation_prompt_can_inject_a_baseline_skill() -> None:
+    baseline = RUNNER.generation_prompt("TASK", "BASELINE SKILL")
+
+    assert "<skill>\nBASELINE SKILL\n</skill>" in baseline
+    assert "TASK" in baseline
+
+
 def test_judge_schema_requires_all_metrics() -> None:
     metrics = ["fit", "craft"]
     schema = RUNNER.judge_schema(metrics)

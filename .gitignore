@@ -1,5 +1,32 @@
-__pycache__/
-*.pyc
-.pytest_cache/
-work/
+# Operating-system noise
 .DS_Store
+Thumbs.db
+
+# Python and test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environments and secrets
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Evaluation runs and temporary artifacts
+work/
+tmp/
+evals/runs/
+*.log
+*.tmp
+
+# Editor-local state
+.idea/
+.vscode/
+*.swp
+*~

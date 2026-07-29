@@ -5,8 +5,8 @@
 **Sorpresa útil sin perder el brief.**
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Versión](https://img.shields.io/badge/version-0.5.1-2563eb)
-![Preferencia](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![Versión](https://img.shields.io/badge/version-0.5.2-2563eb)
+![Preferencia](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
 ![Licencia](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -39,11 +39,11 @@ distintos, sin árboles de diálogo ni dados ocultos.
 
 | Métrica | Frente a un prompt fuerte |
 |---|---:|
-| Preferencia para continuar | **26–4 (86,7 %)** |
-| Sorpresa útil | **+0,90** |
-| Diversidad | **+0,47** |
-| Ajuste al brief | **+0,37** |
-| Acabado | **+0,26** |
+| Preferencia para continuar | **25–5 (83,3 %)** |
+| Sorpresa útil | **+0,98** |
+| Diversidad | **+0,93** |
+| Ajuste al brief | **+0,31** |
+| Acabado | **+0,15** |
 
 Es un resultado de jueces modelo en una prueba ciega prerregistrada, no una
 garantía universal.

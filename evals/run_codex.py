@@ -134,7 +134,12 @@ def generate(args: argparse.Namespace) -> int:
     briefs = read_jsonl(args.briefs)
     control_template = args.control_prompt.read_text(encoding="utf-8")
     treatment_template = args.treatment_prompt.read_text(encoding="utf-8")
-    skill = args.skill.read_text(encoding="utf-8")
+    treatment_skill = args.skill.read_text(encoding="utf-8")
+    control_skill = (
+        args.control_skill.read_text(encoding="utf-8")
+        if args.control_skill is not None
+        else None
+    )
     existing = read_jsonl(args.output)
     by_key = {
         (row.get("brief_id"), row.get("condition"), row.get("run")): row
@@ -164,7 +169,8 @@ def generate(args: argparse.Namespace) -> int:
         brief, condition, run = job
         template = control_template if condition == "control" else treatment_template
         task = render(template, brief["prompt"])
-        prompt = generation_prompt(task, None if condition == "control" else skill)
+        skill = control_skill if condition == "control" else treatment_skill
+        prompt = generation_prompt(task, skill)
         message, usage, elapsed = run_codex(
             prompt,
             model=args.model,
@@ -346,6 +352,11 @@ def parser() -> argparse.ArgumentParser:
     generation.add_argument("--control-prompt", type=Path, required=True)
     generation.add_argument("--treatment-prompt", type=Path, required=True)
     generation.add_argument("--skill", type=Path, required=True)
+    generation.add_argument(
+        "--control-skill",
+        type=Path,
+        help="optional baseline skill for skill-to-skill ablations",
+    )
     generation.add_argument("--output", type=Path, required=True)
     generation.add_argument("--runs", type=int, default=1)
     generation.add_argument("--conditions", default="control,treatment")

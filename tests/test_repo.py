@@ -6,7 +6,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO / "skills" / "imagination-engine"
 SKILL = SKILL_DIR / "SKILL.md"
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 README_NAMES = {
     "README.md",
     "README.ko.md",
@@ -58,6 +58,15 @@ def test_implicit_invocation_stays_disabled_during_incubation():
     assert "$imagination-engine" in metadata
 
 
+def test_runtime_requires_private_survivor_proof():
+    text = SKILL.read_text(encoding="utf-8")
+    assert "## Prove each survivor" in text
+    assert "**Constraint evidence:**" in text
+    assert "**Causal chain:**" in text
+    assert "**First encounter:**" in text
+    assert "Keep these cards private" in text
+
+
 def test_versions_and_descriptions_are_synchronized():
     manifests = [
         REPO / "plugin.json",
@@ -80,8 +89,8 @@ def test_readmes_cover_all_supported_languages():
     for name in README_NAMES:
         text = (REPO / name).read_text(encoding="utf-8")
         assert all(f"]({target})" in text for target in README_NAMES)
-        assert "0.5.1" in text
-        assert "26" in text
+        assert "0.5.2" in text
+        assert "25" in text
 
 
 def test_development_briefs_are_unique_and_actionable():

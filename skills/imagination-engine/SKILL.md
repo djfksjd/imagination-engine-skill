@@ -78,6 +78,25 @@ Do not select one winner internally and fill the remaining slots with weaker
 decoys. If fewer than three ideas survive, search again from a new mechanism
 family.
 
+## Prove each survivor
+
+Before choosing the final portfolio, make a private proof card for each
+survivor:
+
+- **Constraint evidence:** point to the component or action that preserves each
+  non-negotiable; absence of a violation is not evidence.
+- **Causal chain:** identify the actor, action, changed state, and resulting
+  value. If a link is only a slogan, reject or repair the candidate.
+- **First encounter:** simulate one ordinary moment in which the audience uses
+  or experiences the mechanism and can notice its consequence.
+- **Decisive uncertainty:** name the one unknown most likely to make the
+  mechanism fail despite good execution.
+
+Keep these cards private. Use them to reject attractive sketches that cannot
+demonstrate fit or survive a concrete moment, not to make the delivered answer
+longer. A survivor's visible mechanism, fit, and risk should be the compressed
+result of this proof.
+
 ## Deliver a portfolio
 
 Return three to five ideas by default, ordered for the user's decision rather

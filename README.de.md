@@ -5,8 +5,8 @@
 **Nützliche Überraschung, ohne das Briefing zu verlieren.**
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Version](https://img.shields.io/badge/version-0.5.1-2563eb)
-![Präferenz](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![Version](https://img.shields.io/badge/version-0.5.2-2563eb)
+![Präferenz](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
 ![Lizenz](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -39,11 +39,11 @@ Verhandlungsmechaniken ohne Dialogbäume oder verdeckte Würfel.
 
 | Kennzahl | Gegenüber starkem Prompt |
 |---|---:|
-| Präferenz zur Weiterarbeit | **26–4 (86,7 %)** |
-| Nützliche Überraschung | **+0,90** |
-| Vielfalt | **+0,47** |
-| Passung | **+0,37** |
-| Ausarbeitung | **+0,26** |
+| Präferenz zur Weiterarbeit | **25–5 (83,3 %)** |
+| Nützliche Überraschung | **+0,98** |
+| Vielfalt | **+0,93** |
+| Passung | **+0,31** |
+| Ausarbeitung | **+0,15** |
 
 Das ist ein Modellrichter-Ergebnis aus einem vorregistrierten Blindtest, keine
 universelle Garantie.

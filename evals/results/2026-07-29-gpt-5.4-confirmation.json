@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-29",
+  "evaluation": "preregistered_holdout",
+  "verdict": "pass",
+  "runtime_commit": "f1a2d2966fb3a4dad386324d328de78c2ade3427",
+  "configuration": {
+    "model": "gpt-5.4",
+    "reasoning": "medium",
+    "briefs": 6,
+    "languages": ["en", "ko"],
+    "runs_per_condition_per_brief": 5,
+    "blind_ai_judges": 5,
+    "control": "strong_plain_prompt",
+    "seed": "engine-v05-confirm-20260729"
+  },
+  "evidence": {
+    "treatment_wins": 28,
+    "control_wins": 2,
+    "ties": 0,
+    "treatment_win_rate": 0.9333,
+    "wilson_95": [0.7868, 0.9815],
+    "mean_treatment_minus_control": {
+      "fit": 0.4467,
+      "useful_surprise": 0.9667,
+      "set_diversity": 0.9333,
+      "craft": 0.2733
+    },
+    "mean_cost_ratio": {
+      "total_tokens": 1.0970,
+      "wall_seconds": 1.2131
+    }
+  },
+  "integrity": {
+    "briefs_sha256": "9ae8955aa0d5c957c1d8992f1ce790390ce14133d06e100cdf42e3f0051d9edd",
+    "outputs_sha256": "8803dde8106c26d4c2d12419c18da02a3cca3f17b652024dd9a3a7536401b736",
+    "votes_sha256": "9246f726f4d3781351938d7452986f7f373623f5764b5981c336d15ba491bc33"
+  },
+  "limitations": [
+    "Judges were independent calls to the same model family, not human domain users.",
+    "The result supports explicit portfolio generation on the tested task distribution, not universal creativity.",
+    "Raw holdout artifacts remain outside the repository to avoid contaminating future tests."
+  ]
+}

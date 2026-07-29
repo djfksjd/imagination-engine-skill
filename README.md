@@ -6,8 +6,8 @@ brief.
 
 The previous constraint-heavy pipeline lost two blind comparisons with a plain
 prompt. It remains intact under [`legacy/v0.4.0/`](legacy/v0.4.0/) as a research
-record; it is no longer the runtime skill. The new version makes no performance
-claim until it wins the preregistered holdout evaluation.
+record; it is no longer the runtime skill. The new version passed its
+preregistered holdout against that strong control on 2026-07-29.
 
 ## What changed
 
@@ -51,12 +51,15 @@ briefs, blind packet format, metrics, and keep/discard rule. Runtime changes
 are accepted one at a time; the confirmation set is evaluated only after the
 design is frozen.
 
-The skill is ready for implicit invocation only after:
+In the 2026-07-29 `gpt-5.4` confirmation, the skill was preferred 28 to 2
+(93.3%, 95% Wilson interval 78.7–98.2%). Treatment-minus-control differences
+were `+0.45` fit, `+0.97` useful surprise, `+0.93` set diversity, and `+0.27`
+craft at `1.10x` tokens. Configuration and limitations are recorded in
+[`evals/results/2026-07-29-gpt-5.4-confirmation.json`](evals/results/2026-07-29-gpt-5.4-confirmation.json).
 
-1. fit is non-inferior to the control;
-2. blind judges prefer continuing with its portfolios;
-3. set-level diversity improves;
-4. the cost ceiling is respected.
+The blind judges were independent calls to the same model family, not human
+domain users. Implicit invocation therefore remains off pending a separate
+trigger-precision evaluation.
 
 ## Legacy
 

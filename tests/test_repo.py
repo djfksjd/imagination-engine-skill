@@ -6,7 +6,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO / "skills" / "imagination-engine"
 SKILL = SKILL_DIR / "SKILL.md"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 
 
 def test_root_skill_symlink_resolves_to_runtime_skill():

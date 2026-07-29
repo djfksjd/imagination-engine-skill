@@ -96,7 +96,9 @@ the hidden process unless the task actually needs it.
 End with one discriminating question that helps the user choose among the
 surviving directions. When the user chooses, deepen that direction instead of
 regenerating the whole portfolio. If they want a full concept review, hand off
-to `imagination-brainstorming` when it is available.
+to `imagination-brainstorming` when it is available. Do not choose on the
+user's behalf or automatically chain the workshop; their choice is the
+decision boundary between divergence and development.
 
 ## Regenerate without creating a house style
 

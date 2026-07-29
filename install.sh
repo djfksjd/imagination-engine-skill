@@ -5,7 +5,7 @@
 # Supports two hosts: Claude Code and Codex. Both are attempted when present;
 # a failure on one is not fatal for the other.
 #
-# Scripts are Python-3 stdlib only — nothing else to install, no API key, no network.
+# The runtime skill is Markdown only.
 set -u
 
 REPO="djfksjd/imagination-engine-skill"
@@ -44,4 +44,4 @@ if [ "${INSTALLED}" -eq 0 ]; then
   exit 1
 fi
 
-log "Done. Try: \"use the imagination engine on: a creature that inherits debts\""
+log "Done. During v0.5 evaluation, invoke it explicitly: \"use \$imagination-engine on: <brief>\""

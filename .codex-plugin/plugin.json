@@ -1,7 +1,7 @@
 {
   "name": "imagination-engine",
-  "version": "0.4.0",
-  "description": "Radical idea generation that blocks the obvious answer instead of asking for a better one — ban list from the model's own first instincts, hash-seeded draw of distant domains and a reality rule to break, fail-closed rubric gate.",
+  "version": "0.5.0",
+  "description": "Experimental idea generation that preserves brief fit while producing a portfolio of causally different, non-obvious directions.",
   "author": {
     "name": "djfksjd",
     "url": "https://github.com/djfksjd"
@@ -17,16 +17,12 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "imagination-engine",
-    "shortDescription": "Strange ideas by subtraction",
-    "longDescription": "An idea pipeline that removes the paths to the obvious answer instead of asking for more imagination. Stage one writes down the twelve answers the model is most likely to give and turns them into a machine-checked ban list, along with the skeleton they share. A hash-seeded draw then deals three concept domains from disjoint top-level categories, one law of reality to break, one non-human stance, one sense to invent and two feelings that must coexist. Every broken law must be replaced by one that forbids something the ordinary world allows. Before anything reaches the user, an eight-axis rubric gate and a cliché linter run fail-closed. Modes (baby, non-human, alien-physics, affect, extremal, grounded) and anchor levels 0-3 control how far the result may travel from the buildable. Works in any language and answers in the user's.",
+    "displayName": "Imagination Engine",
+    "shortDescription": "Useful, non-obvious idea portfolios",
+    "longDescription": "A concise experimental ideation skill that protects the user's non-negotiables, explores direct answers, remote causal mechanisms, and single-premise shifts, then returns a small portfolio of genuinely different directions. Fit is a veto; randomness and strangeness are not goals by themselves. Runtime evaluation gates were removed and moved to an offline blind A/B harness.",
     "developerName": "djfksjd",
     "category": "Creativity",
-    "capabilities": [
-      "Bash",
-      "Read",
-      "Write"
-    ],
+    "capabilities": ["Read"],
     "websiteURL": "https://github.com/djfksjd/imagination-engine-skill"
   }
 }

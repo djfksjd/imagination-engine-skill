@@ -1,35 +1,80 @@
-# Imagination Engine
+<div align="center">
 
-Imagination Engine v0.5.1 is a deliberately small experimental skill for
-producing a **portfolio of useful, non-obvious ideas** without trading away the
-brief.
+# ✦ Imagination Engine
 
-## Recommended combined plugin
+**Useful surprise without losing the brief.**
 
-Most users should install [`djfksjd/imagination`](https://github.com/djfksjd/imagination)
-and invoke `$imagination`. It bundles this engine with
-`imagination-brainstorming`, presents the portfolio first, waits for the user
-to choose, and develops that selection on the next turn.
+A compact divergent-ideation skill for Codex and Claude Code.
 
-Install this standalone repository when you want direct access to divergence
-only or need to evaluate the engine independently.
+[![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
+![Version](https://img.shields.io/badge/version-0.5.1-2563eb)
+![Preference](https://img.shields.io/badge/blind_preference-86.7%25-16a34a)
+![License](https://img.shields.io/badge/license-MIT-0f766e)
 
-The current v0.5.1 runtime passed its fresh preregistered holdout against a
-strong plain-prompt control on 2026-07-29, winning 26 of 30 blind comparisons.
-It replaces the earlier experimental architecture, which is available only as
-a research record under [`legacy/v0.4.0/`](legacy/v0.4.0/) and is never loaded
-at runtime.
+[English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
 
-## What changed
+</div>
 
-- One concise runtime `SKILL.md`; no generation scripts or mechanical gates.
-- Fit is a veto, not one axis averaged against strangeness.
-- Candidates come from direct, mechanism-transfer, and premise-shift passes.
-- Ideas stay independent instead of being forced into a hybrid.
-- Selection is pairwise and portfolio-level; there are no absolute self-scores.
-- Evaluation lives under `evals/` and never enters the creative context.
-- Implicit invocation is disabled during incubation. Invoke
-  `$imagination-engine` explicitly.
+---
+
+> [!TIP]
+> **Most users should install [Imagination](https://github.com/djfksjd/imagination).**
+> It combines this engine with a concept workshop while keeping your choice
+> between the two stages.
+
+Imagination Engine generates a small portfolio of ideas that are genuinely
+different in **causal mechanism**, not merely in names or aesthetics. Fit is a
+veto: an unusual idea that weakens the brief does not survive.
+
+```mermaid
+flowchart LR
+    A[Brief + constraints] --> B[Three search passes]
+    B --> C[Failure cull]
+    C --> D[3–5 independent ideas]
+    D --> E{Your choice}
+```
+
+## Try it
+
+```text
+Use $imagination-engine to propose five genuinely different negotiation
+mechanics without dialogue trees, hidden dice, or a persuasion stat.
+```
+
+Each direction includes its mechanism, connection to the brief, and most
+important risk. The response ends with one question that helps you choose.
+
+## What makes it different
+
+| Stage | What the skill does |
+|---|---|
+| Frame | Extracts the outcome, audience, value and non-negotiables |
+| Search | Uses direct, mechanism-transfer and premise-shift passes |
+| Cull | Rejects constraint violations, renamed clichés and arbitrary novelty |
+| Compare | Uses pairwise fit, mechanism, useful-surprise and portfolio checks |
+| Deliver | Returns 3–5 independent directions without choosing for you |
+
+No generation script, random deck, absolute self-score, or mechanical gate is
+loaded into the creative context.
+
+## Measured result
+
+In a fresh preregistered blind comparison against a strong plain prompt:
+
+| Metric | Treatment minus control |
+|---|---:|
+| Continuation preference | **26–4 (86.7%)** |
+| Useful surprise | **+0.90** |
+| Portfolio diversity | **+0.47** |
+| Brief fit | **+0.37** |
+| Craft | **+0.26** |
+| Token cost | `1.10×` |
+
+The 95% Wilson interval for preference was 70.3–94.7%. Judges were independent
+calls from the same model family rather than human domain users, so this result
+supports the tested distribution—not universal creativity. See
+[`evals/README.md`](evals/README.md) and the
+[frozen result](evals/results/2026-07-29-gpt-5.4-confirmation-v2.json).
 
 ## Standalone install
 
@@ -37,44 +82,29 @@ at runtime.
 curl -fsSL https://raw.githubusercontent.com/djfksjd/imagination-engine-skill/main/install.sh | bash
 ```
 
-Manual installation:
-
 ```bash
 claude plugin marketplace add djfksjd/imagination-engine-skill
 claude plugin install imagination-engine@djfksjd
-
 codex plugin marketplace add djfksjd/imagination-engine-skill
 codex plugin add imagination-engine@djfksjd
 ```
 
-Then try:
+## Scope
 
-```text
-Use $imagination-engine to propose five genuinely different game mechanics
-for negotiation without dialogue trees. The player must understand the
-consequences before committing.
+Use this skill for concepts, premises, mechanics, products, services, worlds
+and rituals when useful novelty matters. Do not use it for factual work,
+routine tasks with a known answer, or development of an idea already selected;
+use
+[Imagination Brainstorming](https://github.com/djfksjd/imagination-brainstorming-skill)
+for that stage.
+
+## Development and legacy
+
+```bash
+python3 -m pytest tests/ -q
+python3 evals/harness.py --help
 ```
 
-## Evaluation
-
-[`evals/README.md`](evals/README.md) defines the strong control, development
-briefs, blind packet format, metrics, and keep/discard rule. Runtime changes
-are accepted one at a time; the confirmation set is evaluated only after the
-design is frozen.
-
-After the handoff revision, a fresh 2026-07-29 `gpt-5.4` confirmation preferred
-the skill 26 to 4 (86.7%, 95% Wilson interval 70.3–94.7%).
-Treatment-minus-control differences were `+0.37` fit, `+0.90` useful surprise,
-`+0.47` set diversity, and `+0.26` craft at `1.10x` tokens. Configuration and
-limitations are recorded in
-[`evals/results/2026-07-29-gpt-5.4-confirmation-v2.json`](evals/results/2026-07-29-gpt-5.4-confirmation-v2.json).
-
-The blind judges were independent calls to the same model family, not human
-domain users. Implicit invocation therefore remains off pending a separate
-trigger-precision evaluation.
-
-## Legacy
-
-`legacy/v0.4.0/` contains the former skill, scripts, decks, examples, translated
-documentation, and 300 regression tests. Those tests validate the old
-pipeline's internal consistency, not creative quality.
+The former experimental architecture is preserved under
+[`legacy/v0.4.0/`](legacy/v0.4.0/) for research only. It is never loaded at
+runtime. MIT licensed.

@@ -92,6 +92,16 @@ survivor:
 - **Decisive uncertainty:** name the one unknown most likely to make the
   mechanism fail despite good execution.
 
+For a story, drama, or other character-driven premise, replace the **causal
+chain** and **first encounter** checks above with:
+
+- **Dramatic cause:** identify who legitimately wants what, how this premise's
+  distinctive mechanism makes those wants incompatible, and the consequential
+  choice that follows.
+- **Changed next choice:** trace how that choice alters what someone can do,
+  know, or reasonably want next. Reject a premise that only repeats the same
+  dilemma at a louder volume or depends on withheld information.
+
 Keep these cards private. Use them to reject attractive sketches that cannot
 demonstrate fit or survive a concrete moment, not to make the delivered answer
 longer. A survivor's visible mechanism, fit, and risk should be the compressed

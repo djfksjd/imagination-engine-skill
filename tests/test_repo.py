@@ -6,7 +6,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO / "skills" / "imagination-engine"
 SKILL = SKILL_DIR / "SKILL.md"
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 README_NAMES = {
     "README.md",
     "README.ko.md",
@@ -64,6 +64,8 @@ def test_runtime_requires_private_survivor_proof():
     assert "**Constraint evidence:**" in text
     assert "**Causal chain:**" in text
     assert "**First encounter:**" in text
+    assert "**Dramatic cause:**" in text
+    assert "**Changed next choice:**" in text
     assert "Keep these cards private" in text
 
 
@@ -89,8 +91,8 @@ def test_readmes_cover_all_supported_languages():
     for name in README_NAMES:
         text = (REPO / name).read_text(encoding="utf-8")
         assert all(f"]({target})" in text for target in README_NAMES)
-        assert "0.5.2" in text
-        assert "25" in text
+        assert "0.5.3" in text
+        assert "50" in text
 
 
 def test_development_briefs_are_unique_and_actionable():
@@ -105,6 +107,17 @@ def test_development_briefs_are_unique_and_actionable():
     assert len({row["id"] for row in rows}) == len(rows)
     assert all(len(row["prompt"]) >= 100 for row in rows)
     assert {row["language"] for row in rows} >= {"en", "ko"}
+
+    narrative_rows = [
+        json.loads(line)
+        for line in (REPO / "evals" / "briefs.narrative-dev.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+        if line.strip()
+    ]
+    assert len(narrative_rows) >= 16
+    assert len({row["id"] for row in narrative_rows}) == len(narrative_rows)
+    assert {row["language"] for row in narrative_rows} >= {"en", "ko"}
 
 
 def test_legacy_pipeline_is_preserved_outside_runtime():

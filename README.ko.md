@@ -7,8 +7,8 @@
 Codex와 Claude Code를 위한 간결한 아이디어 발산 스킬입니다.
 
 [![테스트](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![버전](https://img.shields.io/badge/version-0.5.2-2563eb)
-![선호도](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
+![버전](https://img.shields.io/badge/version-0.5.3-2563eb)
+![선호도](https://img.shields.io/badge/blind_preference-100%25-16a34a)
 ![라이선스](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -65,17 +65,17 @@ $imagination-engine을 사용해서 대화 트리, 숨은 주사위, 설득 능�
 
 | 지표 | 스킬 결과 − 일반 프롬프트 |
 |---|---:|
-| 계속 발전시키고 싶은 결과 | **25 대 5 (83.3%)** |
-| 유용한 의외성 | **+0.98** |
-| 포트폴리오 다양성 | **+0.93** |
-| 브리프 적합성 | **+0.31** |
-| 완성도 | **+0.15** |
+| 계속 발전시키고 싶은 결과 | **50 대 0 (100.0%)** |
+| 유용한 의외성 | **+0.97** |
+| 포트폴리오 다양성 | **+0.66** |
+| 브리프 적합성 | **+0.60** |
+| 완성도 | **+0.56** |
 | 토큰 비용 | `1.12배` |
 
-선호도의 95% Wilson 구간은 66.4–92.7%입니다. 같은 모델 계열의 독립
+선호도의 95% Wilson 구간은 92.9–100.0%입니다. 같은 모델 계열의 독립
 호출이 심사했으므로 이 결과는 테스트 분포를 지지하지만 보편적 창의성을
 증명하지는 않습니다. 자세한 내용은 [`evals/README.md`](evals/README.md)와
-[고정 결과](evals/results/2026-07-30-gpt-5.4-confirmation-v052.json)를
+[고정 결과](evals/results/2026-07-30-gpt-5.4-confirmation-v053.json)를
 참조하세요.
 
 ## 단독 설치

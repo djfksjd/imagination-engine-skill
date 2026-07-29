@@ -17,10 +17,12 @@ a pipeline. Keep it out of the model context during generation.
   already request the same portfolio shape; process-revealing prose is a
   treatment failure.
 
-`briefs.dev.jsonl` is for iteration. Do not tune on the confirmation set. Keep
-the real confirmation briefs outside the repository until the design and
-decision rule are frozen; `briefs.holdout.template.jsonl` defines their schema
-and coverage.
+`briefs.dev.jsonl` is the broad iteration set, and
+`briefs.narrative-dev.jsonl` stress-tests the conditional story proof alongside
+non-narrative regression briefs. Do not tune on the confirmation set. Keep the
+real confirmation briefs outside the repository until the design and decision
+rule are frozen; `briefs.holdout.template.jsonl` defines their schema and
+coverage.
 
 ## Output rows
 
@@ -93,8 +95,9 @@ never tune on it or reuse it as a holdout.
 
 ## Iteration rule
 
-Treat the current three-pass search plus private survivor proof as the confirmed
-baseline. Add only one intervention per experiment, chosen from the control-win
-diagnostics rather than from intuition alone. Keep it only when a repeated
-development result improves without breaking the fit, craft, or cost veto.
-Retire failed candidates and run each newly frozen confirmation set once.
+Treat the current three-pass search, private survivor proof, and conditional
+narrative proof as the confirmed baseline. Add only one intervention per
+experiment, chosen from the control-win diagnostics rather than from intuition
+alone. Keep it only when a repeated development result improves without
+breaking the fit, craft, or cost veto. Retire failed candidates and run each
+newly frozen confirmation set once.

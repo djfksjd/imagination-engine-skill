@@ -7,8 +7,8 @@
 A compact divergent-ideation skill for Codex and Claude Code.
 
 [![Tests](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/djfksjd/imagination-engine-skill/actions/workflows/tests.yml)
-![Version](https://img.shields.io/badge/version-0.5.2-2563eb)
-![Preference](https://img.shields.io/badge/blind_preference-83.3%25-16a34a)
+![Version](https://img.shields.io/badge/version-0.5.3-2563eb)
+![Preference](https://img.shields.io/badge/blind_preference-100%25-16a34a)
 ![License](https://img.shields.io/badge/license-MIT-0f766e)
 
 [English](README.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt-BR.md)
@@ -65,18 +65,18 @@ In a fresh preregistered blind comparison against a strong plain prompt:
 
 | Metric | Treatment minus control |
 |---|---:|
-| Continuation preference | **25–5 (83.3%)** |
-| Useful surprise | **+0.98** |
-| Portfolio diversity | **+0.93** |
-| Brief fit | **+0.31** |
-| Craft | **+0.15** |
+| Continuation preference | **50–0 (100.0%)** |
+| Useful surprise | **+0.97** |
+| Portfolio diversity | **+0.66** |
+| Brief fit | **+0.60** |
+| Craft | **+0.56** |
 | Token cost | `1.12×` |
 
-The 95% Wilson interval for preference was 66.4–92.7%. Judges were independent
+The 95% Wilson interval for preference was 92.9–100.0%. Judges were independent
 calls from the same model family rather than human domain users, so this result
 supports the tested distribution—not universal creativity. See
 [`evals/README.md`](evals/README.md) and the
-[frozen result](evals/results/2026-07-30-gpt-5.4-confirmation-v052.json).
+[frozen result](evals/results/2026-07-30-gpt-5.4-confirmation-v053.json).
 
 ## Standalone install
 

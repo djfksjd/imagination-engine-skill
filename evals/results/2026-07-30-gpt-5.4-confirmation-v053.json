@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-30",
+  "evaluation": "preregistered_fresh_holdout_after_conditional_narrative_proof",
+  "verdict": "pass",
+  "primary_90_percent_target": "pass",
+  "runtime_version": "0.5.3",
+  "runtime_source_sha256": "46827a1b485b443a724bbb5429a178b4e3024aeca2f9465d32c4306d7afebd43",
+  "configuration": {
+    "model": "gpt-5.4",
+    "reasoning": "medium",
+    "briefs": 10,
+    "languages": [
+      "en",
+      "ko"
+    ],
+    "runs_per_condition_per_brief": 5,
+    "blind_ai_judges": 5,
+    "control": "strong_plain_prompt",
+    "seed": "engine-v053-confirm-frozen-20260730"
+  },
+  "evidence": {
+    "treatment_wins": 50,
+    "control_wins": 0,
+    "ties": 0,
+    "treatment_win_rate": 1.0,
+    "wilson_95": [
+      0.9286,
+      1.0
+    ],
+    "mean_treatment_minus_control": {
+      "fit": 0.596,
+      "useful_surprise": 0.972,
+      "set_diversity": 0.656,
+      "craft": 0.56
+    },
+    "mean_cost_ratio": {
+      "total_tokens": 1.1179,
+      "wall_seconds": 1.224
+    }
+  },
+  "integrity": {
+    "briefs_sha256": "ed1985007815e31611344d12f48e456916e7b49366fabdaf1d359773999144fe",
+    "preregistration_sha256": "78f41c3a35f63ae9369d969bd688ca5173ed88ce9a32555176c6e6598fea3213",
+    "outputs_sha256": "0c924e8d05260f4215122aafe208ead74721ac2127a5aaf9af7b88c47d0aed6a",
+    "packet_sha256": "3308738a86de3ad94ef0900c5c23038ab74fcc34575d2992ad2ec3da507d8b7d",
+    "answer_key_sha256": "f2a4187de7a305b8ab4b81e042be7b815bba341fcced519b4e2f875d94670927",
+    "votes_sha256": "1039c736418dd6d8dfa0082560d2fcac5a63e097a177858f30674046aca232f2",
+    "report_sha256": "1a54e013a5045af3198fb70f57c2be5c37bdde8db0bfd5241c9d3669f98f16b0",
+    "diagnostics_sha256": "972a8cf9c1382c0f472a3e5a697031e908808718be4708e8cae9a1173f337826"
+  },
+  "limitations": [
+    "Judges were independent calls to the same model family, not human domain users.",
+    "The point estimate was 100%; it is not a guarantee that every future request will win.",
+    "The 95% Wilson interval was 92.9–100.0%, supporting greater than 90% on the tested distribution.",
+    "The result covers the ten frozen English and Korean creative briefs, not universal creativity."
+  ]
+}

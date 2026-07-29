@@ -1,6 +1,6 @@
 # Imagination Engine
 
-Imagination Engine v0.5 is a deliberately small experimental skill for
+Imagination Engine v0.5.1 is a deliberately small experimental skill for
 producing a **portfolio of useful, non-obvious ideas** without trading away the
 brief.
 
@@ -51,11 +51,12 @@ briefs, blind packet format, metrics, and keep/discard rule. Runtime changes
 are accepted one at a time; the confirmation set is evaluated only after the
 design is frozen.
 
-In the 2026-07-29 `gpt-5.4` confirmation, the skill was preferred 28 to 2
-(93.3%, 95% Wilson interval 78.7–98.2%). Treatment-minus-control differences
-were `+0.45` fit, `+0.97` useful surprise, `+0.93` set diversity, and `+0.27`
-craft at `1.10x` tokens. Configuration and limitations are recorded in
-[`evals/results/2026-07-29-gpt-5.4-confirmation.json`](evals/results/2026-07-29-gpt-5.4-confirmation.json).
+After the handoff revision, a fresh 2026-07-29 `gpt-5.4` confirmation preferred
+the skill 26 to 4 (86.7%, 95% Wilson interval 70.3–94.7%).
+Treatment-minus-control differences were `+0.37` fit, `+0.90` useful surprise,
+`+0.47` set diversity, and `+0.26` craft at `1.10x` tokens. Configuration and
+limitations are recorded in
+[`evals/results/2026-07-29-gpt-5.4-confirmation-v2.json`](evals/results/2026-07-29-gpt-5.4-confirmation-v2.json).
 
 The blind judges were independent calls to the same model family, not human
 domain users. Implicit invocation therefore remains off pending a separate

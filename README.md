@@ -14,10 +14,11 @@ to choose, and develops that selection on the next turn.
 Install this standalone repository when you want direct access to divergence
 only or need to evaluate the engine independently.
 
-The previous constraint-heavy pipeline lost two blind comparisons with a plain
-prompt. It remains intact under [`legacy/v0.4.0/`](legacy/v0.4.0/) as a research
-record; it is no longer the runtime skill. The new version passed its
-preregistered holdout against that strong control on 2026-07-29.
+The current v0.5.1 runtime passed its fresh preregistered holdout against a
+strong plain-prompt control on 2026-07-29, winning 26 of 30 blind comparisons.
+It replaces the earlier experimental architecture, which is available only as
+a research record under [`legacy/v0.4.0/`](legacy/v0.4.0/) and is never loaded
+at runtime.
 
 ## What changed
 

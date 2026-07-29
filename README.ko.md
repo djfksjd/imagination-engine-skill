@@ -3,6 +3,16 @@
 Imagination Engine v0.5.1은 brief를 희생하지 않으면서 **쓸모 있고 비자명한
 아이디어 포트폴리오**를 만드는 최소형 실험 스킬입니다.
 
+## 권장 통합 플러그인
+
+대부분의 사용자는 [`djfksjd/imagination`](https://github.com/djfksjd/imagination)을
+설치하고 `$imagination`만 호출하는 방식을 권장합니다. 통합 플러그인이 이
+엔진으로 아이디어를 제시하고 사용자 선택을 기다린 뒤, 다음 턴에
+`imagination-brainstorming`으로 선택안을 구체화합니다.
+
+아이디어 발산만 직접 호출하거나 엔진을 독립적으로 평가하려면 이 저장소를
+단독 설치하면 됩니다.
+
 이전의 제약 중심 파이프라인은 일반 프롬프트와의 블라인드 비교에서 두
 번 패했습니다. 전체 구현은 연구 기록으로
 [`legacy/v0.4.0/`](legacy/v0.4.0/)에 보존했으며 더 이상 런타임에서
@@ -19,7 +29,7 @@ Imagination Engine v0.5.1은 brief를 희생하지 않으면서 **쓸모 있고 
 - 평가 하니스는 `evals/`에 분리되어 창작 문맥에 들어오지 않습니다.
 - 검증 기간에는 자동 실행하지 않습니다. `$imagination-engine`으로 명시 호출합니다.
 
-## 설치
+## 단독 설치
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/djfksjd/imagination-engine-skill/main/install.sh | bash

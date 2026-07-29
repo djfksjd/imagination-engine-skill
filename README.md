@@ -4,6 +4,16 @@ Imagination Engine v0.5.1 is a deliberately small experimental skill for
 producing a **portfolio of useful, non-obvious ideas** without trading away the
 brief.
 
+## Recommended combined plugin
+
+Most users should install [`djfksjd/imagination`](https://github.com/djfksjd/imagination)
+and invoke `$imagination`. It bundles this engine with
+`imagination-brainstorming`, presents the portfolio first, waits for the user
+to choose, and develops that selection on the next turn.
+
+Install this standalone repository when you want direct access to divergence
+only or need to evaluate the engine independently.
+
 The previous constraint-heavy pipeline lost two blind comparisons with a plain
 prompt. It remains intact under [`legacy/v0.4.0/`](legacy/v0.4.0/) as a research
 record; it is no longer the runtime skill. The new version passed its
@@ -20,7 +30,7 @@ preregistered holdout against that strong control on 2026-07-29.
 - Implicit invocation is disabled during incubation. Invoke
   `$imagination-engine` explicitly.
 
-## Install
+## Standalone install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/djfksjd/imagination-engine-skill/main/install.sh | bash

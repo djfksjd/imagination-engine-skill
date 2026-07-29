@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "date": "2026-07-29",
+  "evaluation": "preregistered_holdout_after_handoff_revision",
+  "verdict": "pass",
+  "runtime_commit": "528d9bcf506f24b16636b51b9a437eec0858fe99",
+  "configuration": {
+    "model": "gpt-5.4",
+    "reasoning": "medium",
+    "briefs": 6,
+    "languages": ["en", "ko"],
+    "runs_per_condition_per_brief": 5,
+    "blind_ai_judges": 5,
+    "control": "strong_plain_prompt",
+    "seed": "engine-v051-confirm-20260729"
+  },
+  "evidence": {
+    "treatment_wins": 26,
+    "control_wins": 4,
+    "ties": 0,
+    "treatment_win_rate": 0.8667,
+    "wilson_95": [0.7032, 0.9469],
+    "mean_treatment_minus_control": {
+      "fit": 0.3667,
+      "useful_surprise": 0.9000,
+      "set_diversity": 0.4667,
+      "craft": 0.2600
+    },
+    "mean_cost_ratio": {
+      "total_tokens": 1.0978,
+      "wall_seconds": 1.1634
+    }
+  },
+  "integrity": {
+    "briefs_sha256": "637596db720a8197ecf135e3c076ee06bf89632a94560f9c8ae8b3024cd40f96",
+    "outputs_sha256": "619f03859b4ce238450d491055dc94fb23feba9ff11e39bfb6017b430d0fdca2",
+    "votes_sha256": "52f64b05b25f0caeedfadfe5b478d63a4fbf00801e9d16deb42f151ee85cd01d"
+  },
+  "limitations": [
+    "Judges were independent calls to the same model family, not human domain users.",
+    "The skill produces portfolios; automatic selection and chaining were tested separately and are not supported.",
+    "The result supports the tested task distribution, not universal creativity."
+  ]
+}

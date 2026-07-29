@@ -12,7 +12,7 @@
     {
       "name": "imagination-engine",
       "source": "./",
-      "description": "Radical idea generation that blocks the obvious answer instead of asking for a better one — a ban list built from the model's own first instincts, a hash-seeded draw of distant domains and a reality rule to break, and a fail-closed rubric gate before anything is shown."
+      "description": "Experimental idea generation that protects brief fit and returns a portfolio of causally different, non-obvious directions."
     }
   ]
 }

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Imagination Engine"
+  short_description: "Useful, non-obvious idea portfolios"
+  default_prompt: "Use $imagination-engine to generate several genuinely different ideas for this brief."
+
+policy:
+  allow_implicit_invocation: false

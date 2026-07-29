@@ -1,8 +1,4 @@
-# imagination-engine unit tests
-#
-# Offline only. The scripts have no network calls, no API keys and no runtime
-# dependencies beyond the Python 3 standard library, so CI needs nothing but
-# pytest. Deck integrity, draw determinism, and both gates are covered.
+# imagination-engine repository and offline evaluation-harness tests
 name: tests
 
 on:

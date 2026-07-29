@@ -7,6 +7,16 @@ REPO = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO / "skills" / "imagination-engine"
 SKILL = SKILL_DIR / "SKILL.md"
 VERSION = "0.5.1"
+README_NAMES = {
+    "README.md",
+    "README.ko.md",
+    "README.ja.md",
+    "README.zh-CN.md",
+    "README.es.md",
+    "README.fr.md",
+    "README.de.md",
+    "README.pt-BR.md",
+}
 
 
 def test_root_skill_symlink_resolves_to_runtime_skill():
@@ -61,6 +71,17 @@ def test_versions_and_descriptions_are_synchronized():
         assert "ban list" not in description
         assert "hash-seeded" not in description
         assert "fail-closed" not in description
+
+
+def test_readmes_cover_all_supported_languages():
+    actual = {path.name for path in REPO.glob("README*.md")}
+    assert README_NAMES <= actual
+
+    for name in README_NAMES:
+        text = (REPO / name).read_text(encoding="utf-8")
+        assert all(f"]({target})" in text for target in README_NAMES)
+        assert "0.5.1" in text
+        assert "26" in text
 
 
 def test_development_briefs_are_unique_and_actionable():

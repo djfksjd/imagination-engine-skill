@@ -16,7 +16,7 @@
 ---
 
 > [!TIP]
-> 通常は統合版 [Imagination](https://github.com/djfksjd/imagination) を
+> 通常は統合版 [Imagination Octo](https://github.com/djfksjd/imagination-octo) を
 > 推奨します。本エンジンとコンセプトワークショップを選択境界つきで提供します。
 
 Imagination Engine は、名前や見た目ではなく **因果メカニズム** が異なる

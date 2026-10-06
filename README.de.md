@@ -17,7 +17,7 @@
 
 > [!TIP]
 > Für die meisten Nutzer empfehlen wir
-> [Imagination](https://github.com/djfksjd/imagination). Es verbindet diesen
+> [Imagination Octo](https://github.com/djfksjd/imagination-octo). Es verbindet diesen
 > Motor mit dem Konzept-Workshop und lässt die Auswahl bei dir.
 
 Imagination Engine erzeugt 3–5 Ideen, die sich im **kausalen Mechanismus**

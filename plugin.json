@@ -1,11 +1,11 @@
 {
-  "name": "imagination-engine",
-  "version": "0.5.3",
+  "name": "imagination-octo-engine",
+  "version": "0.5.4",
   "description": "Experimental idea generation that preserves brief fit while producing a portfolio of causally different, non-obvious directions. Runs in Claude Code and Codex.",
   "skills": "./skills/",
   "interface": {
-    "displayName": "Imagination Engine",
+    "displayName": "Imagination Octo Engine",
     "shortDescription": "Useful, non-obvious idea portfolios",
-    "defaultPrompt": "Use $imagination-engine to generate several genuinely different ideas for this brief."
+    "defaultPrompt": "Use $imagination-octo-engine to generate several genuinely different ideas for this brief."
   }
 }

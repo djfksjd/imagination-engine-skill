@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "imagination-engine",
-  "version": "0.5.3",
+  "name": "imagination-octo-engine",
+  "version": "0.5.4",
   "description": "Experimental idea generation that preserves brief fit while producing several causally different, non-obvious directions. During evaluation, use only when explicitly invoked. Works in any language.",
   "author": {
     "name": "djfksjd",
     "url": "https://github.com/djfksjd"
   },
-  "homepage": "https://github.com/djfksjd/imagination-engine-skill",
-  "repository": "https://github.com/djfksjd/imagination-engine-skill",
+  "homepage": "https://github.com/djfksjd/imagination-octo-engine",
+  "repository": "https://github.com/djfksjd/imagination-octo-engine",
   "license": "MIT",
   "keywords": [
     "creativity",

@@ -1,6 +1,6 @@
 # Repository guide
 
-The runtime skill is `skills/imagination-engine/SKILL.md`. Keep it concise,
+The runtime skill is `skills/imagination-octo-engine/SKILL.md`. Keep it concise,
 high-freedom, and free of evaluation implementation details.
 
 - Do not add deterministic gates to the creative runtime.

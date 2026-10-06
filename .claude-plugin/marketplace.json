@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "djfksjd",
+  "name": "imagination-octo-engine",
   "owner": {
     "name": "djfksjd",
     "url": "https://github.com/djfksjd"
@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "imagination-engine",
+      "name": "imagination-octo-engine",
       "source": "./",
       "description": "Experimental idea generation that protects brief fit and returns a portfolio of causally different, non-obvious directions."
     }

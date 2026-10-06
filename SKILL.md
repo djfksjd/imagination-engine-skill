@@ -1,1 +1,1 @@
-skills/imagination-engine/SKILL.md
+skills/imagination-octo-engine/SKILL.md

@@ -1,13 +1,13 @@
 {
-  "name": "imagination-engine",
-  "version": "0.5.3",
+  "name": "imagination-octo-engine",
+  "version": "0.5.4",
   "description": "Experimental idea generation that preserves brief fit while producing a portfolio of causally different, non-obvious directions.",
   "author": {
     "name": "djfksjd",
     "url": "https://github.com/djfksjd"
   },
-  "homepage": "https://github.com/djfksjd/imagination-engine-skill",
-  "repository": "https://github.com/djfksjd/imagination-engine-skill",
+  "homepage": "https://github.com/djfksjd/imagination-octo-engine",
+  "repository": "https://github.com/djfksjd/imagination-octo-engine",
   "license": "MIT",
   "keywords": [
     "creativity",
@@ -17,13 +17,13 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Imagination Engine",
+    "displayName": "Imagination Octo Engine",
     "shortDescription": "Useful, non-obvious idea portfolios",
     "longDescription": "A concise experimental ideation skill that protects the user's non-negotiables, explores direct answers, remote causal mechanisms, and single-premise shifts, then privately proves each survivor before returning a small portfolio of genuinely different directions. Fit is a veto; randomness and strangeness are not goals by themselves. Runtime evaluation gates were removed and moved to an offline blind A/B harness.",
-    "defaultPrompt": "Use $imagination-engine to generate several genuinely different ideas for this brief.",
+    "defaultPrompt": "Use $imagination-octo-engine to generate several genuinely different ideas for this brief.",
     "developerName": "djfksjd",
     "category": "Creativity",
     "capabilities": ["Read"],
-    "websiteURL": "https://github.com/djfksjd/imagination-engine-skill"
+    "websiteURL": "https://github.com/djfksjd/imagination-octo-engine"
   }
 }

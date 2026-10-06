@@ -1,9 +1,9 @@
 ---
-name: imagination-engine
-description: "Generate several non-obvious, useful ideas without sacrificing the user's brief. Use only when the user explicitly invokes imagination-engine while v0.5 is being evaluated, especially for concepts, premises, mechanics, products, services, worlds, rituals, or when previous ideas feel generic. Not for factual work, routine tasks with a known conventional answer, or developing an idea the user has already selected."
+name: imagination-octo-engine
+description: "Generate several non-obvious, useful ideas without sacrificing the user's brief. Use only when the user explicitly invokes imagination-octo-engine while v0.5 is being evaluated, especially for concepts, premises, mechanics, products, services, worlds, rituals, or when previous ideas feel generic. Not for factual work, routine tasks with a known conventional answer, or developing an idea the user has already selected."
 ---
 
-# Imagination Engine
+# Imagination Octo Engine
 
 Produce **useful surprise**: an idea should feel non-obvious after it is
 understood, yet clearly serve the brief. Treat fit as a veto. Randomness,
@@ -125,7 +125,7 @@ the hidden process unless the task actually needs it.
 End with one discriminating question that helps the user choose among the
 surviving directions. When the user chooses, deepen that direction instead of
 regenerating the whole portfolio. If they want a full concept review, hand off
-to `imagination-brainstorming` when it is available. Do not choose on the
+to `imagination-octo-brainstorming` when it is available. Do not choose on the
 user's behalf or automatically chain the workshop; their choice is the
 decision boundary between divergence and development.
 

@@ -8,7 +8,7 @@ a pipeline. Keep it out of the model context during generation.
 - **Control:** use `prompts/control.md` in a clean, tool-less context with no
   installed imagination skill.
 - **Treatment:** use `prompts/treatment.md` in a clean context that can load
-  only the current `imagination-engine` skill.
+  only the current `imagination-octo-engine` skill.
 - Pin the model, model version, temperature, reasoning setting, maximum output
   tokens, and number of runs. Record them before generation.
 - Use five independent runs per brief for confirmation. Development pilots may

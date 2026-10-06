@@ -18,7 +18,7 @@ A compact divergent-ideation skill for Codex and Claude Code.
 ---
 
 > [!TIP]
-> **Most users should install [Imagination](https://github.com/djfksjd/imagination).**
+> **Most users should install [Imagination Octo](https://github.com/djfksjd/imagination-octo).**
 > It combines this engine with a concept workshop while keeping your choice
 > between the two stages.
 

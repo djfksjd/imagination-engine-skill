@@ -17,7 +17,7 @@
 
 > [!TIP]
 > 大多数用户建议安装整合版
-> [Imagination](https://github.com/djfksjd/imagination)，在发散与深化之间
+> [Imagination Octo](https://github.com/djfksjd/imagination-octo)，在发散与深化之间
 > 保留用户选择。
 
 Imagination Engine 生成 3–5 个在 **因果机制** 上真正不同的方向，而非只

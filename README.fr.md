@@ -17,7 +17,7 @@
 
 > [!TIP]
 > Pour la plupart des usages, installez
-> [Imagination](https://github.com/djfksjd/imagination), qui réunit ce moteur et
+> [Imagination Octo](https://github.com/djfksjd/imagination-octo), qui réunit ce moteur et
 > l’atelier conceptuel tout en conservant votre choix entre les deux phases.
 
 Imagination Engine produit 3 à 5 idées différentes par **mécanisme causal**,

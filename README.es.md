@@ -17,7 +17,7 @@
 
 > [!TIP]
 > Para la mayoría recomendamos
-> [Imagination](https://github.com/djfksjd/imagination), que une este motor y el
+> [Imagination Octo](https://github.com/djfksjd/imagination-octo), que une este motor y el
 > taller conceptual manteniendo tu elección entre ambas fases.
 
 Imagination Engine produce 3–5 ideas distintas por **mecanismo causal**, no solo

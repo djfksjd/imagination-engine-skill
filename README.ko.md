@@ -18,7 +18,7 @@ Codex와 Claude Code를 위한 간결한 아이디어 발산 스킬입니다.
 ---
 
 > [!TIP]
-> **대부분의 사용자는 통합 [Imagination](https://github.com/djfksjd/imagination)을
+> **대부분의 사용자는 통합 [Imagination Octo](https://github.com/djfksjd/imagination-octo)를
 > 권장합니다.** 이 엔진과 컨셉 워크숍을 묶되 두 단계 사이의 선택은
 > 사용자에게 남깁니다.
 

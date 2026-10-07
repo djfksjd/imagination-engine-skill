@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine 会给出三到五个在因果机制上不同的想法�
 > [!TIP]
 > **大多数用户建议安装 [Imagination Octo](https://github.com/djfksjd/imagination-octo)。** 它把这个引擎与头脑风暴工作坊组合在一起，并把两者之间的选择留给你。
 
-**当前为 `v0.7.0`。** 当宿主可以运行子代理时，每一轮搜索现在都在各自全新的上下文中进行，令牌消耗约为原来的三到四倍。下列测量来自由 AI 评审的小规模比较，不代表普遍意义上的创造力。隐式调用保持关闭，请用技能名称调用。
+**当前为 `v0.7.1`。** 当宿主可以运行子代理时，每一轮搜索现在都在各自全新的上下文中进行，令牌消耗约为原来的三到四倍。下列测量来自由 AI 评审的小规模比较，不代表普遍意义上的创造力。隐式调用保持关闭，请用技能名称调用。
 
 ## 功能
 

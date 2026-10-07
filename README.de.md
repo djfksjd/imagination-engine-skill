@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine liefert drei bis fünf Ideen, die sich im kausalen Mecha
 > [!TIP]
 > **Die meisten sollten [Imagination Octo](https://github.com/djfksjd/imagination-octo) installieren.** Es verbindet diese Engine mit dem Brainstorming-Workshop und lässt die Wahl dazwischen bei dir.
 
-**Dies ist `v0.7.0`.** Wenn der Host Sub-Agenten ausführen kann, läuft jeder Suchdurchgang jetzt in einem eigenen frischen Kontext, was etwa drei- bis viermal so viele Tokens kostet. Die Messwerte unten stammen aus kleinen, von KI bewerteten Vergleichen und sind kein Anspruch auf universelle Kreativität. Der implizite Aufruf bleibt aus: Rufe den Skill mit seinem Namen auf.
+**Dies ist `v0.7.1`.** Wenn der Host Sub-Agenten ausführen kann, läuft jeder Suchdurchgang jetzt in einem eigenen frischen Kontext, was etwa drei- bis viermal so viele Tokens kostet. Die Messwerte unten stammen aus kleinen, von KI bewerteten Vergleichen und sind kein Anspruch auf universelle Kreativität. Der implizite Aufruf bleibt aus: Rufe den Skill mit seinem Namen auf.
 
 ## Was es tut
 

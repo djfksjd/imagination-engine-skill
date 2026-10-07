@@ -1,6 +1,6 @@
 ---
 name: imagination-octo-engine
-description: "Generate several non-obvious, useful ideas without sacrificing the user's brief. Use only when the user explicitly invokes imagination-octo-engine while v0.5 is being evaluated, especially for concepts, premises, mechanics, products, services, worlds, rituals, or when previous ideas feel generic. Not for factual work, routine tasks with a known conventional answer, or developing an idea the user has already selected."
+description: "Generate several non-obvious, useful ideas without sacrificing the user's brief. Use only when the user explicitly invokes imagination-octo-engine while it is being evaluated, especially for concepts, premises, mechanics, products, services, worlds, rituals, or when previous ideas feel generic. Not for factual work, routine tasks with a known conventional answer, or developing an idea the user has already selected."
 ---
 
 # Imagination Octo Engine
@@ -34,6 +34,16 @@ manufacture novelty where novelty has no value.
 Search in three passes. Scale the number of rough candidates to the task; three
 to five per pass is usually enough.
 
+Candidates produced in one context anchor on each other, so separate the
+passes when the host allows it. If you can dispatch sub-agents or parallel
+workers that start without this conversation, give each pass to its own worker,
+all at once. Send each worker only the brief with its non-negotiables and
+rejected mechanisms, in the user's language, plus its one pass instruction.
+Ask for four or five rough candidates as plain sketches: what happens, the
+mechanism that makes it work, and what could break it. Tell no worker what
+another found. When no such workers exist, or the request is too small to
+justify them, run the passes yourself and finish each before starting the next.
+
 1. **Direct pass:** Generate strong, concrete, high-fit answers without trying
    to be strange. This protects the brief from being lost during divergence.
 2. **Mechanism-transfer pass:** Borrow causal mechanisms from unrelated
@@ -47,6 +57,10 @@ When field-relative novelty matters and research tools are available, inspect
 the nearest existing approaches and a few remote domains before the transfer
 pass. Use retrieved material as raw material, not as authority. Never delay a
 simple creative request with unnecessary research.
+
+Pooled candidates are raw material, not a draft. Workers overlap, and a rough
+sketch can hide a constraint violation, so everything below applies to each of
+them. Add a candidate of your own when the pool lacks a mechanism family.
 
 Keep the candidates independent. Do not force unrelated survivors into one
 hybrid. Combine ideas only when a single causal mechanism genuinely supports

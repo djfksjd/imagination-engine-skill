@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.5.4-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine 会给出三到五个在因果机制上不同的想法�
 > [!TIP]
 > **大多数用户建议安装 [Imagination Octo](https://github.com/djfksjd/imagination-octo)。** 它把这个引擎与头脑风暴工作坊组合在一起，并把两者之间的选择留给你。
 
-**当前为 `v0.5.4`，是以 v0.5.3 评估的运行时的仅改名版本。** 下列测量来自由 AI 评审的小规模比较，不代表普遍意义上的创造力。隐式调用保持关闭，请用技能名称调用。
+**当前为 `v0.7.0`。** 当宿主可以运行子代理时，每一轮搜索现在都在各自全新的上下文中进行，令牌消耗约为原来的三到四倍。下列测量来自由 AI 评审的小规模比较，不代表普遍意义上的创造力。隐式调用保持关闭，请用技能名称调用。
 
 ## 功能
 
@@ -56,6 +56,7 @@ Imagination Octo Engine 会给出三到五个在因果机制上不同的想法�
                                     ◆ YOU CHOOSE ◆        the engine never picks for you
 ```
 
+- 当宿主可以运行子代理时，每一轮搜索交给一个拥有全新上下文的工作者，候选方案不会互相牵引。否则各轮依次进行。
 - 搜索和证明在幕后完成。你得到的是想法，而不是一份流水线已运行的报告。
 - 运行时只加载一个 Markdown 文件：没有脚本、随机牌组、自评分或闸门。
 
@@ -84,8 +85,9 @@ v0.5.3 与强普通提示的预注册盲测比较：10 份全新的英文和韩�
 请如实解读：
 
 - **生成和评审都只有一个模型。** 仅 `gpt-5.4`，评审也来自同一系列。偏好的 95% Wilson 区间为 92.9–100.0%。
+- **v0.7.0 在预注册实验中胜过 v0.5.3，令牌消耗为三到四倍。** 在 [Experiment C](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-07-experiment-c.md) 中，它在 `gpt-5.5` 的 12 份简报中有 11 份、在 `claude-opus-5-5` 的 12 份中有 10 份更受青睐，有用的意外性分别提高 +0.44 和 +0.29。但按我们的编码，它的机制并不比以前更少见，所以收益更多来自选得更好、打磨得更好的想法，而不是更奇特的想法。实验用独立调用模拟子代理，评审是另一模型系列而不是人。
 - **已有跨模型实验，但其偏好结果目前无效。** 在 [Experiment A](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-a.md) 中，引擎在 `gpt-5.5` 的 12 份简报中有 11 份、在 `claude-opus-5-5` 的 12 份中有 10 份更受青睐。但评审能猜出哪一方使用了技能，因此按事先确定的规则，在重新评审前这些数字不作为依据。
-- **已知弱点。** 在 Claude 上它给出的想法比普通提示少（3.8 个对 4.5 个），多次运行之间仍有 40–50% 的机制重合。
+- **已知弱点。** 多次运行之间仍有近一半的机制重合（Experiment C 中为 0.47 和 0.48），在 Claude 上给出的想法也比普通提示略少（4.3 个对 4.6 个）。与 v0.7.0 一同测试的更严格的“大胆”选择规则未通过门槛，没有发布。
 - **两次重新设计都失败了。** [候选版本 v0.6.0](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-b.md) 在新简报上未能胜过 v0.5.3，没有发布。更早的牌组与闸门流水线（v0.4.0）以 48 倍成本对普通提示 0 比 30 落败；它作为记录保留在 [`legacy/v0.4.0/`](legacy/v0.4.0/)，运行时从不加载。
 
 协议、判定规则与冻结的结果：[`evals/`](evals/README.md)。
@@ -98,7 +100,7 @@ v0.5.3 与强普通提示的预注册盲测比较：10 份全新的英文和韩�
 
 ## 由 `imagination-engine` 更名而来
 
-在 v0.5.3 之前，本仓库名为 `imagination-engine-skill`，技能名为 `$imagination-engine`。GitHub 会重定向旧地址，但插件名、市场 ID 和命令已更改：请安装 `imagination-octo-engine@imagination-octo-engine`，并使用 `$imagination-octo-engine` 调用。除此之外运行时指令没有变化。
+在 v0.5.3 之前，本仓库名为 `imagination-engine-skill`，技能名为 `$imagination-engine`。GitHub 会重定向旧地址，但插件名、市场 ID 和命令已更改：请安装 `imagination-octo-engine@imagination-octo-engine`，并使用 `$imagination-octo-engine` 调用。
 
 ## 单独安装
 

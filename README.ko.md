@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.5.4-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine은 이름이나 분위기가 아니라 인과적 메커�
 > [!TIP]
 > **대부분의 사용자에게는 [Imagination Octo](https://github.com/djfksjd/imagination-octo) 설치를 권합니다.** 이 엔진과 브레인스토밍 워크숍을 묶고, 두 단계 사이의 선택은 사용자에게 남깁니다.
 
-**현재 `v0.5.4`이며, v0.5.3으로 평가한 런타임의 이름만 바꾼 릴리스입니다.** 아래 측정값은 AI가 심사한 소규모 비교에서 나왔고, 보편적 창의성을 주장하지 않습니다. 자동 호출은 꺼져 있으니 스킬 이름으로 직접 호출하세요.
+**현재 `v0.7.0`입니다.** 호스트가 서브에이전트를 돌릴 수 있으면 탐색 단계마다 별도의 새 컨텍스트에서 실행하며, 그만큼 토큰을 3~4배 정도 씁니다. 아래 측정값은 AI가 심사한 소규모 비교에서 나왔고, 보편적 창의성을 주장하지 않습니다. 자동 호출은 꺼져 있으니 스킬 이름으로 직접 호출하세요.
 
 ## 하는 일
 
@@ -56,6 +56,7 @@ Imagination Octo Engine은 이름이나 분위기가 아니라 인과적 메커�
                                     ◆ YOU CHOOSE ◆        the engine never picks for you
 ```
 
+- 호스트가 서브에이전트를 돌릴 수 있으면 탐색 단계마다 새 컨텍스트의 작업자에게 따로 맡겨, 후보들이 서로에게 끌려가지 않게 합니다. 그렇지 않으면 단계를 차례로 실행합니다.
 - 탐색과 증명은 보이지 않게 진행됩니다. 받는 것은 아이디어이지, 파이프라인이 돌았다는 보고서가 아닙니다.
 - 실행 시 불러오는 것은 Markdown 파일 하나뿐입니다. 스크립트, 랜덤 덱, 자기 채점, 게이트가 없습니다.
 
@@ -84,8 +85,9 @@ v0.5.3을 강한 일반 프롬프트와 비교한 사전 등록 블라인드 결
 정직하게 읽는 법:
 
 - **생성도 심사도 모델 하나였습니다.** `gpt-5.4`뿐이고 심사자도 같은 계열입니다. 선호도의 95% Wilson 구간은 92.9–100.0%입니다.
+- **v0.7.0은 사전 등록 실험에서 v0.5.3을 이겼고, 토큰은 3~4배 듭니다.** [Experiment C](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-07-experiment-c.md)에서 `gpt-5.5`로는 브리프 12개 중 11개, `claude-opus-5-5`로는 12개 중 10개에서 선호됐고, 유용한 의외성은 +0.44, +0.29 올랐습니다. 다만 우리 코딩 기준으로 메커니즘이 전보다 더 드물어지지는 않았으므로, 이득은 더 낯선 아이디어보다는 더 잘 고르고 더 잘 다듬은 아이디어에 가깝습니다. 서브에이전트는 별도 호출로 흉내 냈고, 심사는 사람이 아니라 다른 모델 계열이 했습니다.
 - **교차 모델 실험이 있지만, 선호도 결과는 현재 무효입니다.** [Experiment A](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-a.md)에서 엔진은 `gpt-5.5`로 브리프 12개 중 11개, `claude-opus-5-5`로 12개 중 10개에서 선호됐습니다. 그러나 심사자가 어느 쪽이 스킬을 썼는지 알아맞혔기 때문에, 미리 정한 규칙에 따라 재심사 전까지 이 수치는 근거로 쓰지 않습니다.
-- **알려진 약점.** Claude에서는 일반 프롬프트보다 아이디어 수가 적고(3.8개 대 4.5개), 따로 실행해도 메커니즘의 40–50%가 겹칩니다.
+- **알려진 약점.** 따로 실행해도 메커니즘의 절반 가까이가 겹치고(Experiment C에서 0.47, 0.48), Claude에서는 일반 프롬프트보다 아이디어 수가 조금 적습니다(4.3개 대 4.6개). v0.7.0과 함께 시험한 더 엄격한 "과감" 선택 규칙은 관문을 통과하지 못해 출시하지 않았습니다.
 - **재설계가 두 번 실패했습니다.** [후보 v0.6.0](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-b.md)은 새 브리프에서 v0.5.3을 이기지 못해 출시하지 않았습니다. 그 전의 덱·게이트 파이프라인(v0.4.0)은 48배 비용을 쓰고도 일반 프롬프트에 0 대 30으로 졌습니다. 기록으로 [`legacy/v0.4.0/`](legacy/v0.4.0/)에 남겨 두었고 실행 시에는 불러오지 않습니다.
 
 프로토콜, 판정 규칙, 고정된 결과 파일: [`evals/`](evals/README.md).
@@ -98,7 +100,7 @@ v0.5.3을 강한 일반 프롬프트와 비교한 사전 등록 블라인드 결
 
 ## `imagination-engine`에서 이름이 바뀌었습니다
 
-v0.5.3까지 이 저장소는 `imagination-engine-skill`, 스킬은 `$imagination-engine`이었습니다. 예전 URL은 GitHub가 리다이렉트하지만 플러그인 이름, 마켓플레이스 ID, 명령은 바뀌었습니다. `imagination-octo-engine@imagination-octo-engine`을 설치하고 `$imagination-octo-engine`으로 호출하세요. 그 밖의 런타임 지시문은 그대로입니다.
+v0.5.3까지 이 저장소는 `imagination-engine-skill`, 스킬은 `$imagination-engine`이었습니다. 예전 URL은 GitHub가 리다이렉트하지만 플러그인 이름, 마켓플레이스 ID, 명령은 바뀌었습니다. `imagination-octo-engine@imagination-octo-engine`을 설치하고 `$imagination-octo-engine`으로 호출하세요.
 
 ## 단독 설치
 

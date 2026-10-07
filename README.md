@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.5.4-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine returns three to five ideas that differ in causal mechan
 > [!TIP]
 > **Most users should install [Imagination Octo](https://github.com/djfksjd/imagination-octo).** It pairs this engine with the brainstorming workshop and keeps your choice between the two.
 
-**This is `v0.5.4`, a rename-only release of the runtime evaluated as v0.5.3.** The measurements below come from small AI-judged comparisons and are not a claim of universal creativity. Implicit invocation stays off: call the skill by name.
+**This is `v0.7.0`.** When the host can run sub-agents, each search pass now runs in its own fresh context, which costs about three to four times the tokens. The measurements below come from small AI-judged comparisons and are not a claim of universal creativity. Implicit invocation stays off: call the skill by name.
 
 ## What it does
 
@@ -56,6 +56,7 @@ Imagination Octo Engine returns three to five ideas that differ in causal mechan
                                     ◆ YOU CHOOSE ◆        the engine never picks for you
 ```
 
+- When the host can run sub-agents, each pass goes to its own worker with a fresh context, so candidates do not anchor on each other. Otherwise the passes run one after another.
 - Search and proof stay private. You get the ideas, not a report that a pipeline ran.
 - Nothing but one Markdown file is loaded at run time: no script, random deck, self-score, or gate.
 
@@ -84,8 +85,9 @@ v0.5.3 against a strong plain prompt, preregistered and blind: 10 fresh English 
 Read these honestly:
 
 - **One model generated and judged.** `gpt-5.4` only, with judges from the same family. The 95% Wilson interval for preference is 92.9–100.0%.
+- **v0.7.0 beat v0.5.3 in a preregistered run, at 3–4× the tokens.** In [Experiment C](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-07-experiment-c.md) it was preferred on 11 of 12 briefs with `gpt-5.5` and 10 of 12 with `claude-opus-5-5`, with useful surprise up +0.44 and +0.29. By our coding its mechanisms were no rarer than before, so the gain is better-chosen, better-worked ideas more than stranger ones. The run emulated sub-agents with separate calls and was judged by the other model family, not by people.
 - **A cross-model run exists, and its preference result is void for now.** In [Experiment A](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-a.md) the engine was preferred on 11 of 12 briefs with `gpt-5.5` and 10 of 12 with `claude-opus-5-5`. But judges could tell which side used the skill, so under the rule fixed in advance those numbers do not count until they are re-judged.
-- **Known weaknesses.** On Claude it returns fewer ideas than a plain prompt (3.8 against 4.5), and separate runs still share 40–50% of their mechanisms.
+- **Known weaknesses.** Separate runs still share close to half of their mechanisms (0.47 and 0.48 in Experiment C), and on Claude it returns slightly fewer ideas than a plain prompt (4.3 against 4.6). A stricter "bolder" selection rule tested alongside v0.7.0 failed its gate and was not shipped.
 - **Two redesigns failed.** A [candidate v0.6.0](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-b.md) did not beat v0.5.3 on fresh briefs and was not shipped. The earlier deck-and-gate pipeline (v0.4.0) lost 0–30 to a plain prompt at 48× the cost; it is kept under [`legacy/v0.4.0/`](legacy/v0.4.0/) as a record and is never loaded.
 
 Protocol, decision rule, and frozen results: [`evals/`](evals/README.md).
@@ -98,7 +100,7 @@ Protocol, decision rule, and frozen results: [`evals/`](evals/README.md).
 
 ## Renamed from `imagination-engine`
 
-Up to v0.5.3 this repository was `imagination-engine-skill` and the skill was `$imagination-engine`. GitHub redirects the old URL, but the plugin, the marketplace id, and the command changed: install `imagination-octo-engine@imagination-octo-engine` and call `$imagination-octo-engine`. The runtime instructions are otherwise unchanged.
+Up to v0.5.3 this repository was `imagination-engine-skill` and the skill was `$imagination-engine`. GitHub redirects the old URL, but the plugin, the marketplace id, and the command changed: install `imagination-octo-engine@imagination-octo-engine` and call `$imagination-octo-engine`.
 
 ## Standalone install
 

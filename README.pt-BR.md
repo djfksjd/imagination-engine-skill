@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.5.4-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ O Imagination Octo Engine devolve de três a cinco ideias que diferem no mecanis
 > [!TIP]
 > **A maioria das pessoas deve instalar o [Imagination Octo](https://github.com/djfksjd/imagination-octo).** Ele une este motor à oficina de brainstorming e deixa com você a escolha entre os dois.
 
-**Esta é a `v0.5.4`, uma versão que apenas renomeia o runtime avaliado como v0.5.3.** As medições abaixo vêm de comparações pequenas julgadas por IA e não afirmam criatividade universal. A invocação implícita continua desligada: chame a skill pelo nome.
+**Esta é a `v0.7.0`.** Quando o host consegue executar subagentes, cada passagem de busca agora roda em seu próprio contexto novo, o que custa cerca de três a quatro vezes mais tokens. As medições abaixo vêm de comparações pequenas julgadas por IA e não afirmam criatividade universal. A invocação implícita continua desligada: chame a skill pelo nome.
 
 ## O que ele faz
 
@@ -56,6 +56,7 @@ O Imagination Octo Engine devolve de três a cinco ideias que diferem no mecanis
                                     ◆ YOU CHOOSE ◆        the engine never picks for you
 ```
 
+- Quando o host consegue executar subagentes, cada passagem vai para um trabalhador com contexto novo, para que as candidatas não se ancorem umas nas outras. Caso contrário, as passagens rodam uma após a outra.
 - A busca e a prova ficam privadas. Você recebe as ideias, não um relatório de que um pipeline rodou.
 - Em tempo de execução só um arquivo Markdown é carregado: sem script, baralho aleatório, autoavaliação ou portão.
 
@@ -84,8 +85,9 @@ v0.5.3 contra um prompt simples forte, pré-registrado e às cegas: 10 briefs no
 Leia com honestidade:
 
 - **Um único modelo gerou e julgou.** Apenas `gpt-5.4`, com juízes da mesma família. O intervalo de Wilson de 95% para a preferência é 92,9–100,0%.
+- **A v0.7.0 superou a v0.5.3 em um experimento pré-registrado, com 3–4× os tokens.** No [Experimento C](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-07-experiment-c.md) ela foi preferida em 11 de 12 briefs com `gpt-5.5` e em 10 de 12 com `claude-opus-5-5`, com a surpresa útil subindo +0,44 e +0.29. Pela nossa codificação, seus mecanismos não foram mais raros que antes, então o ganho está em ideias mais bem escolhidas e mais bem trabalhadas, mais do que em ideias mais estranhas. O experimento emulou subagentes com chamadas separadas e foi julgado pela outra família de modelos, não por pessoas.
 - **Existe um experimento entre modelos, e o resultado de preferência está anulado por enquanto.** No [Experimento A](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-a.md) o motor foi preferido em 11 de 12 briefs com `gpt-5.5` e em 10 de 12 com `claude-opus-5-5`. Mas os juízes acertavam qual lado usava a skill; pela regra fixada de antemão, esses números não contam até serem julgados de novo.
-- **Fraquezas conhecidas.** Com o Claude ele devolve menos ideias que um prompt simples (3,8 contra 4,5), e execuções separadas ainda compartilham 40–50% dos mecanismos.
+- **Fraquezas conhecidas.** Execuções separadas ainda compartilham quase metade dos mecanismos (0,47 e 0,48 no Experimento C), e com o Claude ele devolve um pouco menos de ideias que um prompt simples (4,3 contra 4,6). Uma regra de seleção "ousada" mais rígida, testada junto com a v0.7.0, não passou no seu critério e não foi lançada.
 - **Duas reformulações falharam.** Uma [candidata v0.6.0](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-b.md) não superou a v0.5.3 em briefs novos e não foi lançada. O pipeline anterior de baralho e portões (v0.4.0) perdeu de 0–30 para um prompt simples com 48× o custo; ele fica em [`legacy/v0.4.0/`](legacy/v0.4.0/) como registro e nunca é carregado.
 
 Protocolo, regra de decisão e resultados congelados: [`evals/`](evals/README.md).
@@ -98,7 +100,7 @@ Protocolo, regra de decisão e resultados congelados: [`evals/`](evals/README.md
 
 ## Renomeado de `imagination-engine`
 
-Até a v0.5.3 este repositório era `imagination-engine-skill` e a skill era `$imagination-engine`. O GitHub redireciona a URL antiga, mas o plugin, o id do marketplace e o comando mudaram: instale `imagination-octo-engine@imagination-octo-engine` e chame `$imagination-octo-engine`. No restante, as instruções do runtime não mudaram.
+Até a v0.5.3 este repositório era `imagination-engine-skill` e a skill era `$imagination-engine`. O GitHub redireciona a URL antiga, mas o plugin, o id do marketplace e o comando mudaram: instale `imagination-octo-engine@imagination-octo-engine` e chame `$imagination-octo-engine`.
 
 ## Instalação independente
 

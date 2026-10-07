@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.5.4-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine は、名前や雰囲気ではなく因果メカニズ�
 > [!TIP]
 > **ほとんどの方には [Imagination Octo](https://github.com/djfksjd/imagination-octo) のインストールをおすすめします。** このエンジンとブレインストーミングのワークショップを組み合わせ、その間の選択はあなたに残します。
 
-**現在は `v0.5.4` で、v0.5.3 として評価したランタイムの名前だけを変えたリリースです。** 以下の測定値は AI が審査した小規模な比較によるもので、普遍的な創造性を主張するものではありません。暗黙の呼び出しは無効のままなので、スキル名で呼び出してください。
+**現在は `v0.7.0` です。** ホストがサブエージェントを実行できる場合、探索パスごとに新しいコンテキストで実行するようになり、その分トークンはおよそ 3〜4 倍かかります。以下の測定値は AI が審査した小規模な比較によるもので、普遍的な創造性を主張するものではありません。暗黙の呼び出しは無効のままなので、スキル名で呼び出してください。
 
 ## できること
 
@@ -56,6 +56,7 @@ Imagination Octo Engine は、名前や雰囲気ではなく因果メカニズ�
                                     ◆ YOU CHOOSE ◆        the engine never picks for you
 ```
 
+- ホストがサブエージェントを実行できる場合、各パスを新しいコンテキストのワーカーに別々に任せ、候補どうしが引きずられないようにします。できない場合はパスを順番に実行します。
 - 探索と証明は見えないところで行われます。受け取るのはアイデアであり、パイプラインが動いたという報告ではありません。
 - 実行時に読み込むのは Markdown ファイル 1 つだけです。スクリプト、ランダムデッキ、自己採点、ゲートはありません。
 
@@ -84,8 +85,9 @@ v0.5.3 を強い通常プロンプトと比べた、事前登録のブライン�
 正直に読むために:
 
 - **生成も審査もひとつのモデルでした。** `gpt-5.4` のみで、審査も同じ系列です。選好の 95% Wilson 区間は 92.9–100.0% です。
+- **v0.7.0 は事前登録した実験で v0.5.3 を上回りました。トークンは 3〜4 倍です。** [Experiment C](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-07-experiment-c.md) では、`gpt-5.5` で 12 件中 11 件、`claude-opus-5-5` で 12 件中 10 件のブリーフで好まれ、有用な意外性は +0.44 と +0.29 上がりました。ただし私たちのコーディングではメカニズムが以前より珍しくなったわけではなく、得られたのは奇抜さよりも、よりよく選ばれ練られたアイデアです。サブエージェントは別々の呼び出しで再現し、審査は人ではなく別のモデル系列が行いました。
 - **モデル横断の実験はありますが、選好結果は現時点で無効です。** [Experiment A](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-a.md) では、エンジンは `gpt-5.5` で 12 件中 11 件、`claude-opus-5-5` で 12 件中 10 件のブリーフで好まれました。しかし審査側がどちらがスキルを使ったかを言い当てたため、事前に定めた規則により、再審査までこの数値は根拠として扱いません。
-- **既知の弱点。** Claude では通常プロンプトよりアイデア数が少なく（3.8 個対 4.5 個）、別々に実行してもメカニズムの 40–50% が重なります。
+- **既知の弱点。** 別々に実行してもメカニズムの半分近くが重なり（Experiment C で 0.47 と 0.48）、Claude では通常プロンプトよりアイデア数がやや少なくなります（4.3 個対 4.6 個）。v0.7.0 と同時に試した、より厳しい「大胆」選択ルールは基準を満たせず、出荷していません。
 - **再設計は 2 回失敗しました。** [候補 v0.6.0](https://github.com/djfksjd/imagination-octo/blob/main/evals/results/2026-10-06-experiment-b.md) は新しいブリーフで v0.5.3 を上回れず、出荷していません。それ以前のデッキとゲートのパイプライン（v0.4.0）は、48 倍のコストをかけて通常プロンプトに 0 対 30 で敗れました。記録として [`legacy/v0.4.0/`](legacy/v0.4.0/) に残してあり、実行時には読み込みません。
 
 プロトコル、判定規則、固定された結果: [`evals/`](evals/README.md)。
@@ -98,7 +100,7 @@ v0.5.3 を強い通常プロンプトと比べた、事前登録のブライン�
 
 ## `imagination-engine` から改名しました
 
-v0.5.3 まで、このリポジトリは `imagination-engine-skill`、スキルは `$imagination-engine` でした。旧 URL は GitHub がリダイレクトしますが、プラグイン名、マーケットプレイス ID、コマンドは変わりました。`imagination-octo-engine@imagination-octo-engine` をインストールし、`$imagination-octo-engine` で呼び出してください。それ以外のランタイムの指示は変わっていません。
+v0.5.3 まで、このリポジトリは `imagination-engine-skill`、スキルは `$imagination-engine` でした。旧 URL は GitHub がリダイレクトしますが、プラグイン名、マーケットプレイス ID、コマンドは変わりました。`imagination-octo-engine@imagination-octo-engine` をインストールし、`$imagination-octo-engine` で呼び出してください。
 
 ## 単独インストール
 

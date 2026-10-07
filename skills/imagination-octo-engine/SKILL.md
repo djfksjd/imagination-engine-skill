@@ -35,14 +35,15 @@ Search in three passes. Scale the number of rough candidates to the task; three
 to five per pass is usually enough.
 
 Candidates produced in one context anchor on each other, so separate the
-passes when the host allows it. If you can dispatch sub-agents or parallel
-workers that start without this conversation, give each pass to its own worker,
+passes whenever the host allows it. If you can dispatch sub-agents or parallel
+workers that start without this conversation, including through a tool you
+must look up first, do it for every brief: give each pass to its own worker,
 all at once. Send each worker only the brief with its non-negotiables and
 rejected mechanisms, in the user's language, plus its one pass instruction.
 Ask for four or five rough candidates as plain sketches: what happens, the
 mechanism that makes it work, and what could break it. Tell no worker what
-another found. When no such workers exist, or the request is too small to
-justify them, run the passes yourself and finish each before starting the next.
+another found. Only when the host has no such workers, run the passes yourself
+and finish each before starting the next.
 
 1. **Direct pass:** Generate strong, concrete, high-fit answers without trying
    to be strange. This protects the brief from being lost during divergence.

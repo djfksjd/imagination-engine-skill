@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine renvoie de trois à cinq idées qui diffèrent par leur 
 > [!TIP]
 > **La plupart des utilisateurs devraient installer [Imagination Octo](https://github.com/djfksjd/imagination-octo).** Il associe ce moteur à l'atelier de brainstorming et vous laisse le choix entre les deux.
 
-**Ceci est la `v0.7.0`.** Quand l'hôte peut lancer des sous-agents, chaque passe de recherche s'exécute désormais dans son propre contexte vierge, ce qui coûte environ trois à quatre fois plus de tokens. Les mesures ci-dessous proviennent de petites comparaisons jugées par IA et ne prétendent pas à une créativité universelle. L'invocation implicite reste désactivée : appelez la skill par son nom.
+**Ceci est la `v0.7.1`.** Quand l'hôte peut lancer des sous-agents, chaque passe de recherche s'exécute désormais dans son propre contexte vierge, ce qui coûte environ trois à quatre fois plus de tokens. Les mesures ci-dessous proviennent de petites comparaisons jugées par IA et ne prétendent pas à une créativité universelle. L'invocation implicite reste désactivée : appelez la skill par son nom.
 
 ## Ce qu'il fait
 

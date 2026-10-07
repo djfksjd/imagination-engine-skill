@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine은 이름이나 분위기가 아니라 인과적 메커�
 > [!TIP]
 > **대부분의 사용자에게는 [Imagination Octo](https://github.com/djfksjd/imagination-octo) 설치를 권합니다.** 이 엔진과 브레인스토밍 워크숍을 묶고, 두 단계 사이의 선택은 사용자에게 남깁니다.
 
-**현재 `v0.7.0`입니다.** 호스트가 서브에이전트를 돌릴 수 있으면 탐색 단계마다 별도의 새 컨텍스트에서 실행하며, 그만큼 토큰을 3~4배 정도 씁니다. 아래 측정값은 AI가 심사한 소규모 비교에서 나왔고, 보편적 창의성을 주장하지 않습니다. 자동 호출은 꺼져 있으니 스킬 이름으로 직접 호출하세요.
+**현재 `v0.7.1`입니다.** 호스트가 서브에이전트를 돌릴 수 있으면 탐색 단계마다 별도의 새 컨텍스트에서 실행하며, 그만큼 토큰을 3~4배 정도 씁니다. 아래 측정값은 AI가 심사한 소규모 비교에서 나왔고, 보편적 창의성을 주장하지 않습니다. 자동 호출은 꺼져 있으니 스킬 이름으로 직접 호출하세요.
 
 ## 하는 일
 

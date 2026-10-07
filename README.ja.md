@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine は、名前や雰囲気ではなく因果メカニズ�
 > [!TIP]
 > **ほとんどの方には [Imagination Octo](https://github.com/djfksjd/imagination-octo) のインストールをおすすめします。** このエンジンとブレインストーミングのワークショップを組み合わせ、その間の選択はあなたに残します。
 
-**現在は `v0.7.0` です。** ホストがサブエージェントを実行できる場合、探索パスごとに新しいコンテキストで実行するようになり、その分トークンはおよそ 3〜4 倍かかります。以下の測定値は AI が審査した小規模な比較によるもので、普遍的な創造性を主張するものではありません。暗黙の呼び出しは無効のままなので、スキル名で呼び出してください。
+**現在は `v0.7.1` です。** ホストがサブエージェントを実行できる場合、探索パスごとに新しいコンテキストで実行するようになり、その分トークンはおよそ 3〜4 倍かかります。以下の測定値は AI が審査した小規模な比較によるもので、普遍的な創造性を主張するものではありません。暗黙の呼び出しは無効のままなので、スキル名で呼び出してください。
 
 ## できること
 

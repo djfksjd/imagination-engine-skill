@@ -7,7 +7,7 @@ REPO = Path(__file__).resolve().parents[1]
 NAME = "imagination-octo-engine"
 SKILL_DIR = REPO / "skills" / NAME
 SKILL = SKILL_DIR / "SKILL.md"
-VERSION = "0.7.0"
+VERSION = "0.7.1"
 README_NAMES = {
     "README.md",
     "README.ko.md",
@@ -92,7 +92,7 @@ def test_readmes_cover_all_supported_languages():
     for name in README_NAMES:
         text = (REPO / name).read_text(encoding="utf-8")
         assert all(f"]({target})" in text for target in README_NAMES)
-        assert "0.7.0" in text
+        assert "0.7.1" in text
         assert "50" in text
         assert f"{NAME}@{NAME}" in text
         assert f"djfksjd/{NAME}/main/install.sh" in text
@@ -155,5 +155,6 @@ def test_search_passes_can_run_in_separate_contexts():
     text = SKILL.read_text(encoding="utf-8")
     assert "give each pass to its own worker" in text
     assert "Tell no worker what" in text
-    assert "run the passes yourself" in text
+    assert "do it for every brief" in text
+    assert "Only when the host has no such workers, run the passes yourself" in text
     assert "Pooled candidates are raw material, not a draft." in text

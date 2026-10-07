@@ -1,6 +1,6 @@
 {
   "name": "imagination-octo-engine",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Experimental idea generation that preserves brief fit while producing a portfolio of causally different, non-obvious directions. Runs in Claude Code and Codex.",
   "skills": "./skills/",
   "interface": {

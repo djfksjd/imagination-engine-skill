@@ -15,7 +15,7 @@
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/djfksjd/imagination-octo-engine/tests.yml?style=flat-square&label=tests)](https://github.com/djfksjd/imagination-octo-engine/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-1f2937?style=flat-square)](LICENSE)
-![Version](https://img.shields.io/badge/version-0.7.0-d69526?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.7.1-d69526?style=flat-square)
 [![Family](https://img.shields.io/badge/part%20of-Imagination%20Octo-6d5ef5?style=flat-square)](https://github.com/djfksjd/imagination-octo)
 ![Hosts](https://img.shields.io/badge/hosts-Claude%20Code%20%C2%B7%20Codex-0ea5b7?style=flat-square)
 
@@ -26,7 +26,7 @@ Imagination Octo Engine returns three to five ideas that differ in causal mechan
 > [!TIP]
 > **Most users should install [Imagination Octo](https://github.com/djfksjd/imagination-octo).** It pairs this engine with the brainstorming workshop and keeps your choice between the two.
 
-**This is `v0.7.0`.** When the host can run sub-agents, each search pass now runs in its own fresh context, which costs about three to four times the tokens. The measurements below come from small AI-judged comparisons and are not a claim of universal creativity. Implicit invocation stays off: call the skill by name.
+**This is `v0.7.1`.** When the host can run sub-agents, each search pass now runs in its own fresh context, which costs about three to four times the tokens. The measurements below come from small AI-judged comparisons and are not a claim of universal creativity. Implicit invocation stays off: call the skill by name.
 
 ## What it does
 
